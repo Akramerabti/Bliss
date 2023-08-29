@@ -5,7 +5,11 @@ const authRoutes = require("./routes/authroutes");
 const mongoose = require("mongoose");
 const { requireAuth, checkUser } = require("./middleware/authMiddleware")
 const cookieParser = require('cookie-parser')
+const bodyparser = require('body-parser');
 
+/*assuming an express app is declared here*/
+app.use(bodyparser.json());
+app.use(bodyparser.urlencoded({extended: true}));
 app.use(cookieParser())
 
 app.use(authRoutes);
