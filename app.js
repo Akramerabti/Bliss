@@ -1,36 +1,40 @@
-const express = require("express") //requires express.js
-const app = express() //Launches express.js
+const express = require("express");
+const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const io = require('socket.io')(server);
 const nodemailer = require('nodemailer');
 const authRoutes = require("./routes/authroutes");
 const mongoose = require("mongoose");
-const { requireAuth, checkUser } = require("./middleware/authMiddleware")
-const cookieParser = require('cookie-parser')
+const { requireAuth, checkUser } = require("./middleware/authMiddleware");
+const cookieParser = require('cookie-parser');
 const bodyparser = require('body-parser');
+const path = require('path');
+const PORT = process.env.PORT || 4000;
 
 /*assuming an express app is declared here*/
 app.use(bodyparser.json());
-app.use(bodyparser.urlencoded({extended: true}));
-app.use(cookieParser())
+app.use(bodyparser.urlencoded({ extended: true }));
 
+app.use(cookieParser());
 app.use(authRoutes);
 
-app.use(express.static("/public")) //Helps get mongodb data
-app.use(express.json())
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
-app.set('view engine', "ejs" ) //Setting the "view engine" name default by express.js as "hbs"
+let socketsConnected = new Set();
+io.on('connection', onConnected);
 
+app.set('view engine', "ejs"); //Setting the "view engine" name default by express.js as "hbs"
 
-    const dbURI = 'mongodb+srv://Akramvd:lF9UjtVXF0iWsxetr2MK@cluster0.7wctpqm.mongodb.net/appdatabase';
-    mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true, })
-      .then((result) => app.listen(3000),
-      console.log("Port Connect"))
-      .catch((err) => console.log(err));
-
-
-
-
-
-
+const dbURI = 'mongodb+srv://Akramvd:lF9UjtVXF0iWsxetr2MK@cluster0.7wctpqm.mongodb.net/appdatabase';
+mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    server.listen(PORT, () => {
+      console.log(`Main server and Socket.io on port ${PORT}`);
+    });
+  })
+  .catch((err) => console.log(err));
       //ERROR I DON<T KNOW WHY BUT IN AUTHMIDDLEWARE USER IS NOT FOUND LAST ERROR OF PROJECT --------- >
     
 
@@ -50,6 +54,27 @@ app.get('/', requireAuth, (req,res) => {//when you write just local host 3000, s
 app.get("/whiteboard", requireAuth, (req,res) => {// gets http://localhost:3000    "/whiteboard" page is the whiteboard.ejs public file , and REQUIRES THE JWT TOKEN FOR LOGIN VALIDATION
     res.render('whiteboard'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
 }) 
+
+function onConnected(socket) {
+  console.log('Socket connected', socket.id)
+  socketsConnected.add(socket.id)
+  io.emit('clients-total', socketsConnected.size)
+
+  socket.on('disconnect', () => {
+    console.log('Socket disconnected', socket.id)
+    socketsConnected.delete(socket.id)
+    io.emit('clients-total', socketsConnected.size)
+  })
+
+  socket.on('message', (data) => {
+    // console.log(data)
+    socket.broadcast.emit('chat-message', data)
+  })
+
+  socket.on('feedback', (data) => {
+    socket.broadcast.emit('feedback', data)
+  })
+}
 
 // COOKIES DEF : stores data of browser then is sent back to server and we can access it, cookie holds jwt token to identify user
 //const cookieParser = require('cookie-parser');
