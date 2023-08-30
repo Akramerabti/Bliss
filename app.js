@@ -10,7 +10,7 @@ const { requireAuth, checkUser } = require("./middleware/authMiddleware");
 const cookieParser = require('cookie-parser');
 const bodyparser = require('body-parser');
 const path = require('path');
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 
 /*assuming an express app is declared here*/
 app.use(bodyparser.json());
@@ -23,7 +23,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 let socketsConnected = new Set();
-io.on('connection', onConnected);
+
+io.on('connection', (socket) =>{
+ // socket representing each user
+
+//emit event to client
+socket.emit("connected", (data) =>{
+  console.log(data)
+})
+});
 
 app.set('view engine', "ejs"); //Setting the "view engine" name default by express.js as "hbs"
 

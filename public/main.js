@@ -14,6 +14,10 @@ messageForm.addEventListener('submit', (e) => {
   sendMessage()
 })
 
+socket.on('Welcomemessage', (data) => {
+    console.log(data)
+  })
+
 socket.on('clients-total', (data) => {
   clientsTotal.innerText = `Total Clients: ${data}`
 })
