@@ -36,17 +36,15 @@ const handleErrors = (err) => {
   }
 
   // validation errors
-  if (err.message.includes('user validation failed')) {
-    // console.log(err);
-    Object.values(err.errors).forEach(({ properties }) => {
-      // console.log(val);
-      // console.log(properties);
-      errors[properties.path] = properties.message;
-    });
+  if (err.message.includes('incorrect validation')) {
+    errors.password = 'One or many entries are invalid';
+    };
+   return errors;
+   
   }
 
-    return errors;
-}
+   
+
 
 const maxAge = 5 * 24 * 60 *60
 //Jwt user login token using personal id value from MongoDB database
@@ -108,3 +106,5 @@ module.exports.logout_get = async (req, res) => {
   res.redirect('/');
 
 }
+
+

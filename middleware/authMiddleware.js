@@ -1,11 +1,16 @@
 const express = require('express');
 const cookieParser = require('cookie-parser')
-const jwt = require("jsonwebtoken")
+const mongoose=require("mongoose")
 const app = express();
+
+const jwt = require("jsonwebtoken")
 const path=require("path")
 const ejs =require("ejs")
+const User = require('../models/User');
+
 
 app.use(cookieParser()) // necessary to parse cookie into readable format
+
 
 
 const requireAuth = (req, res, next) => { // function with three attributes
@@ -31,23 +36,25 @@ const requireAuth = (req, res, next) => { // function with three attributes
 //Checking user 
 
 const checkUser = (req, res, next) => {
-    const token = req.cookies.jwt;
-    if (token) {
-      jwt.verify(token, 'net ninja secret', async (err, decodedToken) => {
-        if (err) {
-          res.locals.user = null;
-          next();
-        } else {
-          let user = await User.findById(decodedToken.id);
-          res.locals.user = user;
-          next();
-        }
-      });
-    } else {
-      res.locals.user = null;
-      next();
-    }
-  };
 
+  const token = req.cookies.jwt;
+  if (token) {
+    jwt.verify(token, 'I swear to god no one should no this and no one will ever do', async (err, decodedToken) => {
+      if (err) {
+        res.locals.user = null;
+        next();
+      } else {
+        let user = await User.findById(decodedToken.id);
+        res.locals.user = user;
+        next();
+      }
+    });
+  } else {
+    res.locals.user = null;
+    next();
+  }
+};
+
+app.use(checkUser);
   
   module.exports = { requireAuth, checkUser};

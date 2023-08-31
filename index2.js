@@ -38,8 +38,8 @@ io.on("connect", (socket) => {
   });
 });
 
-app.get("/whiteboard",(req,res) => {//gets from folder with a slash "/" request and response => (arrow function)
-  res.render('whiteboard'); //renders response for login.hbs file
+app.get("/rooms",(req,res) => {//gets from folder with a slash "/" request and response => (arrow function)
+  res.render('rooms'); //renders response for login.hbs file
 }) 
 
 let PORT = process.env.PORT || 8080;

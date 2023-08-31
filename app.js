@@ -6,11 +6,15 @@ const io = require('socket.io')(server);
 const nodemailer = require('nodemailer');
 const authRoutes = require("./routes/authroutes");
 const mongoose = require("mongoose");
-const { requireAuth, checkUser } = require("./middleware/authMiddleware");
+const { requireAuth } = require("./middleware/authMiddleware");
 const cookieParser = require('cookie-parser');
 const bodyparser = require('body-parser');
 const path = require('path');
+const User = require("./models/User");
 const PORT = process.env.PORT || 3000;
+const jwt = require("jsonwebtoken")
+
+
 
 /*assuming an express app is declared here*/
 app.use(bodyparser.json());
@@ -33,6 +37,7 @@ socket.emit("connected", (data) =>{
 })
 });
 
+
 app.set('view engine', "ejs"); //Setting the "view engine" name default by express.js as "hbs"
 
 const dbURI = 'mongodb+srv://Akramvd:lF9UjtVXF0iWsxetr2MK@cluster0.7wctpqm.mongodb.net/appdatabase';
@@ -48,21 +53,49 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
 
  // app.get("*", checkUser)  // means the checkUser function apply this to every single route
 
+ app.post('/name', function(req, res) {
+
+  var data = req.body;
+    var name = data.name;
+
+    var query = "SELECT * FROM Control WHERE name=" + name;
+    connection.query(query, function(error, result) {
+        console.log(result);
+        res.send(result);
+    });
+
+});
 
 
 
 
-
-
-
-app.get('/', requireAuth, (req,res) => {//when you write just local host 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
+app.get('/', requireAuth, (req,res) => {
+  const user = res.locals.user;//when you write just local host 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
     res.render('home'); //FETCHES HOME FILE IN PUBLIC FOLDER
 }) 
 
-app.get("/whiteboard", requireAuth, (req,res) => {// gets http://localhost:3000    "/whiteboard" page is the whiteboard.ejs public file , and REQUIRES THE JWT TOKEN FOR LOGIN VALIDATION
-    res.render('whiteboard'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
+app.get("/rooms", requireAuth, (req,res) => {
+  const user = res.locals.user;// gets http://localhost:3000    "/whiteboard" page is the whiteboard.ejs public file , and REQUIRES THE JWT TOKEN FOR LOGIN VALIDATION
+    res.render('rooms'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
 }) 
 
+app.get("/chat", requireAuth, (req,res) => {
+  const user = res.locals.user;// gets http://localhost:3000    "/whiteboard" page is the whiteboard.ejs public file , and REQUIRES THE JWT TOKEN FOR LOGIN VALIDATION
+  const roomName = req.query.room || 'defaultRoom';
+  res.render('chat'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
+}) 
+
+app.get("/chat.ejs", requireAuth, (req,res) => {
+  const user = res.locals.user;// gets http://localhost:3000    "/whiteboard" page is the whiteboard.ejs public file , and REQUIRES THE JWT TOKEN FOR LOGIN VALIDATION
+  const roomName = req.query.room || 'defaultRoom';
+  res.render('chat'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
+}) 
+
+app.get("/rooms.ejs", requireAuth, (req,res) => {
+  const user = res.locals.user;// gets http://localhost:3000    "/whiteboard" page is the whiteboard.ejs public file , and REQUIRES THE JWT TOKEN FOR LOGIN VALIDATION
+  const roomName = req.query.room || 'defaultRoom';
+  res.render('rooms'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
+}) 
 function onConnected(socket) {
   console.log('Socket connected', socket.id)
   socketsConnected.add(socket.id)

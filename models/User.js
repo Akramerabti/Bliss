@@ -59,15 +59,12 @@ LoginSchema.post('save', function (doc, next) {
         if(auths) {
             return namer
         }
-        
+        throw Error("incorrect password")
     }
     
     throw Error("incorrect validation")
 
   }
-
-
-
 
 const User= new mongoose.model ("user", LoginSchema ) //Creation of collection inside the database following the loginSchema
 
