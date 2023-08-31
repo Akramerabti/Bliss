@@ -6,13 +6,14 @@ const io = require('socket.io')(server);
 const nodemailer = require('nodemailer');
 const authRoutes = require("./routes/authroutes");
 const mongoose = require("mongoose");
-const { requireAuth } = require("./middleware/authMiddleware");
+const { requireAuth, checkUser } = require("./middleware/authMiddleware");
 const cookieParser = require('cookie-parser');
 const bodyparser = require('body-parser');
 const path = require('path');
 const User = require("./models/User");
 const PORT = process.env.PORT || 3000;
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const { checkServerIdentity } = require("tls");
 
 
 
@@ -67,7 +68,7 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
 });
 
 
-
+app.use("*", checkUser)
 
 app.get('/', requireAuth, (req,res) => {
   const user = res.locals.user;//when you write just local host 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home

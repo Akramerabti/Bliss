@@ -46,6 +46,7 @@ const checkUser = (req, res, next) => {
       } else {
         let user = await User.findById(decodedToken.id);
         res.locals.user = user;
+        console.log(user.name)
         next();
       }
     });
@@ -55,6 +56,5 @@ const checkUser = (req, res, next) => {
   }
 };
 
-app.use(checkUser);
   
   module.exports = { requireAuth, checkUser};
