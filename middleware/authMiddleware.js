@@ -40,20 +40,15 @@ const checkUser = (req, res, next) => {
   const token = req.cookies.jwt;
   if (token) {
     jwt.verify(token, 'I swear to god no one should no this and no one will ever do', async (err, decodedToken) => {
-      if (err) {
-        res.locals.user = null;
-        next();
-      } else {
         let user = await User.findById(decodedToken.id);
         res.locals.user = user;
         console.log(user.name)
         next();
       }
-    });
-  } else {
+    )}
     res.locals.user = null;
     next();
-  }
+  
 };
 
   
