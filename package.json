@@ -1,5 +1,13 @@
-{
-<<<<<<< HEAD
+{"name": "collabboard",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
     "ajax": "^0.0.4",
     "bcrypt": "^5.1.1",
@@ -18,18 +26,7 @@
     "socket.io": "^4.7.2",
     "validator": "^13.11.0"
   },
-  "name": "collabboard",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
-}
-=======
+  
     "dependencies": {
       "ajax": "^0.0.4",
       "bcrypt": "^5.1.1",
@@ -56,5 +53,5 @@
     "author": "",
     "license": "ISC",
     "description": ""
-  }
->>>>>>> ee70cd88a4520b7983b240c26542509a1f79c386
+  
+} 
