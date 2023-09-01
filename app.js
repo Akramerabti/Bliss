@@ -51,7 +51,13 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
       //ERROR I DON<T KNOW WHY BUT IN AUTHMIDDLEWARE USER IS NOT FOUND LAST ERROR OF PROJECT --------- >
     
 
- app.use ("*", checkUser)  // means the checkUser function apply this to every single route
+      app.use((req, res, next) => {
+        if (req.path !== '/login') {
+          checkUser(req, res, next);
+        } else {
+          next(); // Skip checkUser for the login page
+        }
+      });
 
  app.post('/name', function(req, res) {
 
@@ -133,6 +139,3 @@ function onConnected(socket) {
  // console.log(cookies.newUser); // gets the value of the cookie newUser
 
   //res.json(cookies); // passes it as json to the browser isEmployee we can see it as well.
-
-
-  

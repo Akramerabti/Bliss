@@ -1,6 +1,12 @@
 <%- include('partials/header'); -%>
    
     <h2>Home</h2>
-    <h2>hello {{naming}}</h2>
+    <h2>hello
+        <% if (user) { %>
+           <%= user.id %>
+           <%= user.name %>
+        <% } %>
+    </h2>
+    
     <a href="/rooms" >Collaboardate</a>
     <%- include('partials/footer'); -%>

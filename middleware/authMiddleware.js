@@ -50,9 +50,4 @@ const checkUser = (req, res, next) => {
     next();
   
 };
-<<<<<<< HEAD
-=======
-
->>>>>>> ee70cd88a4520b7983b240c26542509a1f79c386
-  
   module.exports = { requireAuth, checkUser};
