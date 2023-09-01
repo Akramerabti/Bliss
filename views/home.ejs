@@ -1,11 +1,10 @@
 <%- include('partials/header'); -%>
    
     <h2>Home</h2>
+    <% if (user) { %>
     <h2>hello
-        <% if (user) { %>
-           <%= user.id %>
            <%= user.name %>
-        <% } %>
+        <% } else{} %>
     </h2>
     
     <a href="/rooms" >Collaboardate</a>
