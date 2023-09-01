@@ -6,7 +6,7 @@ const io = require('socket.io')(server);
 const nodemailer = require('nodemailer');
 const authRoutes = require("./routes/authroutes");
 const mongoose = require("mongoose");
-const { requireAuth } = require("./middleware/authMiddleware");
+const { requireAuth,checkUser } = require("./middleware/authMiddleware");
 const cookieParser = require('cookie-parser');
 const bodyparser = require('body-parser');
 const path = require('path');
@@ -51,7 +51,7 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
       //ERROR I DON<T KNOW WHY BUT IN AUTHMIDDLEWARE USER IS NOT FOUND LAST ERROR OF PROJECT --------- >
     
 
- // app.get("*", checkUser)  // means the checkUser function apply this to every single route
+ app.use ("*", checkUser)  // means the checkUser function apply this to every single route
 
  app.post('/name', function(req, res) {
 
@@ -69,8 +69,7 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
 
 
 
-app.get('/', requireAuth, (req,res) => {
-  const user = res.locals.user;//when you write just local host 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
+app.get('/', requireAuth, (req,res) => {//when you write just local host 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
     res.render('home'); //FETCHES HOME FILE IN PUBLIC FOLDER
 }) 
 
@@ -86,14 +85,10 @@ app.get("/chat", requireAuth, (req,res) => {
 }) 
 
 app.get("/chat.ejs", requireAuth, (req,res) => {
-  const user = res.locals.user;// gets http://localhost:3000    "/whiteboard" page is the whiteboard.ejs public file , and REQUIRES THE JWT TOKEN FOR LOGIN VALIDATION
-  const roomName = req.query.room || 'defaultRoom';
   res.render('chat'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
 }) 
 
 app.get("/rooms.ejs", requireAuth, (req,res) => {
-  const user = res.locals.user;// gets http://localhost:3000    "/whiteboard" page is the whiteboard.ejs public file , and REQUIRES THE JWT TOKEN FOR LOGIN VALIDATION
-  const roomName = req.query.room || 'defaultRoom';
   res.render('rooms'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
 }) 
 function onConnected(socket) {
