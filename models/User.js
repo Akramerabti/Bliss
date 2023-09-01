@@ -66,6 +66,6 @@ LoginSchema.post('save', function (doc, next) {
 
   }
 
-const User= new mongoose.model ("user", LoginSchema ) //Creation of collection inside the database following the loginSchema
+  const User = mongoose.model('user', LoginSchema);
 
-module.exports= User //To get the collection in the index.js
+  module.exports = User;
