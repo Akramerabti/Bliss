@@ -125,7 +125,7 @@ app.get("/chat", requireAuth, (req, res) => {
 app.get("/rooms", requireAuth, (req, res) => {
   const user = res.locals.user;
   console.log(user)
-  res.render(path.join(__dirname, 'public', 'rooms'), { user});
+  res.render(path.join(__dirname, 'public', 'rooms'), {user});
 });
 function onConnected(socket) {
   console.log('Socket connected', socket.id)

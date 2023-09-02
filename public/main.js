@@ -21,7 +21,7 @@ const userList = document.getElementById("users")
 const socket = io()
   
   // Log when you join a room
-  socket.emit('joinRoom', { username, room });
+  socket.emit('joinRoom', { username, room: room.room});
 
   socket.on('roomUsers', ({ room, users }) => {
     outputRoomName(room);
@@ -92,10 +92,3 @@ const socket = io()
       window.location = '../index.html';
     }
   });
-
-
-
-
-//const apiRouter = require('./controllers/APIS');
-
-//app.use('/APIS', apiRouter);
