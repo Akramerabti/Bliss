@@ -1,10 +1,29 @@
-    <%- include('partials/header'); -%>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav>
+    <h1><a href="/">Collaboardation</a></h1>
+    <ul id = "uservalue" data-user=<%= JSON.stringify(locals.user && locals.user.name) %>>
+      <% if (locals.user)  {%>
+        <li>Welcome, <%= user.name %></li>
+        <li><a href="/logout">Log out</a></li>
+        <%} else {  %>
+        <li><a href="/login">Log in</a></li>
+        <li><a href="/signup" class="btn">Sign up</a></li>
+        <% }  %>
+    </ul>
+  </nav>
     <div class="join-container">
       <header class="join-header">
         <h1> Collababoard!</h1>
       </header>
       <main class="join-main">
-        <form action="chat.ejs">
+        <form action="/chat">
           <div class="form-control">
             <label for ="room"> Collab aboard a Server:</label>
              <input
@@ -14,14 +33,13 @@
               placeholder="Enter the Server's name"
               required
               />
-            <button type ="submit" class="btn"> Join </button>
+              <div class="flex">
+                <button type="submit" class="btn">Login to Chat</button>
+              </div>
           </div>
         </form>
       </main>
     </div>
-    <h1>hello</h1>
-    
-   <canvas id = "canvas"  width="300" height="300"> </canvas>
    <script>
     // Set a JavaScript variable with the user.name value
     const username = "<%= user.name %>";
@@ -29,5 +47,8 @@
    <script src="/socket.io/socket.io.js"></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.11.2/qs.min.js" integrity="sha512-vCegEXqPUYpZsTGz2lk0jaQ1psxtFeniVJACAXhMVxuoYa/N4nZkjoVFOxLwP7uGeQOoemiz7DQrIpRTj4IBPw==" crossorigin="anonymous"></script>
   <script src="main.js"></script>
-   <%- include('partials/footer'); -%>
+  <footer>Copyright 2022 Niggerland</footer>
+
+</body>
+</html>
   

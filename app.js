@@ -13,7 +13,12 @@ const path = require('path');
 const User = require("./models/User");
 const PORT = process.env.PORT || 3000;
 const jwt = require("jsonwebtoken")
-const {userJoin,userLeave,getCurrentUser,getRoomUsers} = require("./controllers/roomusers")
+const {
+  getActiveUser,
+  exitRoom,
+  newUser,
+  getIndividualRoomUsers
+} = require("./controllers/roomusers")
 const formatMessage = require("./controllers/messages")
 
 
@@ -26,29 +31,59 @@ app.use('/socket.io', express.static(__dirname + '/node_modules/socket.io-client
 app.use(cookieParser());
 app.use(authRoutes);
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '/public')));
 app.use(express.json());
 
-let socketsConnected = new Set();
+io.on('connection', socket => {
+  socket.on('joinRoom', ({ username, room }) => {
+    const user = newUser(socket.id, username, room);
 
-const botName = "Collaboard Captain"
+    socket.join(user.room);
 
-io.on('connection', (socket) =>{
- // socket representing each user
-  socket.on("joinRoom",({username,room})  =>{
-    const user = userJoin(socket.id,username,room)
-    socket.join(room)
+    // General welcome
+    socket.emit('message', formatMessage("WebCage", 'Messages are limited to this room! '));
 
-    const message = formatMessage(botName + `: Please welcome ${username} to ${room.room} `); // NEEDS TO BE BACK TICKS
-    io.to(room).emit("message", message);
-    
-    socket.broadcast.to(user.room).emit("message",formatMessage(botName + ` ${username} has joined the chat`)) // Emit message to the room
-  })
-//emit event to client
-socket.emit("connected", (data) =>{
-  console.log(data)
-})
+    // Broadcast everytime users connects
+    socket.broadcast
+      .to(user.room)
+      .emit(
+        'message',
+        formatMessage("WebCage", `${user.username} has joined the room`)
+      );
+
+    // Current active users and room name
+    io.to(user.room).emit('roomUsers', {
+      room: user.room,
+      users: getIndividualRoomUsers(user.room)
+    });
+  });
+
+  // Listen for client message
+  socket.on('chatMessage', msg => {
+    const user = getActiveUser(socket.id);
+
+    io.to(user.room).emit('message', formatMessage(user.username, msg));
+  });
+
+  // Runs when client disconnects
+  socket.on('disconnect', () => {
+    const user = exitRoom(socket.id);
+
+    if (user) {
+      io.to(user.room).emit(
+        'message',
+        formatMessage("WebCage", `${user.username} has left the room`)
+      );
+
+      // Current active users and room name
+      io.to(user.room).emit('roomUsers', {
+        room: user.room,
+        users: getIndividualRoomUsers(user.room)
+      });
+    }
+  });
 });
+
 
 
 
@@ -80,21 +115,18 @@ app.get('/', requireAuth, (req,res) => {//when you write just local host 3000, s
     res.render('home'); //FETCHES HOME FILE IN PUBLIC FOLDER
 }) 
 
-app.get("/rooms", requireAuth, (req,res) => {
-    res.render('rooms'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
-}) 
+app.get("/chat", requireAuth, (req, res) => {
+  const user = res.locals.user;
+  console.log(user)
+  res.render(path.join(__dirname, 'public', 'chat'), {user});
+});
 
-app.get("/chat", requireAuth, (req,res) => {
-  res.render('chat'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
-}) 
-
-app.get("/chat.ejs", requireAuth, (req,res) => {
-  res.render('chat'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
-}) 
-
-app.get("/rooms.ejs", requireAuth, (req,res) => {
-  res.render('rooms'); //FETCHES WHITEBOARD FILE IN PUBLIC FOLDER
-}) 
+// Serve the rooms.ejs file
+app.get("/rooms", requireAuth, (req, res) => {
+  const user = res.locals.user;
+  console.log(user)
+  res.render(path.join(__dirname, 'public', 'rooms'), { user});
+});
 function onConnected(socket) {
   console.log('Socket connected', socket.id)
   socketsConnected.add(socket.id)
