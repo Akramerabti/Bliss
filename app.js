@@ -13,8 +13,8 @@ const path = require('path');
 const User = require("./models/User");
 const PORT = process.env.PORT || 3000;
 const jwt = require("jsonwebtoken")
-const {userJoin,userLeave,getCurrentUser,getRoomUsers} = require("./controllers/messages")
-const formatMessage = require("./controllers/roomusers")
+const {userJoin,userLeave,getCurrentUser,getRoomUsers} = require("./controllers/roomusers")
+const formatMessage = require("./controllers/messages")
 
 
 
@@ -22,7 +22,7 @@ const formatMessage = require("./controllers/roomusers")
 /*assuming an express app is declared here*/
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
-
+app.use('/socket.io', express.static(__dirname + '/node_modules/socket.io-client/dist'));
 app.use(cookieParser());
 app.use(authRoutes);
 
@@ -35,11 +35,12 @@ const botName = "Collaboard Captain"
 
 io.on('connection', (socket) =>{
  // socket representing each user
-  socket.on("joinRoom",({name,room})  =>{
-    const user = userJoin(socket.id,name,room)
+  socket.on("joinRoom",({username,room})  =>{
+    const user = userJoin(socket.id,username,room)
     socket.join(user.room)
 
-    socket.emit("message",formatMessage(botName,"Welcome to ", room))
+    const message = formatMessage(botName, `Welcome to ${room} ${username}`); // NEEDS TO BE BACK TICKS
+  io.to(room).emit("message", message); // Emit message to the room
   })
 //emit event to client
 socket.emit("connected", (data) =>{

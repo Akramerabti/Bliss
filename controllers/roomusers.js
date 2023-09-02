@@ -1,8 +1,8 @@
-const users = require('../models/User');
+const users = [];
 
 // Join user to chat
-function userJoin(id, name, room) {
-  const user = { id, name, room };
+function userJoin(id, username, room) {
+  const user = { id, username, room };
 
   users.push(user);
 
