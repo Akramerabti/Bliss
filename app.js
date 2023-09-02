@@ -37,10 +37,12 @@ io.on('connection', (socket) =>{
  // socket representing each user
   socket.on("joinRoom",({username,room})  =>{
     const user = userJoin(socket.id,username,room)
-    socket.join(user.room)
+    socket.join(room)
 
-    const message = formatMessage(botName, `Welcome to ${room} ${username}`); // NEEDS TO BE BACK TICKS
-  io.to(room).emit("message", message); // Emit message to the room
+    const message = formatMessage(botName + `: Please welcome ${username} to ${room.room} `); // NEEDS TO BE BACK TICKS
+    io.to(room).emit("message", message);
+    
+    socket.broadcast.to(user.room).emit("message",formatMessage(botName + ` ${username} has joined the chat`)) // Emit message to the room
   })
 //emit event to client
 socket.emit("connected", (data) =>{

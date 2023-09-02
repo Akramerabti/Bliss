@@ -5,29 +5,19 @@ const chatMessages = document.querySelector(".chat-messages")
 const roomName = document.getElementById("room-name")
 const userList = document.getElementById("users")
 
-  const userElement = document.getElementById('uservalue');
-  const username = userElement.getAttribute('data-user');
- const room = Qs.parse(location.search, {
+  const room = Qs.parse(location.search, {
   ignoreQueryPrefix: true,
   })
   // Your JavaScript logic here
-  
 
-  console.log(room)
   console.log(username);
 //Get username from URL
 
 const socket = io()
-
- socket.emit("joinRoom", {username,room})
-  
-  socket.on("connect", () => {
-    console.log("Connected to server.");
-  });
   
   // Log when you join a room
   socket.emit("joinRoom", { username, room });
-  console.log(`Joined room: ${room}`);
+  console.log(`Joined room: ${room.room}`);
   
   // Log incoming messages
   socket.on("message", (message) => {
@@ -43,11 +33,11 @@ function outputMessage(message) {
   const p = document.createElement("p");
   p.classList.add("meta");
   p.innerText = message.username;
-  p.innerHTML += `<span>${message.time}</span>`; // Use backticks for interpolation
+  p.innerHTML += `<span> ${message.time}</span>`; // Use backticks for interpolation
   div.appendChild(p);
   const para = document.createElement('p');
   para.classList.add("text");
-  para.innerText = message.innerText;
+  para.innerText = message.text;
   div.appendChild(para);
   document.querySelector(".chat-messages").appendChild(div);
 }
