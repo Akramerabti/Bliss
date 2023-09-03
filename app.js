@@ -6,23 +6,22 @@ const io = require('socket.io')(server);
 const nodemailer = require('nodemailer');
 const authRoutes = require("./routes/authroutes");
 const mongoose = require("mongoose");
-const { requireAuth,checkUser } = require("./middleware/authMiddleware");
+const { requireAuth, checkUser } = require("./middleware/authMiddleware");
 const cookieParser = require('cookie-parser');
 const bodyparser = require('body-parser');
 const path = require('path');
 const User = require("./models/User");
 const PORT = process.env.PORT || 3000;
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const {
   getActiveUser,
   exitRoom,
   newUser,
   getIndividualRoomUsers
-} = require("./controllers/roomusers")
-const formatMessage = require("./controllers/messages")
-const message = require("./models/messages")
-
-
+} = require("./controllers/roomusers");
+const formatMessage = require("./controllers/messages");
+const messageSchema = require("./models/messages");
+const moment = require("moment");
 
 /*assuming an express app is declared here*/
 app.use(bodyparser.json());
@@ -33,7 +32,7 @@ app.use(authRoutes);
 
 app.use(express.static(path.join(__dirname, '/public')));
 app.use(express.json());
-app.set('view engine', "ejs"); //Setting the "view engine" name default by express.js as "hbs"
+app.set('view engine', "ejs"); // Setting the "view engine" name default by express.js as "hbs"
 
 const dbURI = 'mongodb+srv://Akramvd:lF9UjtVXF0iWsxetr2MK@cluster0.7wctpqm.mongodb.net/appdatabase';
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -43,127 +42,141 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
     });
   })
   .catch((err) => console.log(err));
-      //ERROR I DON<T KNOW WHY BUT IN AUTHMIDDLEWARE USER IS NOT FOUND LAST ERROR OF PROJECT --------- >
-    
+// ERROR I DON'T KNOW WHY BUT IN AUTHMIDDLEWARE USER IS NOT FOUND LAST ERROR OF PROJECT --------- >
 
-      app.use((req, res, next) => {
-        if (req.path !== '/login') {
-          checkUser(req, res, next);
-        } else {
-          next(); // Skip checkUser for the login page
-        }
-      });
+app.use((req, res, next) => {
+  if (req.path !== '/login') {
+    checkUser(req, res, next);
+  } else {
+    next(); // Skip checkUser for the login page
+  }
+});
 
+app.use("*", checkUser) // when you write just localhost 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
 
-app.use("*", checkUser) //when you write just local host 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
-
-app.get('/', (req,res) => {//when you write just local host 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
-    res.render('home'); //FETCHES HOME FILE IN PUBLIC FOLDER
-}) 
+app.get('/', (req, res) => {
+  // when you write just localhost 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
+  res.render('home'); // FETCHES HOME FILE IN PUBLIC FOLDER
+})
 
 app.get("/chat", requireAuth, (req, res) => {
   const user = res.locals.user;
   console.log(user)
-  res.render(path.join(__dirname, 'public', 'chat'), {user});
+  res.render(path.join(__dirname, 'public', 'chat'), { user });
 });
 
 // Serve the rooms.ejs file
 app.get("/rooms", requireAuth, (req, res) => {
   const user = res.locals.user;
   console.log(user)
-  res.render(path.join(__dirname, 'public', 'rooms'), {user});
+  res.render(path.join(__dirname, 'public', 'rooms'), { user });
 });
 
 app.get("/personalchat", requireAuth, (req, res) => {
   const user = res.locals.user;
   console.log(user)
-  res.render(path.join(__dirname, 'public', 'personalchat'), {user});
+  res.render(path.join(__dirname, 'public', 'personalchat'), { user });
 });
 
 app.get("/personal", requireAuth, (req, res) => {
   const user = res.locals.user;
   console.log(user)
-  res.render(path.join(__dirname, 'public', 'personal'), {user});
+  res.render(path.join(__dirname, 'public', 'personal'), { user });
 });
 
+function createDatabaseConnection(room) {
+  return mongoose.createConnection(`mongodb://localhost:27017/${room}`, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+}
+const rooms = new Map();
 
-//On connection for the public collaboardation
 io.on('connection', socket => {
-  
- 
+  // Function to handle user joining a room
+  const handleJoinRoom = async ({ username, room }) => {
+    if (!rooms.has(room)) {
+      const sanitizedRoomName = room ? room.replace(/\s/g, '_') : '';
+      const roomDB = createDatabaseConnection(sanitizedRoomName);
+      const Message = roomDB.model('Message', messageSchema);
 
-  socket.on('joinRoom', ({ username, room }) => {
+      const roomInfo = {
+        messageDB: roomDB,
+        Message: Message,
+        messages: []
+      };
 
-     
-    
+      rooms.set(room, roomInfo);
+    }
 
-    const user = newUser(socket.id, username, room);
+    socket.join(room);
+    socket.emit('messages', formatMessage("Captain Collab", 'Keep it clean and enjoy!'));
+    io.to(room).emit('messages', formatMessage("Captain Collaboard", `${username} has joined the room`));
 
-    socket.join(user.room);
+    const user = { id: socket.id, username, room };
+    rooms.get(room).messages.push(user);
 
-    // General welcome
-    socket.emit('message', formatMessage("Captain Collab", ' Keep it clean and enjoy! '));
-
-    // Broadcast everytime users connects
-    socket.broadcast
-      .to(user.room)
-      .emit(
-        'message',
-        formatMessage("Captain Collaboard", `${user.username} has joined the room`)
-      );
-
-    // Current active users and room name
-    io.to(user.room).emit('roomUsers', {
-      room: user.room,
-      users: getIndividualRoomUsers(user.room)
+    io.to(room).emit('roomUsers', {
+      room,
+      users: rooms.get(room).messages.map(user => user.username)
     });
-    
-    // Listen for client message
+
     const sentMessages = new Set();
 
-    socket.on('chatMessage', ({ msg, sender }) => {
+    // Function to handle chat messages
+    const handleChatMessage = ({ msg, sender }) => {
       const user = getActiveUser(socket.id);
-    
-      // Check if the user's socket ID is in the Set
+
       if (!sentMessages.has(socket.id)) {
-        // If not, send the message and add their socket ID to the Set
-        io.to(user.room).emit('message', formatMessage({ sender, msg }));
+        io.to(room).emit('message', formatMessage({ sender, msg }));
         sentMessages.add(socket.id);
       }
-    
-      // Continue with your other logic (saving the message, fetching messages, etc.)
-      const newmessage = new message({ msg, sender });
-      newmessage.save().then(() => {
-        // After saving the message, fetch and emit all messages
-        message.find().then((result) => {
-          io.emit("messages", result);
-          console.log(result);
+
+      const roomInfo = rooms.get(room);
+      if (roomInfo) {
+        const Message = roomInfo.Message;
+        const newMessage = new Message({ room, msg, sender, time: moment().format("h:mm a") });
+
+        newMessage.save().then(() => {
+          Message.find().then((result) => {
+            io.emit("messages", result);
+            console.log(result);
+          });
         });
-      });
-    });
- 
-  });
+      }
+    };
 
-  // Runs when client disconnects
-  socket.on('disconnect', () => {
-    const user = exitRoom(socket.id);
+    // Function to handle user disconnecting
+    const handleDisconnect = async () => {
+      const user = exitRoom(socket.id);
 
-    if (user) {
-      io.to(user.room).emit(
-        'message',
-        formatMessage("WebCage", `${user.username} has left the room`)
-      );
+      if (user) {
+        msg = `${user.username} has left the room`;
+        sender = " Captain Collaboard ";
+        room = user.room;
+        const newMessage = new rooms.get(room).Message({ room, msg, sender, time: moment().format("h:mm a") });
+        await newMessage.save();
 
-      // Current active users and room name
-      io.to(user.room).emit('roomUsers', {
-        room: user.room,
-        users: getIndividualRoomUsers(user.room)
-      });
-    }
-  });
+        const messages = await rooms.get(room).Message.find();
+
+        io.to(room).emit('messages', formatMessage("Message", messages));
+        console.log(messages);
+
+        io.to(room).emit('roomUsers', {
+          room,
+          users: rooms.get(room).messages
+        });
+      }
+    };
+
+    // Event listeners
+    socket.on('chatMessage', handleChatMessage);
+    socket.on('disconnect', handleDisconnect);
+  };
+
+  // Event listener for joining a room
+  socket.on('joinRoom', handleJoinRoom);
 });
-
-
 
 
 // COOKIES DEF : stores data of browser then is sent back to server and we can access it, cookie holds jwt token to identify user
@@ -186,4 +199,4 @@ io.on('connection', socket => {
   //const cookies = req.cookies;
  // console.log(cookies.newUser); // gets the value of the cookie newUser
 
-  //res.json(cookies); // passes it as json to the browser isEmployee we can see it as well.
+  //res.json(cookies); // passes it as json to the browser isEmployee we can see it as well

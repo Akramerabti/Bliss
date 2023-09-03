@@ -1,10 +1,12 @@
 //THESE ARE ALL FUNCTIONS USED AS CONTROLLERS FOR WHAT WE ARE GETTING/POSTING IN AUTHROUTE.JS
+const mongoose = require("mongoose");
 const express = require("express") //requires express.js
 const app = express() //Launches express.js
 const User = require("../models/User")
 const jwt = require("jsonwebtoken")
 const bodyparser = require('body-parser');
-const message = require('../models/messages'); 
+const messageSchema = require('../models/messages'); 
+const message = mongoose.model('message', messageSchema);
 
 /*assuming an express app is declared here*/
 app.use(bodyparser.json());

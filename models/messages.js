@@ -5,10 +5,16 @@ const messageSchema= new mongoose.Schema({ // Creates a login Schema for our dat
     msg: {
         type: String,
         required: [true, 'Enter message'],
+        minlength: [1, 'Message must not be empty'], // Minimum message length
+        maxlength: [500, 'Message is too long'], // Maximum message length
     },
     sender: {
         type: String,
         required: [true, 'Sender not received'],
+    },
+    room: {
+        type: String,
+        required: [true, 'Room not received'],
     },
     time: {
         type: String,
@@ -17,6 +23,4 @@ const messageSchema= new mongoose.Schema({ // Creates a login Schema for our dat
           },}
 });
 
-const message = mongoose.model('message', messageSchema);
-
-module.exports = message;
+module.exports = messageSchema;
