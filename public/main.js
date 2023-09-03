@@ -35,25 +35,30 @@ const socket = io()
     chatMessages.scrollTop = chatMessages.scrollHeight;
   });
 
-  chatForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+  document.addEventListener('DOMContentLoaded', () => {
+    const chatForm = document.getElementById('chat-form');
+    
+    if (chatForm) {
+      chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
   
-    // Get message text
-    let msg = e.target.elements.msg.value;
-    msg = msg.trim();
+        // Get message text
+        let msg = e.target.elements.msg.value;
+        msg = msg.trim();
   
-    if (!msg) {
-      return false;
-    }
-  
-    // Emit message to server
-    socket.emit('chatMessage', msg);
+        if (!msg) {
+          return false;
+        }
+        
+        socket.emit('chatMessage', msg);
   
     // Clear input
     e.target.elements.msg.value = '';
     e.target.elements.msg.focus();
   });
-
+}
+});
+  
   function outputMessage(message) {
     const div = document.createElement('div');
     div.classList.add('message');
@@ -85,10 +90,3 @@ const socket = io()
     });
   }
 
-  document.getElementById('leave-btn').addEventListener('click', () => {
-    const leaveRoom = confirm('Are you sure you want to leave the chatroom?');
-  
-    if (leaveRoom) {
-      window.location = '../index.html';
-    }
-  });
