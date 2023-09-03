@@ -4,6 +4,7 @@ const app = express() //Launches express.js
 const User = require("../models/User")
 const jwt = require("jsonwebtoken")
 const bodyparser = require('body-parser');
+const message = require('../models/messages'); 
 
 /*assuming an express app is declared here*/
 app.use(bodyparser.json());
@@ -106,3 +107,13 @@ module.exports.logout_get = async (req, res) => {
   res.redirect('/');
 
 }
+
+module.exports.get_messages = async (req, res) => {
+  try {
+    const messages = await message.find(); // Retrieve messages from your MongoDB collection
+    res.json(messages); // Respond with the chat messages as JSON
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};

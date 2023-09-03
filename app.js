@@ -90,9 +90,7 @@ app.get("/personal", requireAuth, (req, res) => {
 //On connection for the public collaboardation
 io.on('connection', socket => {
   
-  message.find().then(result =>{
-      socket.emit("messages", result)
-    })
+ 
 
   socket.on('joinRoom', ({ username, room }) => {
 
@@ -121,15 +119,28 @@ io.on('connection', socket => {
     });
     
     // Listen for client message
-  socket.on('chatMessage', ({msg,sender}) => {
-    const newmessage = new message({msg,sender})
-    newmessage.save().then(() =>{
-    const user = getActiveUser(socket.id);
+    const sentMessages = new Set();
 
-    io.to(user.room).emit('message', formatMessage({sender, msg}));
-    })
-
-  });
+    socket.on('chatMessage', ({ msg, sender }) => {
+      const user = getActiveUser(socket.id);
+    
+      // Check if the user's socket ID is in the Set
+      if (!sentMessages.has(socket.id)) {
+        // If not, send the message and add their socket ID to the Set
+        io.to(user.room).emit('message', formatMessage({ sender, msg }));
+        sentMessages.add(socket.id);
+      }
+    
+      // Continue with your other logic (saving the message, fetching messages, etc.)
+      const newmessage = new message({ msg, sender });
+      newmessage.save().then(() => {
+        // After saving the message, fetch and emit all messages
+        message.find().then((result) => {
+          io.emit("messages", result);
+          console.log(result);
+        });
+      });
+    });
  
   });
 

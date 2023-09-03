@@ -16,6 +16,8 @@ const userList = document.getElementById("users")
 
 const socket = io()
   
+
+
   // Log when you join a room
   socket.emit('joinRoom', { username, room: room.room});
 
@@ -24,45 +26,64 @@ const socket = io()
     outputUsers(users);
   });
 
-  socket.on('messages', receivedMongoMessageData => {
-    
-      receivedMongoMessageData.forEach(message => {
-      
-          // Access 'msg' property and perform actions
-          outputMessage(message)
-          // Rest of your code here
-       
-      });
-    
-    // Scroll down
+  socket.on('messages', (data) => {
+      console.log(data)
+    if (data.length){
+      data.forEach(message =>{
+        outputMessage(message)
+      })
+    }
+    // Scroll down (if you still want to do it here)
     chatMessages.scrollTop = chatMessages.scrollHeight;
   });
-
+  
   document.addEventListener('DOMContentLoaded', () => {
-    const chatForm = document.getElementById('chat-form');
-    
-    if (chatForm) {
-      chatForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-    
-        // Get message text
-        let msg = e.target.elements.msg.value;
-        msg = msg.trim();
-    
-        if (!msg) {
-          return false;
-        }
-    
-        const sender = username;
-    
-        socket.emit('chatMessage', { msg, sender });
-    
-        // Clear input
-        e.target.elements.msg.value = '';
-        e.target.elements.msg.focus();
+    fetchChatMessages();
+  });
+  
+  // Function to fetch chat messages
+  async function fetchChatMessages() {
+    try {
+      const res = await fetch('/api/messages');
+      if (!res.ok) {
+        throw new Error('Failed to fetch chat messages');
+      }
+      const data = await res.json();
+      // Iterate over the received chat messages and display them
+      data.forEach((message) => {
+        outputMessage(message);
       });
+      // Scroll down to the latest message
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    } catch (error) {
+      console.error(error);
     }
-});
+  }
+
+  if (chatForm) {
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      // Get message text
+      let msg = e.target.elements.msg.value;
+      msg = msg.trim();
+
+      
+  
+      if (!msg) {
+        return false;
+      }
+      sender = username
+      
+      // Emit the new message to the server
+      socket.emit('chatMessage', { msg, sender });
+  
+      // Clear input
+      e.target.elements.msg.value = '';
+      e.target.elements.msg.focus();
+    });
+  }
+
+  
   
 function outputMessage(message) {
   const div = document.createElement('div');
