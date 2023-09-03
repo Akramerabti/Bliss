@@ -28,18 +28,6 @@ LoginSchema.pre('save', async function (next) {
     this.password = await bcrypt.hash(this.password, salt)
     next(); // to move on keep it going from this mongoose middleware (from get to post to terminal)
   });
-  
-  // fire a function before doc saved to db to see user in terminal with info
-LoginSchema.pre('save', function (next) {
-    console.log('user about to be created & saved', this);
-    next(); // to move on keep it going from this mongoose middleware (from get to post to terminal)
-  });
-  
-  // fire a function after doc saved to db to see user in terminal with info
-LoginSchema.post('save', function (doc, next) {
-    console.log('new user was created & saved', doc);
-    next();
-  });
 
   // Static Method schema analysis for LOGIN in order to retrieve info from this schema
   LoginSchema.statics.login = async function(name,email,password){

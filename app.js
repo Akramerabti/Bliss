@@ -20,7 +20,7 @@ const {
   getIndividualRoomUsers
 } = require("./controllers/roomusers")
 const formatMessage = require("./controllers/messages")
-
+const message = require("./models/messages")
 
 
 
@@ -33,60 +33,6 @@ app.use(authRoutes);
 
 app.use(express.static(path.join(__dirname, '/public')));
 app.use(express.json());
-
-io.on('connection', socket => {
-  socket.on('joinRoom', ({ username, room }) => {
-    const user = newUser(socket.id, username, room);
-
-    socket.join(user.room);
-
-    // General welcome
-    socket.emit('message', formatMessage("WebCage", 'Messages are limited to this room! '));
-
-    // Broadcast everytime users connects
-    socket.broadcast
-      .to(user.room)
-      .emit(
-        'message',
-        formatMessage("WebCage", `${user.username} has joined the room`)
-      );
-
-    // Current active users and room name
-    io.to(user.room).emit('roomUsers', {
-      room: user.room,
-      users: getIndividualRoomUsers(user.room)
-    });
-  });
-
-  // Listen for client message
-  socket.on('chatMessage', msg => {
-    const user = getActiveUser(socket.id);
-
-    io.to(user.room).emit('message', formatMessage(user.username, msg));
-  });
-
-  // Runs when client disconnects
-  socket.on('disconnect', () => {
-    const user = exitRoom(socket.id);
-
-    if (user) {
-      io.to(user.room).emit(
-        'message',
-        formatMessage("WebCage", `${user.username} has left the room`)
-      );
-
-      // Current active users and room name
-      io.to(user.room).emit('roomUsers', {
-        room: user.room,
-        users: getIndividualRoomUsers(user.room)
-      });
-    }
-  });
-});
-
-
-
-
 app.set('view engine', "ejs"); //Setting the "view engine" name default by express.js as "hbs"
 
 const dbURI = 'mongodb+srv://Akramvd:lF9UjtVXF0iWsxetr2MK@cluster0.7wctpqm.mongodb.net/appdatabase';
@@ -111,7 +57,7 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
 
 app.use("*", checkUser) //when you write just local host 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
 
-app.get('/', requireAuth, (req,res) => {//when you write just local host 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
+app.get('/', (req,res) => {//when you write just local host 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
     res.render('home'); //FETCHES HOME FILE IN PUBLIC FOLDER
 }) 
 
@@ -127,26 +73,87 @@ app.get("/rooms", requireAuth, (req, res) => {
   console.log(user)
   res.render(path.join(__dirname, 'public', 'rooms'), {user});
 });
-function onConnected(socket) {
-  console.log('Socket connected', socket.id)
-  socketsConnected.add(socket.id)
-  io.emit('clients-total', socketsConnected.size)
 
+app.get("/personalchat", requireAuth, (req, res) => {
+  const user = res.locals.user;
+  console.log(user)
+  res.render(path.join(__dirname, 'public', 'personalchat'), {user});
+});
+
+app.get("/personal", requireAuth, (req, res) => {
+  const user = res.locals.user;
+  console.log(user)
+  res.render(path.join(__dirname, 'public', 'personal'), {user});
+});
+
+
+//On connection for the public collaboardation
+io.on('connection', socket => {
+  
+  message.find().then(result =>{
+      socket.emit("messages", result)
+    })
+
+  socket.on('joinRoom', ({ username, room }) => {
+
+     
+    
+
+    const user = newUser(socket.id, username, room);
+
+    socket.join(user.room);
+
+    // General welcome
+    socket.emit('message', formatMessage("Captain Collab", ' Keep it clean and enjoy! '));
+
+    // Broadcast everytime users connects
+    socket.broadcast
+      .to(user.room)
+      .emit(
+        'message',
+        formatMessage("Captain Collaboard", `${user.username} has joined the room`)
+      );
+
+    // Current active users and room name
+    io.to(user.room).emit('roomUsers', {
+      room: user.room,
+      users: getIndividualRoomUsers(user.room)
+    });
+    
+    // Listen for client message
+  socket.on('chatMessage', ({msg,sender}) => {
+    const newmessage = new message({msg,sender})
+    newmessage.save().then(() =>{
+    const user = getActiveUser(socket.id);
+
+    io.to(user.room).emit('message', formatMessage({sender, msg}));
+    })
+
+  });
+ 
+  });
+
+  // Runs when client disconnects
   socket.on('disconnect', () => {
-    console.log('Socket disconnected', socket.id)
-    socketsConnected.delete(socket.id)
-    io.emit('clients-total', socketsConnected.size)
-  })
+    const user = exitRoom(socket.id);
 
-  socket.on('message', (data) => {
-    // console.log(data)
-    socket.broadcast.emit('chat-message', data)
-  })
+    if (user) {
+      io.to(user.room).emit(
+        'message',
+        formatMessage("WebCage", `${user.username} has left the room`)
+      );
 
-  socket.on('feedback', (data) => {
-    socket.broadcast.emit('feedback', data)
-  })
-}
+      // Current active users and room name
+      io.to(user.room).emit('roomUsers', {
+        room: user.room,
+        users: getIndividualRoomUsers(user.room)
+      });
+    }
+  });
+});
+
+
+
 
 // COOKIES DEF : stores data of browser then is sent back to server and we can access it, cookie holds jwt token to identify user
 //const cookieParser = require('cookie-parser');

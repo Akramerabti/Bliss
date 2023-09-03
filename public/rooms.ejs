@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
-  <link rel="stylesheet" href="/chat.css">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <nav>
@@ -24,14 +24,26 @@
         <h1> Collababoard!</h1>
       </header>
       <main class="join-main">
+        <form action="/groupchat">
+          <button type="submit" class="btn">Create A Private Server</button>
+        </div>
+      </div>
+
+    </form>
+        <form action="/personalchat">
+          <button type="submit" class="btn">Chat to user</button>
+        </div>
+      </div>
+    </form>
+
         <form action="/chat">
           <div class="form-control">
-            <label for ="room"> Collab aboard a Server:</label>
+            <label for ="room"> Public collaboardation:</label>
              <input
               type = "text"
               name = "room"
               id="room"
-              placeholder="Enter the Server's name"
+              placeholder="Enter/Create Public Server"
               required
               />
               <div class="flex">
@@ -39,8 +51,40 @@
               </div>
           </div>
         </form>
+        <div class="friends-groups-container">
+          <h2>Your Friends</h2>
+          <ul class="friends-list">
+            <!-- List of friends goes here -->
+            <li>
+              <button class="friend-button">Friend 1</button>
+            </li>
+            <li>
+              <button class="friend-button">Friend 2</button>
+            </li>
+            <li>
+              <button class="friend-button">Friend 3</button>
+            </li>
+            <!-- Add more friends as needed -->
+          </ul>
+    
+          <h2>Your Groups</h2>
+          <ul class="groups-list">
+            <!-- List of groups goes here -->
+            <li>
+              <button class="group-button">Group 1</button>
+            </li>
+            <li>
+              <button class="group-button">Group 2</button>
+            </li>
+            <li>
+              <button class="group-button">Group 3</button>
+            </li>
+            <!-- Add more groups as needed -->
+          </ul>
+        </div>
       </main>
     </div>
+
    <script>
     // Set a JavaScript variable with the user.name value
     const username = "<%= user.name %>";
@@ -48,6 +92,7 @@
    <script src="/socket.io/socket.io.js"></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.11.2/qs.min.js" integrity="sha512-vCegEXqPUYpZsTGz2lk0jaQ1psxtFeniVJACAXhMVxuoYa/N4nZkjoVFOxLwP7uGeQOoemiz7DQrIpRTj4IBPw==" crossorigin="anonymous"></script>
   <script src="main.js"></script>
+  <script src="personal.js"></script>
   <footer>Copyright 2022 </footer>
 
 </body>

@@ -13,7 +13,7 @@ function newUser(id, username, room) {
 
 // Get current user
 function getActiveUser(id) {
-  return users.find(user => user.id === id);
+  return users.find(user => user.id === id );
 }
 
 // User leaves chat

@@ -1,7 +1,3 @@
-function updateDynamicContent(data) {
-  const container = document.getElementById('dynamic-container');
-  container.innerHTML = data; // Set the content of the container
-}
 
 
 /*assuming an express app is declared here*/
@@ -28,9 +24,16 @@ const socket = io()
     outputUsers(users);
   });
 
-  socket.on('message', (message) => {
-    outputMessage(message);
-  
+  socket.on('messages', receivedMongoMessageData => {
+    
+      receivedMongoMessageData.forEach(message => {
+      
+          // Access 'msg' property and perform actions
+          outputMessage(message)
+          // Rest of your code here
+       
+      });
+    
     // Scroll down
     chatMessages.scrollTop = chatMessages.scrollHeight;
   });
@@ -41,41 +44,44 @@ const socket = io()
     if (chatForm) {
       chatForm.addEventListener('submit', (e) => {
         e.preventDefault();
-  
+    
         // Get message text
         let msg = e.target.elements.msg.value;
         msg = msg.trim();
-  
+    
         if (!msg) {
           return false;
         }
-        
-        socket.emit('chatMessage', msg);
-  
-    // Clear input
-    e.target.elements.msg.value = '';
-    e.target.elements.msg.focus();
-  });
-}
+    
+        const sender = username;
+    
+        socket.emit('chatMessage', { msg, sender });
+    
+        // Clear input
+        e.target.elements.msg.value = '';
+        e.target.elements.msg.focus();
+      });
+    }
 });
   
-  function outputMessage(message) {
-    const div = document.createElement('div');
-    div.classList.add('message');
-  
-    const p = document.createElement('p');
-    p.classList.add('meta');
-    p.innerText = message.username;
-    p.innerHTML += `<span>${message.time}</span>`;
-    div.appendChild(p);
-    
-    const para = document.createElement('p');
-    para.classList.add('text');
-    para.innerText = message.text;
-    div.appendChild(para);
-    
-    document.querySelector('.chat-messages').appendChild(div);
-  }
+function outputMessage(message) {
+  const div = document.createElement('div');
+  div.classList.add('message');
+
+  const p = document.createElement('p');
+  p.classList.add('meta');
+  p.innerText = message.sender;
+  p.innerHTML += `<span>${message.time}</span>`;
+  div.appendChild(p);
+
+  const para = document.createElement('p');
+  para.classList.add('text');
+  para.innerText = message.msg;
+  div.appendChild(para);
+
+  const chatMessages = document.querySelector('.chat-messages');
+  chatMessages.appendChild(div);
+}
 
   function outputRoomName(room) {
     roomName.innerText = room;
@@ -83,10 +89,14 @@ const socket = io()
 
   function outputUsers(users) {
     userList.innerHTML = '';
+    const addedUsernames = []; // Create an array to keep track of added usernames
     users.forEach((user) => {
-      const li = document.createElement('li');
-      li.innerText = user.username;
-      userList.appendChild(li);
+      if (!addedUsernames.includes(user.username)) { // Check if the username is not already added
+        const li = document.createElement('li');
+        li.innerText = user.username;
+        userList.appendChild(li);
+        addedUsernames.push(user.username); // Add the username to the list of added usernames
+      }
     });
   }
 

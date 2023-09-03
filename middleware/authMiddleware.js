@@ -24,7 +24,6 @@ const requireAuth = (req, res, next) => { // function with three attributes
       if (err) {
         res.redirect('/login');
       } else {
-        console.log(decodedToken);
         next(); // means that if they have the token, they can continue with what they wanted
       }
     });
@@ -47,7 +46,6 @@ const checkUser = (req, res, next) => {
       } else {
         let user = await User.findById(decodedToken.id);
         res.locals.user = user;
-        console.log(user)
         next();
       }
     });
