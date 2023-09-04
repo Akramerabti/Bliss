@@ -3,6 +3,7 @@ const chatForm = document.getElementById("chat-form");
 const chatMessages = document.querySelector(".chat-messages");
 const roomNameElement = document.getElementById("room-name");
 const userList = document.getElementById("users");
+const Leaving = document.getElementById("leaving-button");
 
 // Parse the room name from the URL query parameters
 const queryString = window.location.search;
@@ -29,14 +30,15 @@ socket.on('roomUsers', ({ room, users }) => {
 
 socket.on('messages', (data) => {
   console.log(data);
-  if (data.length) {
+  if(data.length){
     data.forEach(message => {
       // Check if the message belongs to the current room (roomNameParam)
       if (message.room === roomNameParam) {
+        console.log(message);
         outputMessage(message);
-      }
-    });
-  }
+      
+  }})};
+  
   // Scroll down (if you still want to do it here)
   chatMessages.scrollTop = chatMessages.scrollHeight;
 });
@@ -88,27 +90,65 @@ function outputRoomName(room) {
   }
 }
 
-const addedUsernames = new Set(); // Create a Set to store added usernames
 
+const addedUsernames = new Set();
+
+// Function to add a user to the list
+function addUserToUserList(user) {
+  if (typeof user === 'string' && !addedUsernames.has(user)) {
+    const li = document.createElement('li');
+    li.classList.add('text');
+    li.style.display = 'block';
+    li.innerText = user;
+    userList.appendChild(li);
+    addedUsernames.add(user);
+  }
+}
+
+// Function to remove a user from the list
+function removeUserFromUserList(username) {
+  if (addedUsernames.has(username)) {
+    const lis = userList.getElementsByTagName('li');
+    for (const li of lis) {
+      if (li.innerText === username) {
+        li.remove();
+        addedUsernames.delete(username);
+        break; // No need to continue searching
+      }
+    }
+  }
+}
+
+// Call addUserToUserList when a user joins the room
 function outputUsers(username) {
   if (typeof username === 'string') {
-    username = username.split(',').map(user => user.trim()); // Convert string to an array of usernames
+    username = username.split(',').map((user) => user.trim()); // Convert string to an array of usernames
   }
 
   if (Array.isArray(username)) {
     for (const user of username) {
-      // Check if the username is not already added
-      if (typeof user === 'string' && !addedUsernames.has(user)) {
-        const li = document.createElement('li');
-        li.classList.add('text');
-        li.style.display = 'block'; // Set the display property to 'block'
-        li.innerText = user;
-        userList.appendChild(li);
-
-        addedUsernames.add(user); // Add the username to the Set
-      }
+      addUserToUserList(user);
     }
   } else {
     console.error('Invalid username data type');
   }
 }
+
+// Call removeUserFromUserList when a user leaves the room
+function userLeave(username) {
+  removeUserFromUserList(username);
+}
+// Get a reference to the "Leave Room" button
+
+const leavingButton = document.getElementById("leaving-button");
+
+leavingButton.addEventListener('click', async (e) => {
+  e.preventDefault(); 
+  const sender = `Captain Collaboard`;
+  const msg = `${username} has left the room`;
+  // Emit the new message to the server using roomNameParam
+  socket.emit('userLeave', { room: roomNameParam, msg, sender });
+  
+  window.location.href = "/";
+});
+

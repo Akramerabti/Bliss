@@ -21,11 +21,16 @@ function exitRoom(id) {
   const index = users.findIndex(user => user.id === id);
 
   if (index !== -1) {
-    return users.splice(index, 1)[0]; // Remove and return the user object.
+    const removedUser = users.splice(index, 1)[0]; // Remove and return the user object.
+    return removedUser.username; // Return the username of the removed user.
   }
 
   return null; // Return null if the user is not found.
 }
+
+
+
+
 
 // Get room users
 function getIndividualRoomUsers(room) {

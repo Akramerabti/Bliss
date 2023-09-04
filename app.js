@@ -93,67 +93,66 @@ function createDatabaseConnection(room) {
 const rooms = new Map();
 
 io.on('connection', socket => {
-  
+  // Function to load and emit database messages to a user
   const loadDatabaseMessages = async (socket, room) => {
-      const roomInfo = rooms.get(room);
-      if (roomInfo) {
-        const Message = roomInfo.Message;
-    
-        // Fetch messages from the specific room's database
-        const messages = await Message.find({ room });
-    
-        // Emit the messages to the user who just joined
-        socket.emit('messages', messages);
-      }
-    };
+    const roomInfo = rooms.get(room);
+    if (roomInfo) {
+      const Message = roomInfo.Message;
+
+      // Fetch messages from the specific room's database
+      const messages = await Message.find({ room });
+
+      // Emit the messages to the user who just joined
+      socket.emit('messages', messages);
+    }
+  };
+
   // Function to handle user joining a room
   const handleJoinRoom = async ({ username, room }) => {
-    
-    if (!rooms.has(room)) {
+    // Create or get the room information
+    let roomInfo = rooms.get(room);
+
+    if (!roomInfo) {
       const sanitizedRoomName = room ? room.replace(/\s/g, '_') : '';
       const roomDB = createDatabaseConnection(sanitizedRoomName);
       const Message = roomDB.model('Message', messageSchema);
 
-      const roomInfo = {
+      roomInfo = {
         messageDB: roomDB,
         Message: Message,
         messages: []
       };
 
-    // Load and emit database messages
+      // Load and emit database messages
       rooms.set(room, roomInfo);
+      socket.emit('message', formatMessage({ sender: "Captain Collab", msg: 'Keep it clean and enjoy!' }));
     }
 
     socket.join(room);
 
+    // Load and emit database messages for the user who joined
     await loadDatabaseMessages(socket, room);
 
-    socket.emit('messages', formatMessage("Captain Collab", 'Keep it clean and enjoy!'));
-    io.to(room).emit('messages', formatMessage("Captain Collaboard", `${username} has joined the room`));
-
+    // Push the user object into the messages array
     const user = { id: socket.id, username, room };
-    rooms.get(room).messages.push(user);
+    roomInfo.messages.push(user);
 
+    // Emit user join message
+    io.to(room).emit('message', formatMessage({ sender: "Captain Collaboard", msg: `${username} has joined the room` }));
+
+    // Emit room users list
     io.to(room).emit('roomUsers', {
       room,
-      users: rooms.get(room).messages.map(user => user.username)
+      users: roomInfo.messages.map(user => user.username)
     });
 
     const sentMessages = new Set();
 
     // Function to handle chat messages
     const handleChatMessage = ({ msg, sender }) => {
-      const user = getActiveUser(socket.id);
-
       if (!sentMessages.has(socket.id)) {
-        io.to(room).emit('message', formatMessage({ sender, msg }));
-        sentMessages.add(socket.id);
-      }
-
-      const roomInfo = rooms.get(room);
-      if (roomInfo) {
         const Message = roomInfo.Message;
-        const newMessage = new Message({ room, msg, sender, time: moment().format("h:mm a") });
+        const newMessage = new roomInfo.Message({ room, msg: `${username} has joined the room`, sender: 'Captain Collaboard', time: moment().format("h:mm a") });
 
         newMessage.save().then(() => {
           Message.find().then((result) => {
@@ -161,46 +160,74 @@ io.on('connection', socket => {
             console.log(result);
           });
         });
+
+        sentMessages.add(socket.id);
       }
+
+      const newMessage = new roomInfo.Message({ room, msg, sender, time: moment().format("h:mm a") });
+
+      newMessage.save().then(() => {
+        // Find and emit updated messages
+        roomInfo.Message.find().then((result) => {
+          io.emit("messages", result);
+          console.log(result);
+        });
+      });
     };
 
     // Function to handle user disconnecting
-    const handleDisconnect = async () => {
-      const user = exitRoom(socket.id);
-
-      if (user) {
-        const roomInfo = rooms.get(room);
-        msg = `${user.username} has left the room`;
-        sender = " Captain Collaboard ";
-        room = user.room;
-        if (roomInfo) {
+    socket.on('userLeave', () => {
+      if (roomInfo) {
+        const username = exitRoom(socket.id); // Use the modified exitRoom to get the username
+    
+        if (username) {
+          const leaveMessage = `${username} has left the room`;
+    
+          // Emit the leave message to the room
+          io.to(room).emit('chatMessage', { room: roomNameParam, msg: leaveMessage, sender: 'Captain Collaboard' });
+    
+          // Save the leave message to the database
           const Message = roomInfo.Message;
-          const newMessage = new Message({ room, msg, sender, time: moment().format("h:mm a") });
-  
+          const newMessage = new Message({
+            room,
+            msg: leaveMessage,
+            sender: 'Captain Collaboard',
+            time: moment().format('h:mm a')
+          });
+    
           newMessage.save().then(() => {
+            // Find and emit updated messages
             Message.find().then((result) => {
-              io.emit("messages", result);
+              io.emit('messages', result);
               console.log(result);
+              loadDatabaseMessages(socket, room); // Pass socket and room as arguments
+            });
+    
+            // Remove the username from the active users list
+            const activeUsers = roomInfo.messages;
+            const userIndex = activeUsers.findIndex((u) => u.username === username);
+    
+            if (userIndex !== -1) {
+              activeUsers.splice(userIndex, 1);
+            }
+    
+            // Send an updated list of users to all clients in the room
+            io.to(room).emit('roomUsers', {
+              room,
+              users: activeUsers.map((u) => u.username),
             });
           });
-      
-        io.to(room).emit('roomUsers', {
-          room,
-          users: rooms.get(room).messages.User.username
-        });
+        }
       }
-      }
-    };
+    });
 
-    // Event listeners
+    // Event listener for chat messages
     socket.on('chatMessage', handleChatMessage);
-    socket.on('disconnect', handleDisconnect);
   };
 
   // Event listener for joining a room
   socket.on('joinRoom', handleJoinRoom);
 });
-
 
 // COOKIES DEF : stores data of browser then is sent back to server and we can access it, cookie holds jwt token to identify user
 //const cookieParser = require('cookie-parser');
