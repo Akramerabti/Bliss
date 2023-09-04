@@ -19,7 +19,5 @@ routing.post('/login', authController.login_post)
 
 routing.get('/logout', authController.logout_get)
 
-routing.use('/api/messages', authController.get_messages)
-
 
 module.exports = routing;

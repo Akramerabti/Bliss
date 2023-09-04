@@ -127,7 +127,7 @@ io.on('connection', socket => {
     socket.join(room);
 
     await loadDatabaseMessages(socket, room);
-    
+
     socket.emit('messages', formatMessage("Captain Collab", 'Keep it clean and enjoy!'));
     io.to(room).emit('messages', formatMessage("Captain Collaboard", `${username} has joined the room`));
 
@@ -169,21 +169,26 @@ io.on('connection', socket => {
       const user = exitRoom(socket.id);
 
       if (user) {
+        const roomInfo = rooms.get(room);
         msg = `${user.username} has left the room`;
         sender = " Captain Collaboard ";
         room = user.room;
-        const newMessage = new rooms.get(room).Message({ room, msg, sender, time: moment().format("h:mm a") });
-        await newMessage.save();
-
-        const messages = await rooms.get(room).Message.find();
-
-        io.to(room).emit('messages', formatMessage("Message", messages));
-        console.log(messages);
-
+        if (roomInfo) {
+          const Message = roomInfo.Message;
+          const newMessage = new Message({ room, msg, sender, time: moment().format("h:mm a") });
+  
+          newMessage.save().then(() => {
+            Message.find().then((result) => {
+              io.emit("messages", result);
+              console.log(result);
+            });
+          });
+      
         io.to(room).emit('roomUsers', {
           room,
-          users: rooms.get(room).messages
+          users: rooms.get(room).messages.User.username
         });
+      }
       }
     };
 

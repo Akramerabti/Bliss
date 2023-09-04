@@ -41,30 +41,6 @@ socket.on('messages', (data) => {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  fetchChatMessages(roomNameParam); // Pass the room name as an argument
-});
-
-// Function to fetch chat messages for a specific room
-async function fetchChatMessages(roomName) {
-  try {
-    const res = await fetch(`/api/messages?room=${roomName}`);
-    if (!res.ok) {
-      throw new Error('Failed to fetch chat messages');
-    }
-    const data = await res.json();
-    // Iterate over the received chat messages and display them
-    data.forEach((message) => {
-      outputMessage(message);
-      console.log(message);
-    });
-    // Scroll down to the latest message
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  } catch (error) {
-    console.error(error);
-  }
-}
-
 if (chatForm) {
   chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -75,6 +51,7 @@ if (chatForm) {
     if (!msg) {
       return false;
     }
+
     sender = username;
 
     // Emit the new message to the server using roomNameParam
@@ -111,20 +88,27 @@ function outputRoomName(room) {
   }
 }
 
-function outputUsers(users) {
-  userList.innerHTML = '';
-  const addedUsernames = new Set(); // Create a Set to keep track of added usernames
+const addedUsernames = new Set(); // Create a Set to store added usernames
 
-  users.forEach((user) => {
-    addedUsernames.add(user.username); // Add the username to the Set
-  });
+function outputUsers(username) {
+  if (typeof username === 'string') {
+    username = username.split(',').map(user => user.trim()); // Convert string to an array of usernames
+  }
 
-  // Convert the Set back to an array
-  const uniqueUsernames = Array.from(addedUsernames);
+  if (Array.isArray(username)) {
+    for (const user of username) {
+      // Check if the username is not already added
+      if (typeof user === 'string' && !addedUsernames.has(user)) {
+        const li = document.createElement('li');
+        li.classList.add('text');
+        li.style.display = 'block'; // Set the display property to 'block'
+        li.innerText = user;
+        userList.appendChild(li);
 
-  uniqueUsernames.forEach((username) => {
-    const li = document.createElement('li');
-    li.innerText = username;
-    userList.appendChild(li);
-  });
+        addedUsernames.add(user); // Add the username to the Set
+      }
+    }
+  } else {
+    console.error('Invalid username data type');
+  }
 }
