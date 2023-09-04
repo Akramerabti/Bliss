@@ -1,45 +1,27 @@
-// helper/userHelper.js
+const express = require("express");
+const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const io = require('socket.io')(server);
+const roomUsers = new Map();
 
-const users = [];
+function leaveRoom(socketId, roomName) {
+  if (roomUsers.has(roomName)) {
+    const usersInRoom = roomUsers.get(roomName);
+    const index = usersInRoom.findIndex(user => user.socketId === socketId);
 
-// Join user to chat
-function newUser(id, username, room) {
-  const user = { id, username, room };
+    if (index !== -1) {
+      // Notify other users in the room about the user's departure (emit a 'userLeave' event, for example)
+      io.to(roomName).emit('roomUsers', { users: roomUsers });
+    }
 
-  users.push(user);
-
-  return user;
-}
-
-// Get current user
-function getActiveUser(id) {
-  return users.find(user => user.id === id );
-}
-
-// User leaves chat
-function exitRoom(id) {
-  const index = users.findIndex(user => user.id === id);
-
-  if (index !== -1) {
-    const removedUser = users.splice(index, 1)[0]; // Remove and return the user object.
-    return removedUser.username; // Return the username of the removed user.
+    // If the room is empty after the user leaves, you can remove the room from the Map
+    if (usersInRoom.length === 0) {
+      roomUsers.delete(roomName);
+    }
   }
-
-  return null; // Return null if the user is not found.
-}
-
-
-
-
-
-// Get room users
-function getIndividualRoomUsers(room) {
-  return users.filter(user => user.room === room);
 }
 
 module.exports = {
-  newUser,
-  getActiveUser,
-  exitRoom,
-  getIndividualRoomUsers
+  leaveRoom,
 };

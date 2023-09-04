@@ -24,9 +24,37 @@ const socket = io();
 socket.emit('joinRoom', { username, room: roomNameParam });
 
 socket.on('roomUsers', ({ room, users }) => {
+
+  const originalArray = users;
+  const uniqueSet = new Set(originalArray);
+  const uniqueArray = Array.from(uniqueSet);
+
+  // Get the existing user list items
+  const userItems = Array.from(userList.getElementsByTagName('li'));
+
+  // Create a Set of existing usernames for efficient checking
+  const existingUsernames = new Set(userItems.map(item => item.textContent));
+
+  // Loop through the users array and add new users to the list
+  uniqueArray.forEach(user => {
+    // Check if the user is not already in the list
+    if (!existingUsernames.has(user)) {
+      const li = document.createElement('li');
+      li.textContent = user; // Set the text content to the user's name
+      userList.appendChild(li); // Append the <li> element to the userList
+    }
+  });
+    console.log(uniqueArray)
+  // Remove users who have left the room
+  userItems.forEach(item => {
+    if (!uniqueArray.includes(item.textContent)) {
+      item.remove();
+    }
+  });
+
   outputRoomName(room);
-  outputUsers(users);
 });
+
 
 socket.on('messages', (data) => {
   console.log(data);
@@ -34,7 +62,6 @@ socket.on('messages', (data) => {
     data.forEach(message => {
       // Check if the message belongs to the current room (roomNameParam)
       if (message.room === roomNameParam) {
-        console.log(message);
         outputMessage(message);
       
   }})};
@@ -91,64 +118,49 @@ function outputRoomName(room) {
 }
 
 
-const addedUsernames = new Set();
+const users = new Set();
 
 // Function to add a user to the list
 function addUserToUserList(user) {
-  if (typeof user === 'string' && !addedUsernames.has(user)) {
+  if (typeof user === 'string' && !users.has(user)) {
     const li = document.createElement('li');
     li.classList.add('text');
-    li.style.display = 'block';
     li.innerText = user;
-    userList.appendChild(li);
-    addedUsernames.add(user);
+    userList.appendChild(li); // Append the <li> element to the userList
+    users.add(user);
   }
 }
 
-// Function to remove a user from the list
-function removeUserFromUserList(username) {
-  if (addedUsernames.has(username)) {
-    const lis = userList.getElementsByTagName('li');
-    for (const li of lis) {
-      if (li.innerText === username) {
-        li.remove();
-        addedUsernames.delete(username);
-        break; // No need to continue searching
-      }
-    }
-  }
-}
+// ... (rest of your code)
 
 // Call addUserToUserList when a user joins the room
 function outputUsers(username) {
-  if (typeof username === 'string') {
-    username = username.split(',').map((user) => user.trim()); // Convert string to an array of usernames
-  }
-
   if (Array.isArray(username)) {
-    for (const user of username) {
-      addUserToUserList(user);
-    }
+    // Remove duplicates from the array
+    const uniqueUsernames = [...new Set(username)];
+
+    // Clear the userList before adding the updated list of users
+    userList.innerHTML = ''; // Clear the existing list
+
+    // Add each unique username to the userList
+    uniqueUsernames.forEach(addUserToUserList);
+  } else if (typeof username === 'string') {
+    addUserToUserList(username);
   } else {
-    console.error('Invalid username data type');
+    console.error("Invalid username format");
   }
 }
 
-// Call removeUserFromUserList when a user leaves the room
-function userLeave(username) {
-  removeUserFromUserList(username);
-}
-// Get a reference to the "Leave Room" button
 
+
+
+// Event listener for the leaving button
 const leavingButton = document.getElementById("leaving-button");
 
 leavingButton.addEventListener('click', async (e) => {
-  e.preventDefault(); 
-  const sender = `Captain Collaboard`;
-  const msg = `${username} has left the room`;
-  // Emit the new message to the server using roomNameParam
-  socket.emit('userLeave', { room: roomNameParam, msg, sender });
-  
+  e.preventDefault();
+  // Emit the userLeave event to the server using roomNameParam and username
+  socket.emit('userLeave', { room: roomNameParam, username, socketId: socket.id  });
+
   window.location.href = "/";
 });
-

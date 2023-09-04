@@ -13,11 +13,7 @@ const path = require('path');
 const User = require("./models/User");
 const PORT = process.env.PORT || 3000;
 const jwt = require("jsonwebtoken");
-const {
-  getActiveUser,
-  exitRoom,
-  newUser,
-  getIndividualRoomUsers
+const {leaveRoom,
 } = require("./controllers/roomusers");
 const formatMessage = require("./controllers/messages");
 const messageSchema = require("./models/messages");
@@ -90,7 +86,9 @@ function createDatabaseConnection(room) {
     useUnifiedTopology: true,
   });
 }
+
 const rooms = new Map();
+const roomUsers = new Map();
 
 io.on('connection', socket => {
   // Function to load and emit database messages to a user
@@ -130,6 +128,21 @@ io.on('connection', socket => {
 
     socket.join(room);
 
+    // Function to add a user to roomUsers Map
+    const addUserToRoom = ({ username, room, socket }) => {
+      // Check if the room exists in the Map, if not, create it
+      if (!roomUsers.has(room)) {
+        roomUsers.set(room, new Map()); // Use a Map to keep user data separate
+      }
+
+      // Get the user list for the room and add the user
+      const usersInRoom = roomUsers.get(room);
+      usersInRoom.set(socket.id, username); // Use socket.id as the key
+    };
+
+    // Call the addUserToRoom function to add the user to roomUsers
+    addUserToRoom({ username, room, socket });
+
     // Load and emit database messages for the user who joined
     await loadDatabaseMessages(socket, room);
 
@@ -141,31 +154,32 @@ io.on('connection', socket => {
     io.to(room).emit('message', formatMessage({ sender: "Captain Collaboard", msg: `${username} has joined the room` }));
 
     // Emit room users list
+    const roomUsersList = Array.from(roomUsers.get(room).values()); // Get usernames from the Map
     io.to(room).emit('roomUsers', {
       room,
-      users: roomInfo.messages.map(user => user.username)
+      users: roomUsersList
     });
-
+  
     const sentMessages = new Set();
-
+  
     // Function to handle chat messages
     const handleChatMessage = ({ msg, sender }) => {
       if (!sentMessages.has(socket.id)) {
         const Message = roomInfo.Message;
         const newMessage = new roomInfo.Message({ room, msg: `${username} has joined the room`, sender: 'Captain Collaboard', time: moment().format("h:mm a") });
-
+  
         newMessage.save().then(() => {
           Message.find().then((result) => {
             io.emit("messages", result);
             console.log(result);
           });
         });
-
+  
         sentMessages.add(socket.id);
       }
-
+  
       const newMessage = new roomInfo.Message({ room, msg, sender, time: moment().format("h:mm a") });
-
+  
       newMessage.save().then(() => {
         // Find and emit updated messages
         roomInfo.Message.find().then((result) => {
@@ -175,52 +189,44 @@ io.on('connection', socket => {
       });
     };
 
-    // Function to handle user disconnecting
-    socket.on('userLeave', () => {
-      if (roomInfo) {
-        const username = exitRoom(socket.id); // Use the modified exitRoom to get the username
-    
-        if (username) {
-          const leaveMessage = `${username} has left the room`;
-    
-          // Emit the leave message to the room
-          io.to(room).emit('chatMessage', { room: roomNameParam, msg: leaveMessage, sender: 'Captain Collaboard' });
-    
-          // Save the leave message to the database
-          const Message = roomInfo.Message;
-          const newMessage = new Message({
-            room,
-            msg: leaveMessage,
-            sender: 'Captain Collaboard',
-            time: moment().format('h:mm a')
-          });
-    
-          newMessage.save().then(() => {
-            // Find and emit updated messages
-            Message.find().then((result) => {
-              io.emit('messages', result);
-              console.log(result);
-              loadDatabaseMessages(socket, room); // Pass socket and room as arguments
-            });
-    
-            // Remove the username from the active users list
-            const activeUsers = roomInfo.messages;
-            const userIndex = activeUsers.findIndex((u) => u.username === username);
-    
-            if (userIndex !== -1) {
-              activeUsers.splice(userIndex, 1);
-            }
-    
-            // Send an updated list of users to all clients in the room
-            io.to(room).emit('roomUsers', {
-              room,
-              users: activeUsers.map((u) => u.username),
-            });
-          });
+    socket.on('userLeave', (data) => {
+      const { room, socketId } = data;
+      // Remove the user from the roomUsers Map
+      if (roomUsers.has(room)) {
+        const usersInRoom = roomUsers.get(room);
+        if (usersInRoom.has(socketId)) {
+          usersInRoom.delete(socketId);
         }
       }
+    
+      const leaveMessage = `${username} has left the room`;
+    
+      // Emit the leave message to the room
+      io.to(room).emit('chatMessage', { room, msg: leaveMessage, sender: 'Captain Collaboard' });
+    
+      // Save the leave message to the database (assuming the 'Message' model exists)
+      const Message = roomInfo.Message;
+      const newMessage = new Message({
+        room,
+        msg: leaveMessage,
+        sender: 'Captain Collaboard',
+        time: moment().format('h:mm a')
+      });
+    
+      newMessage.save().then(() => {
+        // Find and emit updated messages
+        Message.find().then((result) => {
+          io.emit('messages', result);
+          console.log(result);
+          // Assuming 'loadDatabaseMessages' handles loading messages for a specific room
+          loadDatabaseMessages(io, room);
+        });
+    
+        // Emit the updated roomUsers set to the room
+        const updatedRoomUsers = Array.from(roomUsers.get(room).values());
+        io.to(room).emit('roomUsers', { room, users: updatedRoomUsers });
+      });
     });
-
     // Event listener for chat messages
     socket.on('chatMessage', handleChatMessage);
   };
@@ -228,7 +234,6 @@ io.on('connection', socket => {
   // Event listener for joining a room
   socket.on('joinRoom', handleJoinRoom);
 });
-
 // COOKIES DEF : stores data of browser then is sent back to server and we can access it, cookie holds jwt token to identify user
 //const cookieParser = require('cookie-parser');
 //app.use(cookieParser());
