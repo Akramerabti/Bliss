@@ -93,8 +93,22 @@ function createDatabaseConnection(room) {
 const rooms = new Map();
 
 io.on('connection', socket => {
+  
+  const loadDatabaseMessages = async (socket, room) => {
+      const roomInfo = rooms.get(room);
+      if (roomInfo) {
+        const Message = roomInfo.Message;
+    
+        // Fetch messages from the specific room's database
+        const messages = await Message.find({ room });
+    
+        // Emit the messages to the user who just joined
+        socket.emit('messages', messages);
+      }
+    };
   // Function to handle user joining a room
   const handleJoinRoom = async ({ username, room }) => {
+    
     if (!rooms.has(room)) {
       const sanitizedRoomName = room ? room.replace(/\s/g, '_') : '';
       const roomDB = createDatabaseConnection(sanitizedRoomName);
@@ -106,10 +120,14 @@ io.on('connection', socket => {
         messages: []
       };
 
+    // Load and emit database messages
       rooms.set(room, roomInfo);
     }
 
     socket.join(room);
+
+    await loadDatabaseMessages(socket, room);
+    
     socket.emit('messages', formatMessage("Captain Collab", 'Keep it clean and enjoy!'));
     io.to(room).emit('messages', formatMessage("Captain Collaboard", `${username} has joined the room`));
 
