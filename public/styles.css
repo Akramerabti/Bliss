@@ -115,7 +115,10 @@ header {
 
 header img {
   width: 250px;
+  height: 250px; /* Set both width and height to create a perfect circle */
   margin-right: 40px;
+  border: 4px solid #333; /* Dark outline */
+  border-radius: 50%; /* Make it circular */
 }
 
 header h2 {
@@ -214,57 +217,302 @@ footer {
   background-color: #FFD700;
 }
 
-#settings-container {
+.dropbtn {
+ 
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8em;
+    display: block;
+    padding: 10px 16px;
+    letter-spacing: 2px;
+    margin-left: 10px; /* Adjust the left margin to move it to the right */
+    margin-top: 0px;
+  
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
   position: relative;
+  display:inline-block;
 }
 
-#settings-container {
-  position: relative;
-}
-
-#settings-button {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  margin: 0;
-}
-
-#settings-button img {
-  width: 24px;
-  height: 24px;
-  vertical-align: middle;
-}
-
-/* Settings Dropdown Styles */
-.settings-dropdown {
-  position: absolute;
-  top: 0;
-  left: -150px; /* Adjust the left position to move the dropdown to the left */
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
   display: none;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
 }
 
-#settings-button:hover + .settings-dropdown,
-.settings-dropdown:hover {
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
   display: block;
 }
 
-.settings-dropdown ul {
-  list-style-type: none;
-  padding: 0;
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #ddd;}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {display: block;}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {background-color: #7f8e3e;}
+
+:root {
+	--dark-color-a: #000000;
+	--dark-color-b: #272728;
+	--light-color: #b9b9b95e;
+	--success-color: #65ce65;
+	--error-color: #df3832;
 }
 
-.settings-dropdown li {
-  padding: 10px;
-  text-align: center;
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
 }
 
-.settings-dropdown li a {
-  text-decoration: none;
-  color: #333;
+body .chat {
+	font-family: 'Roboto', sans-serif;
+	font-size: 16px;
+	background: var(--light-color);
+	margin: 20px;
+}
+
+ul {
+	list-style: none;
+}
+
+a {
+	text-decoration: none;
+}
+
+.btn {
+	cursor: pointer;
+	padding: 5px 15px;
+	background: var(--light-color);
+	color: var(--dark-color-a);
+	border: 0;
+	font-size: 17px;
+    border-radius: 4px;
+}
+
+/* Chat Page */
+
+.chat-container {
+	max-width: 1100px;
+	background: #a0a0a0;
+	margin: 30px auto;
+	overflow: hidden;
+
+}
+
+.chat-header {
+	background: var(--dark-color-a);
+	color: #fff;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	padding: 15px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.chat-main {
+	display: grid;
+	grid-template-columns: 1fr 3fr;
+}
+
+.chat-sidebar {
+	background: var(--dark-color-b);
+	color: #fff;
+	padding: 20px 20px 60px;
+	overflow-y: scroll;
+}
+
+.chat-sidebar h2 {
+	font-size: 20px;
+	background: rgba(0, 0, 0, 0.1);
+	padding: 10px;
+	margin-bottom: 20px;
+}
+
+.chat-sidebar h3 {
+	margin-bottom: 15px;
+}
+
+.chat-sidebar ul li {
+	padding: 10px 0;
+    border-top: .7px solid;
+    border-bottom: .7px solid;
+}
+
+.chat-sidebar::-webkit-scrollbar {
+    width: 1em;
+}
+
+ 
+.chat-sidebar::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+ 
+.chat-sidebar::-webkit-scrollbar-thumb {
+  background-color: #3498db; /* Set your desired color */
+  border-radius: 5px; /* Add a rounded shape to the thumb */
+  border: 2px solid #fff; /* Add a border around the thumb */
+}
+
+.chat-messages {
+	padding: 30px;
+	max-height: 500px;
+	overflow-y: scroll;
+    background-image: url('../img/chat-bg.jpg');
+    background-position: center;
+    background-size: contain;
+}
+
+.chat-messages .message {
+	padding: 10px;
+	margin-bottom: 15px;
+	background-color: rgb(145, 145, 145);
+	border-radius: 5px;
+}
+
+.chat-messages .message .meta {
+	font-size: 15px;
+	font-weight: bold;
+	color: white;
+	opacity: 0.7;
+	margin-bottom: 7px;
+    display: flex;
+}
+
+.chat-messages .message .meta span {
+	color: #ffffff;
+    margin-left: auto;
+}
+
+.chat-form-container {
+	padding: 5px 10px;
+	background-color: var(--dark-color-b);
+  margin-block: 1px;
+}
+
+.chat-form-container form {
+	display: flex;
+  padding: 5px 10px;
+  padding-block: 2px;
+  margin-left: 280px;
+  width: 70%; /* Set width to 100% */
+}
+
+.chat-form-container input[type='text'] {
+	border-radius: 15px;
+    border: none;
+    font-size: 16px;
+    padding: 10px;
+    height: 20px;
+    flex: 1;
+    outline: none;
+
+}
+
+button.btn-plane {
+    width: 50px;
+    border-radius: 50px;
+    border: none;
+    background:local;
+    background-color:red;
+    cursor: pointer;
+}
+
+i.fas.fa-paper-plane{
+    font-size: 1.5rem;
+    color: white;
+    outline: none;
+}
+
+/* Join Page */
+.join-container {
+	max-width: 500px;
+	margin: 80px auto;
+	color: #fff;
+}
+
+.join-header {
+	text-align: center;
+	padding: 20px;
+	background: var(--dark-color-a);
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.join-main {
+	padding: 30px 40px;
+	background: var(--dark-color-b);
+    border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.join-main p {
+	margin-bottom: 20px;
+}
+
+.join-main .form-control {
+	margin-bottom: 20px;
+}
+
+.join-main label {
+	display: block;
+	margin-bottom: 5px;
+}
+
+.join-main input[type='text']  {
+	font-size: 16px;
+	padding: 5px;
+	height: 40px;
+	width: 100%;
+    border-radius: 3px;
+
+}
+
+.join-main input[type='email']  {
+	font-size: 16px;
+    border-radius: 3px;
+	padding: 5px;
+	height: 40px;
+	width: 100%;
+}
+
+.join-main select {
+	font-size: 16px;
+	padding: 5px;
+	height: 40px;
+	width: 100%;
+}
+
+.join-main .btn {
+	margin-top: 20px;
+	width: 100%;
+    border: none;
+
+}
+.flex{
+    display: grid;
+    place-content: center;
+}
+@media (max-width: 700px) {
+	.chat-main {
+		display: block;
+	}
+
+	.chat-sidebar {
+		display: none;
+	}
 }

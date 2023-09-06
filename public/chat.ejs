@@ -1,23 +1,5 @@
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <link rel="stylesheet" href="/chat.css">
-</head>
-<body>
-  <nav>
-    <h1><a href="/">Collaboardation</a></h1>
-    <ul id = "uservalue" data-user=<%= JSON.stringify(locals.user && locals.user.name) %>>
-      <% if (locals.user)  {%>
-        <li>Welcome, <%= user.name %></li>
-        <li><a href="/logout">Log out</a></li>
-        <%} else {  %>
-        <li><a href="/login">Log in</a></li>
-        <li><a href="/signup" class="btn">Sign up</a></li>
-        <% }  %>
-    </ul>
-  </nav>
+<%- include('../views/partials/header'); -%>
+<body class="chat">
 <div class="chat-container">
     <header class = "chat-header">
         <h1><i class="fas fa-comments"></i> Collaboardation </h1>
@@ -57,6 +39,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.11.2/qs.min.js" integrity="sha512-vCegEXqPUYpZsTGz2lk0jaQ1psxtFeniVJACAXhMVxuoYa/N4nZkjoVFOxLwP7uGeQOoemiz7DQrIpRTj4IBPw==" crossorigin="anonymous"></script>
 <script src="main.js"></script> 
 <footer>Copyright 2022 </footer>
-
+</body>
 </body>
 </html>

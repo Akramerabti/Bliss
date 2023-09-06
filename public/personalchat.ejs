@@ -1,36 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <nav>
-    <h1><a href="/">Collaboardation</a></h1>
-    <ul id = "uservalue" data-user=<%= JSON.stringify(locals.user && locals.user.name) %>>
-      <% if (locals.user)  {%>
-        <li>Welcome, <%= user.name %></li>
-        <li><a href="/logout">Log out</a></li>
-        <%} else {  %>
-        <li><a href="/login">Log in</a></li>
-        <li><a href="/signup" class="btn">Sign up</a></li>
-        <% }  %>
-    </ul>
-  </nav>
+<%- include('../views/partials/header'); -%>
     <div class="join-container">
       <header class="join-header">
         <h1> Collababoard!</h1>
       </header>
       <main class="join-main">
-        <form action="/personalchat">
+        <form action="/chat">
           <div class="form-control">
             <label for ="personal"> Public collaboardation:</label>
              <input
               type = "text"
               name = "name"
-              id="name"
+              id="room"
               placeholder="Enter User's name"
               required
               />

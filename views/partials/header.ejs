@@ -12,23 +12,17 @@
       <% if (locals.user)  { %>
         <li>Welcome, <%= locals.user.name %></li>
         <li><a href="/logout">Log out</a></li>
-        <!-- Settings button and dropdown wrapped in an <li> element -->
-       
+        <div class="dropdown">
+          <button class="dropbtn">Dropdown</button>
+          <div class="dropdown-content">
+            <a href="#">Link 1</a>
+            <a href="#">Link 2</a>
+            <a href="#">Link 3</a>
+          </div>
+        </div>
       <% } else {  %>
         <li><a href="/login">Log in</a></li>
         <li><a href="/signup" class="btn">Sign up</a></li> 
-        <li id="settings-container">
-          <button id="settings-button">
-            <img src="settings-icon.png" alt="Settings Icon">
-          </button>
-          <div class="settings-dropdown">
-            <ul id="pages-container">
-              <!-- Page links will be added here dynamically -->
-            </ul>
-          </div>
-        </li>
       <% } %>
     </ul>
   </nav>
-</body>
-</html>

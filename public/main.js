@@ -5,6 +5,19 @@ const roomNameElement = document.getElementById("room-name");
 const userList = document.getElementById("users");
 const Leaving = document.getElementById("leaving-button");
 
+
+
+// Add an event listener to the form for submission
+const chatButton = document.getElementById("chat-button");
+
+// Add a click event listener to the button
+chatButton.addEventListener("click", function () {
+  // Get the URL from the form's action attribute
+  const targetUrl = chatForm.getAttribute("action");
+
+  // Navigate to the specified URL
+  window.location.href = targetUrl;
+});
 // Parse the room name from the URL query parameters
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -13,7 +26,7 @@ const roomNameParam = urlParams.get('room'); // Get the room name from the URL
 // Update the room name element if it exists
 if (roomNameElement) {
   roomNameElement.innerText = roomNameParam; // Replace with your actual room name
-}
+
 
 // Your JavaScript logic here
 console.log(username);
@@ -164,3 +177,4 @@ leavingButton.addEventListener('click', async (e) => {
 
   window.location.href = "/";
 });
+}

@@ -19,23 +19,15 @@
         <% }  %>
     </ul>
   </nav>
-    <div class="join-container">
-      <header class="join-header">
+      <header>
         <h1> Collababoard!</h1>
       </header>
-      <main class="join-main">
-        <form action="/groupchat">
-          <button type="submit" class="btn">Create A Private Server</button>
-        </div>
-      </div>
-
-    </form>
-        <form action="/personalchat">
-          <button type="submit" class="btn">Chat to user</button>
-        </div>
-      </div>
-    </form>
-
+      <form >
+        <button  class="btn"><a href="/personalchat" >Private server</a></button>
+      </form > 
+      <form id="chat-form" action="/public/personalchat.ejs" method="get">
+        <button  class="btn"><a href="/personalchat" >Chat to user</a></button>
+      </form>
         <form action="/chat">
           <div class="form-control">
             <label for ="room"> Public collaboardation:</label>
@@ -92,7 +84,6 @@
    <script src="/socket.io/socket.io.js"></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.11.2/qs.min.js" integrity="sha512-vCegEXqPUYpZsTGz2lk0jaQ1psxtFeniVJACAXhMVxuoYa/N4nZkjoVFOxLwP7uGeQOoemiz7DQrIpRTj4IBPw==" crossorigin="anonymous"></script>
   <script src="main.js"></script>
-  <script src="personal.js"></script>
   <footer>Copyright 2022 </footer>
 
 </body>

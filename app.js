@@ -233,6 +233,7 @@ io.on('connection', socket => {
 
   // Event listener for joining a room
   socket.on('joinRoom', handleJoinRoom);
+  socket.on("joinName", handleJoinRoom)
 });
 
 // COOKIES DEF : stores data of browser then is sent back to server and we can access it, cookie holds jwt token to identify user
