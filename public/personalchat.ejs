@@ -1,10 +1,10 @@
-<%- include('../views/partials/header'); -%>
+<%- include('partials/header'); -%>
     <div class="join-container">
       <header class="join-header">
         <h1> Collababoard!</h1>
       </header>
       <main class="join-main">
-        <form action="/chat">
+        <form action="/personal">
           <div class="form-control">
             <label for ="personal"> Public collaboardation:</label>
              <input
@@ -25,10 +25,7 @@
     // Set a JavaScript variable with the user.name value
     const username = "<%= user.name %>";
   </script>
-   <script src="/socket.io/socket.io.js"></script>
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.11.2/qs.min.js" integrity="sha512-vCegEXqPUYpZsTGz2lk0jaQ1psxtFeniVJACAXhMVxuoYa/N4nZkjoVFOxLwP7uGeQOoemiz7DQrIpRTj4IBPw==" crossorigin="anonymous"></script>
-  <script src="personal.js"></script>
-  <footer>Copyright 2022 </footer>
-
-</body>
-</html>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.11.2/qs.min.js" integrity="sha512-vCegEXqPUYpZsTGz2lk0jaQ1psxtFeniVJACAXhMVxuoYa/N4nZkjoVFOxLwP7uGeQOoemiz7DQrIpRTj4IBPw==" crossorigin="anonymous"></script>
+<script src="personal.js"></script> 
+  <%- include('partials/footer'); -%>

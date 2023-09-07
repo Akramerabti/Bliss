@@ -7,17 +7,7 @@ const Leaving = document.getElementById("leaving-button");
 
 
 
-// Add an event listener to the form for submission
-const chatButton = document.getElementById("chat-button");
-
-// Add a click event listener to the button
-chatButton.addEventListener("click", function () {
-  // Get the URL from the form's action attribute
-  const targetUrl = chatForm.getAttribute("action");
-
-  // Navigate to the specified URL
-  window.location.href = targetUrl;
-});
+// Add an event listener to the form for submissi
 // Parse the room name from the URL query parameters
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -57,7 +47,6 @@ socket.on('roomUsers', ({ room, users }) => {
       userList.appendChild(li); // Append the <li> element to the userList
     }
   });
-    console.log(uniqueArray)
   // Remove users who have left the room
   userItems.forEach(item => {
     if (!uniqueArray.includes(item.textContent)) {
@@ -71,13 +60,14 @@ socket.on('roomUsers', ({ room, users }) => {
 
 socket.on('messages', (data) => {
   console.log(data);
-  if(data.length){
-    data.forEach(message => {
-      // Check if the message belongs to the current room (roomNameParam)
-      if (message.room === roomNameParam) {
-        outputMessage(message);
-      
-  }})};
+
+  // Clear existing messages from the chatMessages element
+  chatMessages.innerHTML = '';
+
+  data.forEach((message) => {
+    outputMessage(message);
+  });
+  
   
   // Scroll down (if you still want to do it here)
   chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -175,6 +165,6 @@ leavingButton.addEventListener('click', async (e) => {
   // Emit the userLeave event to the server using roomNameParam and username
   socket.emit('userLeave', { room: roomNameParam, username, socketId: socket.id  });
 
-  window.location.href = "/";
+  window.location.href = "/rooms";
 });
 }

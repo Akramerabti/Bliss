@@ -43,6 +43,38 @@ const handleErrors = (err) => {
     errors.password = 'One or many entries are invalid';
     };
    return errors;
+  }
+
+  const handleNotifs = (Notif) => {
+    console.log(Notif.message, Notif.code);
+  let errors = { email: '', name:'', password: '' };
+
+  // incorrect email
+  if (err.message === 'incorrect email') {
+    errors.email = 'That email is not registered';
+  }
+
+  // incorrect email
+  if (err.message === 'incorrect name') {
+    errors.name = 'That name is not registered';
+  }
+
+  // incorrect password
+  if (err.message === 'incorrect password') {
+    errors.password = 'That password is incorrect';
+  }
+
+  // duplicate email error
+  if (err.code === 11000) {
+    errors.email = 'that email is already registered';
+    return errors;
+  }
+
+  // validation errors
+  if (err.message.includes('incorrect validation')) {
+    errors.password = 'One or many entries are invalid';
+    };
+   return errors;
    
   }
 

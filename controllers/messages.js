@@ -5,7 +5,7 @@ function formatMessage(username,text,room){
         username,
         text,
         room,
-        time: moment().format("h:mm a")
+        time: moment().format("lll")
 
     }
 }

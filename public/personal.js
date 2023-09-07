@@ -18,8 +18,6 @@ if (roomuserNameElement) {
 // Your JavaScript logic here
 console.log(username);
 
-const socket = io();
-
 // Log when you join a room using roomNameParam
 socket.emit('joinName', { username, room: NameParam });
 
@@ -63,7 +61,6 @@ socket.on('messages', (data) => {
       // Check if the message belongs to the current room (roomNameParam)
       if (message.room === NameParam) {
         outputMessage(message);
-      
   }})};
   
   // Scroll down (if you still want to do it here)
@@ -84,7 +81,7 @@ if (chatNameForm) {
     sender = username;
 
     // Emit the new message to the server using roomNameParam
-    socket.emit('chatMessage', { room: roomNameParam, msg, sender });
+    socket.emit('chatMessage', { room: NameParam, msg, sender });
     // Clear input
     e.target.elements.msg.value = '';
     e.target.elements.msg.focus();
@@ -106,7 +103,7 @@ function outputMessage(message) {
   para.innerText = message.msg;
   div.appendChild(para);
 
-  chatMessages.appendChild(div); // Append the message to the chatMessages element
+  chatNameMessages.appendChild(div); // Append the message to the chatMessages element
 }
 
 function outputRoomName(room) {
@@ -155,12 +152,12 @@ function outputUsers(username) {
 
 
 // Event listener for the leaving button
-const leavingButton = document.getElementById("leaving-button");
+const leavingButton = document.getElementById("personal-leaving-button");
 
 leavingButton.addEventListener('click', async (e) => {
   e.preventDefault();
   // Emit the userLeave event to the server using roomNameParam and username
-  socket.emit('userLeave', { room: roomNameParam, username, socketId: socket.id  });
+  socket.emit('userLeave', { room: NameParam, username, socketId: socket.id  });
 
-  window.location.href = "/";
+  window.location.href = "/rooms";
 });

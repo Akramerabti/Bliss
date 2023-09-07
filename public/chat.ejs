@@ -1,9 +1,9 @@
-<%- include('../views/partials/header'); -%>
+<%- include('partials/header'); -%>
 <body class="chat">
 <div class="chat-container">
     <header class = "chat-header">
         <h1><i class="fas fa-comments"></i> Collaboardation </h1>
-        <button href= "/" class="btn" id="leaving-button">Leave Room</button>
+        <button href= "/rooms" class="btn" id="leaving-button">Leave Room</button>
     </header>
         <main class="chat-main">
           <div class="chat-sidebar">
@@ -38,7 +38,7 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.11.2/qs.min.js" integrity="sha512-vCegEXqPUYpZsTGz2lk0jaQ1psxtFeniVJACAXhMVxuoYa/N4nZkjoVFOxLwP7uGeQOoemiz7DQrIpRTj4IBPw==" crossorigin="anonymous"></script>
 <script src="main.js"></script> 
+<script src="/partials/Notifs.js"></script> 
 <footer>Copyright 2022 </footer>
 </body>
-</body>
-</html>
+<%- include('partials/footer'); -%>
