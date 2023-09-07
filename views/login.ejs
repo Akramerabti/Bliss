@@ -80,17 +80,9 @@
                 passwordError.textContent =data.errors.password
             }
 
-            if(data.user) { // if there is data from the user
-                var currentUrl = window.location.href;
-
-            // Remove any query parameters and hash fragments from the URL
-            var cleanUrl = currentUrl.split('?')[0].split('#')[0];
-
-            // Get the last directory in the path
-            var lastDirectory = cleanUrl.substring(0, cleanUrl.lastIndexOf('/'));
-
-            // Redirect to the last directory
-            location.assign(lastDirectory);
+            if (data.user) {
+            const lastDirectory = window.location.pathname.split('/').filter(Boolean).pop();
+            location.assign(`/${lastDirectory}`);
             }
 
         else{ const res = await fetch('/login', { 
@@ -107,18 +99,10 @@
                 passwordError.textContent =data.errors.password
             }
 
-            if(data.user) { // if there is data from the user
-                var currentUrl = window.location.href;
-
-            // Remove any query parameters and hash fragments from the URL
-            var cleanUrl = currentUrl.split('?')[0].split('#')[0];
-
-            // Get the last directory in the path
-            var lastDirectory = cleanUrl.substring(0, cleanUrl.lastIndexOf('/'));
-
-            // Redirect to the last directory
-            location.assign(lastDirectory);
-            }
+            if (data.user) {
+            const lastDirectory = window.location.pathname.split('/').filter(Boolean).pop();
+             location.assign(`/${lastDirectory}`);
+}
 
         }
 

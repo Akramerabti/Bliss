@@ -132,6 +132,23 @@ module.exports.signup_post = async (req, res) => {
   const generatedcode = crypto.randomInt(100000, 999999).toString();
   const verificationCode = generatedcode;
 
+  const Verification_sendEmail = async (email) => {
+    try {
+      await transporter.sendMail({
+        from: "blissauthentification@bliss.com",
+        to: email,
+        subject: "Bliss Verification Code",
+        html: `<p>Welcome aboard! Here is your verification code. </p>
+          <p>${generatedcode}</p>
+        `,
+      });
+
+      return generatedcode;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   try {
     const user = await User.create({ email, name, password, verificationCode });
 
@@ -141,20 +158,16 @@ module.exports.signup_post = async (req, res) => {
     // Send the verification email
     await Verification_sendEmail(user.email);
 
-    // Save the user to the database with the verificationCode
-    await user.save();
-
     console.log("User created and verification email sent.");
 
-    res.cookie("jwt", token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.status(201).json({ user: user._id });
+    // You can also include the token in the redirect URL if needed
+    // res.redirect(`/verification?token=${token}`);
 
   } catch (err) {
     const errors = handleErrors(err);
     res.status(400).json({ errors });
   }
 };
-
 
 module.exports.login_post = async (req, res) => {
     const { email, name, password } = req.body;

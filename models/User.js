@@ -24,13 +24,11 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
         required: true,
       },
 
-    CreatedAt: {
-        type:Date,
-        default:Date.now,
-        expires: "15m"
-       } ,
+    Verified: {
+        type: Boolean,
+        default: false,
 
-});
+}});
  
 // fire function before info saved to database by encrypting the password
 LoginSchema.pre('save', async function (next) {
