@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <%- include('../public/partials/header'); -%>
+    <h2>Sign Up</h2>
+
+
+    <form> <!form for the login system as a method to post>
+
+    <label for="email">Enter Given Code</label>
+    <input placeholder="Email Code"  name="Code" type="email" required /> <!box for the password with type password so we don't see it>
+    <div class="code error"></div>
+
+    <button>Verify</button>
+
+</form>
+
+<a href="/login">Already have an account?</a>
+
+</body>
+<script>
+    const form =document.querySelector('form'); //searches for "form" info
+
+
+    const codeError = document.querySelector('.code.error'); // grabs the "<div>" of email error from the form
+
+    form.addEventListener("submit", async (e) => { //Waits for submit event from input button of form to take in the event object async and await is when an event is asynchronous
+        e.preventDefault(); //prevents refreshing
+
+      
+        codeError.textContent = ""
+        // get the values
+        const  verificationCode = form.Code.value // form.the name of the input to get the value
+
+        try {
+            const res = await fetch('/signup', { 
+                method: "POST",
+                body: JSON.stringify({verificationCode}), // passing data from the input values to the signup POST function
+                headers: { "Content-Type" : "application/json"}
+            })
+
+            const data = await res.json() // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
+
+            if(data.errors){ // if there is errors coming from the json response
+                emailError.textContent =data.errors.email // populates the div class email error in the form with the errors handle that we built in authController
+                nameError.textContent =data.errors.name
+                passwordError.textContent =data.errors.password
+                console.error("Signup failed:", data.error);
+            }
+
+            if(data.user) { // if there is data from the user
+
+                window.location.href = "/emailverif";
+                
+            }
+
+
+        } catch (err) {
+            console.log(err)
+
+        }
+    })
+</script>
+<%- include('../public/partials/footer'); -%></div>

@@ -7,6 +7,8 @@ const jwt = require("jsonwebtoken")
 const bodyparser = require('body-parser');
 const messageSchema = require('../models/messages'); 
 const message = mongoose.model('message', messageSchema);
+const nodemailer = require("nodemailer");
+const crypto = require('crypto')
 
 /*assuming an express app is declared here*/
 app.use(bodyparser.json());
@@ -78,7 +80,34 @@ const handleErrors = (err) => {
    
   }
 
-   
+const transporter = nodemailer.createTransport({
+    host:"smtp-relay.brevo.com",
+    port: 587,
+    auth:{
+      user:"auth.systemvd@gmail.com",
+      pass:"zPsJX2qQj97R68OV"
+    }
+  })
+
+  const Verification_sendEmail = async (email) =>{
+    try {
+    
+      const generatedcode = crypto.randomInt(100000,999999).toString()
+  
+      await transporter.sendMail({
+        from:"blissauthentification@bliss.com",
+        to: email,
+        subject: "Bliss Verification Code",
+        html: `<p>Welcome aboard! Here is your verification code. </p>
+          <p>${generatedcode}</p>
+        `,
+      });
+  
+      return generatedcode;
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
 
 const maxAge = 5 * 24 * 60 *60
@@ -98,26 +127,33 @@ module.exports.login_get = (req,res) => {//gets from folder with a slash "/" req
 }
 
 
-module.exports.signup_post = async (req, res) =>{ //Asynchronous event since we wait for its call. Posts the signup action in the "/signup" in the <form> from the signup.hbs file while asking for a request and response (to work with mongodb, we write async)
-
-    const { email, name, password } = req.body;
+module.exports.signup_post = async (req, res) => {
+  const { email, name, password } = req.body;
+  const generatedcode = crypto.randomInt(100000, 999999).toString();
+  const verificationCode = generatedcode;
 
   try {
-    const user = await User.create({ email, name, password });
-    //creates user, now we need to send a json web token to affirm the server that user is logged in USING COOKIES that will move the JWT token
-    const token = createToken(user._id) //fetches the token using the mongoDB "_id"
+    const user = await User.create({ email, name, password, verificationCode });
 
-    res.cookie("jwt", token, {httpOnly: true, maxAge : maxAge *1000})
-    res.status(201).json({user: user._id, user:user});
-    
+    // Generate a JWT token
+    const token = createToken(user._id);
 
-  }
-  catch(err) {
+    // Send the verification email
+    await Verification_sendEmail(user.email);
+
+    // Save the user to the database with the verificationCode
+    await user.save();
+
+    console.log("User created and verification email sent.");
+
+    res.cookie("jwt", token, { httpOnly: true, maxAge: maxAge * 1000 });
+    res.status(201).json({ user: user._id });
+
+  } catch (err) {
     const errors = handleErrors(err);
-    res.status(400).json({ errors }); // response with a status error
-    }
-
-}
+    res.status(400).json({ errors });
+  }
+};
 
 
 module.exports.login_post = async (req, res) => {

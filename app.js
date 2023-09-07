@@ -13,10 +13,10 @@ const path = require('path');
 const User = require("./models/User");
 const PORT = process.env.PORT || 3000;
 const jwt = require("jsonwebtoken");
-const formatMessage = require("./controllers/messages");
 const messageSchema = require("./models/messages");
 const moment = require("moment");
 const { name } = require("ejs");
+const passport = require("passport")
 
 /*assuming an express app is declared here*/
 app.use(bodyparser.json());
@@ -78,6 +78,17 @@ app.get("/personal", requireAuth, (req, res) => {
   console.log(user)
   res.render(path.join(__dirname, 'public', 'personal'), { user });
 });
+
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+app.get(
+  '/auth/google/callback',
+  passport.authenticate('google', {
+    successRedirect: '/', // Redirect to the homepage after successful login
+    failureRedirect: '/login', // Redirect to the login page if authentication fails
+  })
+);
+
 
 function createDatabaseConnection(room) {
   return mongoose.createConnection(`mongodb://localhost:27017/${room}`, {

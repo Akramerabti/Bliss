@@ -19,6 +19,16 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
         required:[ true, 'Please enter a password' ],
         minlength: [8, 'Minimum password length of 8 characters']
     },
+    verificationCode: { // Add this field for storing the verification code
+        type: String,
+        required: true,
+      },
+
+    CreatedAt: {
+        type:Date,
+        default:Date.now,
+        expires: "15m"
+       } ,
 
 });
  
@@ -49,10 +59,11 @@ LoginSchema.pre('save', async function (next) {
         }
         throw Error("incorrect password")
     }
-    
+
     throw Error("incorrect validation")
 
   }
+
 
   const User = mongoose.model('user', LoginSchema);
 

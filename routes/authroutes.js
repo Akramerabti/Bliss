@@ -8,6 +8,7 @@
 const express=require("express") //requires express.js
 const routing=express() //Launches express.js
 const authController = require('../controllers/APIS')
+const nodemailer = require("nodemailer");
 
 routing.get('/signup', authController.signup_get) 
 

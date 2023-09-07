@@ -29,7 +29,6 @@
 </form>
 
 <a href="/login">Already have an account?</a>
-    <%- include('partials/footer'); -%>
 
 </body>
 <script>
@@ -60,13 +59,19 @@
 
             const data = await res.json() // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
 
+            if(!data.user.verificationCode) { // if there is data from the user
+                window.location.href = "/emailverif";
+            }
+
             if(data.errors){ // if there is errors coming from the json response
                 emailError.textContent =data.errors.email // populates the div class email error in the form with the errors handle that we built in authController
                 nameError.textContent =data.errors.name
                 passwordError.textContent =data.errors.password
+                console.error("Signup failed:", data.error);
             }
 
             if(data.user) { // if there is data from the user
+
                 var currentUrl = window.location.href;
 
             // Remove any query parameters and hash fragments from the URL
