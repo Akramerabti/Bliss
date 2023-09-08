@@ -1,66 +1,56 @@
+//THESE ARE ALL FUNCTIONS USED AS CONTROLLERS FOR WHAT WE ARE GETTING/POSTING IN AUTHROUTE.JS
+const mongoose = require("mongoose");
+const express = require("express") //requires express.js
+const app = express() //Launches express.js
+const User = require("../models/User")
+const jwt = require("jsonwebtoken")
+const bodyparser = require('body-parser');
+const messageSchema = require('../models/messages'); 
+const message = mongoose.model('message', messageSchema);
+const nodemailer = require("nodemailer");
+const crypto = require('crypto')
+const bcrypt = require("bcrypt")
+/*assuming an express app is declared here*/
+app.use(bodyparser.json());
+app.use(bodyparser.urlencoded({extended: true}));
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
+const GoogleStrategy = require('passport-google-oauth20');
 
-const maxAge = 5 * 24 * 60 *60
-//Jwt user login token using personal id value from MongoDB database
-const createToken = (id) => {
-    return jwt.sign({ id }, "I swear to god no one should no this and no one will ever do", { expiresIn: maxAge})
-    //creates and returns a signed jwt token using the user id property, the string secret (which needs to be long and will be hashed), and finally the jwt properties (how long for it to expire IN SECONDS NOT LIKE COOKIES, httpOnly, secure, etc.)
-}
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
 
-app.post('/signup', (req, res, next) => {
-    passport.authenticate('local', async (err, user, info) => {
-      try {
-        if (err) {
-          return next(err);
-        }
-  
-        if (!user) {
-          // User registration failed, return an error response
-          return res.status(400).json({ message: info.message });
-        }
-  
-        // User registration successful, generate a JWT token
-        const token = createToken(user._id);
-  
-        // Set the JWT token in a cookie (optional, can also send it in the response body)
-        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-  
-        // Return a success response with the user's ID (optional)
-        res.status(201).json({ user: user._id });
-      } catch (error) {
-        return next(error);
+passport.deserializeUser((id, done) => {
+  User.findById(id).then((user) => {
+      done(null, user);
+  });
+});
+
+
+passport.use(new GoogleStrategy({
+  // options for google strategy
+  clientID: "29841924121-3j6mdglnkqgcsppn5igqi27913r01hbd.apps.googleusercontent.com",
+  clientSecret: "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",
+  callbackURL: '/google/redirect'
+
+},(accessToken, refreshToken, profile, done) => {
+  // check if user already exists in our own db
+  User.findOne({googleId: profile.id}).then((currentUser) => {
+      if(currentUser){
+          // already have this user
+          console.log('user is: ', currentUser);
+          done(null, currentUser);
+      } else {
+          // if not, create user in our db
+          new User({
+              googleId: profile.id,
+              username: profile.displayName,
+              thumbnail: profile._json.image.url
+          }).save().then((newUser) => {
+              console.log('created new user: ', newUser);
+              done(null, newUser);
+          });
       }
-    })(req, res, next);
   });
-
-  app.post('/login', (req, res, next) => {
-    passport.authenticate('local', async (err, user, info) => {
-      try {
-        if (err) {
-          return next(err);
-        }
-  
-        if (!user) {
-          // Authentication failed, return an error response
-          return res.status(400).json({ message: info.message });
-        }
-  
-        // Authentication successful, generate a JWT token
-        const token = createToken(user._id);
-  
-        // Set the JWT token in a cookie (optional, can also send it in the response body)
-        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-  
-        // Return a success response with the user's ID (optional)
-        res.status(200).json({ user: user._id });
-      } catch (error) {
-        return next(error);
-      }
-    })(req, res, next);
-  });
-
-  app.get('/logout', (req, res) => {
-    res.clearCookie('jwt'); // Clear the JWT cookie
-    res.redirect('/'); // Redirect to the homepage or wherever you want
-  });
+})
+);

@@ -1,4 +1,11 @@
 <%- include('../public/partials/header'); -%>
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans" />
+
+<head>
+    <meta name="google-signin-client_id" content="29841924121-3j6mdglnkqgcsppn5igqi27913r01hbd.apps.googleusercontent.com" >
+</head>
+
 <h2>Sign Up</h2>
 
 
@@ -17,6 +24,19 @@
 <div class="password error"></div>
 
 <button>Sign Up</button>
+
+<div class="google-btn" onclick="redirectToGoogle()">
+    <div class="google-icon-wrapper">
+      <img class="google-icon" src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"/>
+    </div>
+    <p class="btn-text"><b>Sign up with Google</b></p>
+  </div>
+  <script>
+    function redirectToGoogle() {
+      window.location.href = '/google'; // Redirect to the desired URL
+    }
+  </script>
+</div>
 
 </form>
 

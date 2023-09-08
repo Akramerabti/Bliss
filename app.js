@@ -16,7 +16,7 @@ const jwt = require("jsonwebtoken");
 const messageSchema = require("./models/messages");
 const moment = require("moment");
 const { name } = require("ejs");
-const passport = require("passport")
+const passportSetup = require("./controllers/passport-config");
 
 /*assuming an express app is declared here*/
 app.use(bodyparser.json());
@@ -79,15 +79,6 @@ app.get("/personal", requireAuth, (req, res) => {
   res.render(path.join(__dirname, 'public', 'personal'), { user });
 });
 
-app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-app.get(
-  '/auth/google/callback',
-  passport.authenticate('google', {
-    successRedirect: '/', // Redirect to the homepage after successful login
-    failureRedirect: '/login', // Redirect to the login page if authentication fails
-  })
-);
 
 
 function createDatabaseConnection(room) {
