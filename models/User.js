@@ -29,39 +29,58 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
         default: false,
 
 }});
+
  
-// fire function before info saved to database by encrypting the password
 LoginSchema.pre('save', async function (next) {
-    const salt = await bcrypt.genSalt();
-    this.password = await bcrypt.hash(this.password, salt)
-    next(); // to move on keep it going from this mongoose middleware (from get to post to terminal)
+    const saltRounds = 10; // Number of salt rounds for hashing
+    const salt = await bcrypt.genSalt(saltRounds);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
   });
-
+  
   // Static Method schema analysis for LOGIN in order to retrieve info from this schema
-  LoginSchema.statics.login = async function(name,email,password){
-    const user = await this .findOne({ email: email })  //finding in the constant "user" (the use of this is to refer to the constant user itself) at least one instance of the variables given email
-    const namer = await this .findOne({ name: name })  //finding in the constant "user" (the use of this is to refer to the constant user itself) at least one instance of the variables given email
+  LoginSchema.statics.login = async function (name, email, password) {
+    const userByEmail = await this.findOne({ email: email });
+    const userByName = await this.findOne({ name: name });
 
-    if(user){ //if it does exist
-        const auth = await bcrypt.compare(password, user.password) // compares the not hashed password to the hashed password user.password (true if it passes, false if not)
-        if(auth) {
-            return user
-        }
-        throw Error("incorrect password")
+    if (userByEmail) {
+    console.log(bcrypt.password)
+    console.log(userByEmail.password)
+      const auth = await bcrypt.compare(password, userByEmail.password);
+      if (auth) {
+        return userByEmail;
+      }
+      throw new Error("Incorrect password for the provided email");
     }
-
-    if(namer){
-        const auths = await bcrypt.compare(password, namer.password) // compares the not hashed password to the hashed password user.password (true if it passes, false if not)
-        if(auths) {
-            return namer
-        }
-        throw Error("incorrect password")
+  
+    if (userByName) {
+    console.log(bcrypt.password)
+    console.log(userByEmail.password)
+      const auth = await bcrypt.compare(password, userByName.password);
+      if (auth) {
+        return userByName;
+      }
+      throw new Error("Incorrect password for the provided name");
     }
+  
+    throw new Error("User not found");
+  };
 
-    throw Error("incorrect validation")
 
-  }
 
+
+  
+
+  LoginSchema.statics.verification = async function (givenverificationCode) {
+    const user = await this.findOne({ givenverificationCode });
+  
+    if (givenverificationCode === user.givenverificationCode) {
+        return user
+      } else {
+        throw new Error("User not found with the provided verification code");
+      }
+  
+  };
 
   const User = mongoose.model('user', LoginSchema);
 

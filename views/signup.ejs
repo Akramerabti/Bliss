@@ -1,22 +1,22 @@
-    <%- include('../public/partials/header'); -%>
-    <h2>Sign Up</h2>
+<%- include('../public/partials/header'); -%>
+<h2>Sign Up</h2>
 
 
-    <form> <!form for the login system as a method to post>
+<form> <!form for the login system as a method to post>
 
-    <label for="email">Email</label>
-    <input placeholder="Email" name="email" type="text"  required/> <!Box for the email , name value is for easy access to javascript>
-    <div class="email error"></div>
+<label for="email">Email</label>
+<input placeholder="Email" name="email" type="text"  required/> <!Box for the email , name value is for easy access to javascript>
+<div class="email error"></div>
 
-    <label for="name">Username</label>
-    <input placeholder="Name" name="name" type="text" required/> <!Box for the username>
-    <div class="name error"></div>
+<label for="name">Username</label>
+<input placeholder="Name" name="name" type="text" required/> <!Box for the username>
+<div class="name error"></div>
 
-    <label for="password">Password</label>
-    <input placeholder="Password - Min of 8 characters"  name="password" type="password" required /> <!box for the password with type password so we don't see it>
-    <div class="password error"></div>
+<label for="password">Password</label>
+<input placeholder="Password - Min of 8 characters"  name="password" type="password" required /> <!box for the password with type password so we don't see it>
+<div class="password error"></div>
 
-    <button>Sign Up</button>
+<button>Sign Up</button>
 
 </form>
 
@@ -24,54 +24,56 @@
 
 </body>
 <script>
-    const form =document.querySelector('form'); //searches for "form" info
+const form =document.querySelector('form'); //searches for "form" info
 
-    const emailError = document.querySelector('.email.error'); // grabs the "<div>" of email error from the form
-    const nameError = document.querySelector('.name.error'); // grabs the "<div>" of email error from the form
-    const passwordError = document.querySelector('.password.error'); // grabs the "<div>" of email error from the form
+const emailError = document.querySelector('.email.error'); // grabs the "<div>" of email error from the form
+const nameError = document.querySelector('.name.error'); // grabs the "<div>" of email error from the form
+const passwordError = document.querySelector('.password.error'); // grabs the "<div>" of email error from the form
 
-    form.addEventListener("submit", async (e) => { //Waits for submit event from input button of form to take in the event object async and await is when an event is asynchronous
-        e.preventDefault(); //prevents refreshing
+form.addEventListener("submit", async (e) => { //Waits for submit event from input button of form to take in the event object async and await is when an event is asynchronous
+    e.preventDefault(); //prevents refreshing
 
-        //reset errors everytime there is a submit
-        emailError.textContent = "" 
-        nameError.textContent = ""
-        passwordError.textContent = ""
-        // get the values
-        const email = form.email.value // form.the name of the input to get the value
-        const name = form.name.value // form.the name of the input to get the value
-        const password = form.password.value // form.the name of the input to get the value
+    //reset errors everytime there is a submit
+    emailError.textContent = "" 
+    nameError.textContent = ""
+    passwordError.textContent = ""
+    // get the values
+    const email = form.email.value // form.the name of the input to get the value
+    const name = form.name.value // form.the name of the input to get the value
+    const password = form.password.value // form.the name of the input to get the value
 
-        try {
-            const res = await fetch('/signup', { 
-                method: "POST",
-                body: JSON.stringify({email: email, name: name, password:password}), // passing data from the input values to the signup POST function
-                headers: { "Content-Type" : "application/json"}
-            })
+    try {
+        const res = await fetch('/signup', { 
+            method: "POST",
+            body: JSON.stringify({email: email, name: name, password:password}), // passing data from the input values to the signup POST function
+            headers: { "Content-Type" : "application/json"}
+        })
 
-            const data = await res.json() // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
+        if (res.status === 200) {
 
-            if(!data.user) { // if there is data from the user
-                window.location.href = "verification";
-            }
+        window.location.href = '/verification';
 
-            if(data.errors){ // if there is errors coming from the json response
-                emailError.textContent =data.errors.email // populates the div class email error in the form with the errors handle that we built in authController
-                nameError.textContent =data.errors.name
-                passwordError.textContent =data.errors.password
-                console.error("Signup failed:", data.error);
-            }
+        } else {
 
-            if (data.user) {
-             const lastDirectory = window.location.pathname.split('/').filter(Boolean).pop();
-            location.assign(`/${lastDirectory}`);
-            }
+        const data = await res.json() // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
 
-
-        } catch (err) {
-            console.log(err)
-
+        if(data.errors){ // if there is errors coming from the json response
+            emailError.textContent =data.errors.email // populates the div class email error in the form with the errors handle that we built in authController
+            nameError.textContent =data.errors.name
+            passwordError.textContent =data.errors.password
+            console.error("Signup failed:", data.error);
         }
-    })
+
+        if (data.user) {
+         const lastDirectory = window.location.pathname.split('/').filter(Boolean).pop();
+        location.assign(`/${lastDirectory}`);
+        }
+
+    }
+    } catch (err) {
+        console.log(err)
+
+    }
+})
 </script>
 <%- include('../public/partials/footer'); -%>

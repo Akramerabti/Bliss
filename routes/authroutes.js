@@ -21,28 +21,10 @@ routing.post('/login', authController.login_post)
 routing.get('/logout', authController.logout_get)
 
   
-routing.post('/', async (req, res) => {
-    const { verificationCode } = req.body;
-    const user = req.user; // Assuming you've authenticated the user
+routing.get('/verification', authController.verifs_get)
   
-    try {
-      // Check if the entered verification code matches the stored code
-      if (verificationCode === user.verificationCode) {
-        // Update the user's Verified field to true
-        user.Verified = true;
-        await user.save();
+routing.post('/verification', authController.verifs_post)
   
-        // Redirect to a success page
-        return res.redirect('/'); // You can create this success page
-      } else {
-        // Redirect to a page indicating that the code is incorrect
-        return res.redirect('/verification?error=incorrect-code'); // You can handle errors on the verification page
-      }
-    } catch (error) {
-      console.error('Error verifying code:', error);
-      return res.redirect('/verification?error=server-error');
-    }
-  });
   
 
 module.exports = routing;

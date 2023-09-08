@@ -1,4 +1,3 @@
-
 <%- include('../public/partials/header'); -%>
 <head>
     <meta name="google-signin-client_id" content="YOUR_CLIENT_ID.apps.googleusercontent.com">
@@ -69,7 +68,7 @@
             try {
             const res = await fetch('/login', { 
                 method: "POST",
-                body: JSON.stringify({ name:name, email:email, password}), // passing data from the input values to the signup POST function
+                body: JSON.stringify({ name:name, email:email, password:password}), // passing data from the input values to the signup POST function
                 headers: { "Content-Type" : "application/json"}
             })
 
@@ -87,7 +86,7 @@
 
         else{ const res = await fetch('/login', { 
                 method: "POST",
-                body: JSON.stringify({name:name, email:email, password}), // passing data from the input values to the signup POST function
+                body: JSON.stringify({name:name, email:email, password:password}), // passing data from the input values to the signup POST function
                 headers: { "Content-Type" : "application/json"}
             })
 

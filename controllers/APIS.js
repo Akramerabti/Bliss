@@ -9,7 +9,7 @@ const messageSchema = require('../models/messages');
 const message = mongoose.model('message', messageSchema);
 const nodemailer = require("nodemailer");
 const crypto = require('crypto')
-
+const bcrypt = require("bcrypt")
 /*assuming an express app is declared here*/
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({extended: true}));
@@ -89,25 +89,6 @@ const transporter = nodemailer.createTransport({
     }
   })
 
-  const Verification_sendEmail = async (email) =>{
-    try {
-    
-      const generatedcode = crypto.randomInt(100000,999999).toString()
-  
-      await transporter.sendMail({
-        from:"blissauthentification@bliss.com",
-        to: email,
-        subject: "Bliss Verification Code",
-        html: `<p>Welcome aboard! Here is your verification code. </p>
-          <p>${generatedcode}</p>
-        `,
-      });
-  
-      return generatedcode;
-    } catch (error) {
-      console.log(error);
-    }
-  }
 
 
 const maxAge = 5 * 24 * 60 *60
@@ -130,7 +111,8 @@ module.exports.login_get = (req,res) => {//gets from folder with a slash "/" req
 module.exports.signup_post = async (req, res) => {
   const { email, name, password } = req.body;
   const generatedcode = crypto.randomInt(100000, 999999).toString();
-  const verificationCode = generatedcode;
+  const verificationCode = JSON.stringify(generatedcode)
+  const Verified = false;
 
   const Verification_sendEmail = async (email) => {
     try {
@@ -146,26 +128,52 @@ module.exports.signup_post = async (req, res) => {
       return generatedcode;
     } catch (error) {
       console.log(error);
+      // Handle email sending error here
+      // You can choose to respond with an error message or perform other error-handling actions
     }
   };
 
   try {
-    const user = await User.create({ email, name, password, verificationCode });
+    const user = await User.create({ email, name, password, verificationCode: verificationCode, Verified: Verified });
 
-    // Generate a JWT token
-    const token = createToken(user._id);
+ 
+    await Verification_sendEmail(email);
 
-    // Send the verification email
-    await Verification_sendEmail(user.email);
-
-    console.log("User created and verification email sent.");
-
-    // You can also include the token in the redirect URL if needed
-    // res.redirect(`/verification?token=${token}`);
+    res.status(200).json({ user: user._id, user:user });
 
   } catch (err) {
     const errors = handleErrors(err);
     res.status(400).json({ errors });
+  }
+}
+
+module.exports.verifs_get = (req, res) => {//gets from folder with a slash "/signup" request and response => (arrow function)
+  res.render('verification'); // WILL LOOK IN THE SIGNUP FILE NAME renders response for signup.hbs file
+}
+
+module.exports.verifs_post = async (req, res) => {
+  const { givenverificationCode } = req.body;
+
+  try {
+    const user = await User.verification(givenverificationCode); // Assuming you've authenticated the user
+
+    if (givenverificationCode === user.givenverificationCode) {
+
+      const token = createToken(user._id);
+      // Update the user's Verified field to true
+      user.Verified = true;
+      await user.save();
+
+      res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
+      res.status(200).json({ user: user._id, user: user });
+    } else {
+      // Redirect to a page indicating that the code is incorrect
+      return console.error('Error verifying code');
+      // You can handle errors on the verification page
+    }
+  } catch (error) {
+    console.error('Error verifying code:', error);
+    res.status(500).json({ error: "An error occurred during verification." });
   }
 };
 

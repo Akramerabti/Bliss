@@ -17,7 +17,6 @@ const requireAuth = (req, res, next) => { // function with three attributes
 
   const token = req.cookies.jwt; // request authentification cookie
 
-  // check json web token exists & is verified
   if (token) {
 
     jwt.verify(token, 'I swear to god no one should no this and no one will ever do', (err, decodedToken) => { // same signature than the jwt signature since we want to recreate the jwt token to validate
