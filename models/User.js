@@ -39,19 +39,25 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
 });
 
 LoginSchema.pre('save', async function (next) {
+  if (this.isModified('password')) {
   console.log(this.password)
   const salt = bcrypt.genSaltSync();
-  console.log('salt:',salt)
   this.password = bcrypt.hashSync(this.password, salt)
+}
+  console.log(this)
   next();
 });
   
   // Static Method schema analysis for LOGIN in order to retrieve info from this schema
-  LoginSchema.statics.logins = async function (nameOrEmail, password) {
+  LoginSchema.statics.login = async function (nameOrEmail, password) {
 
     const user = await this.findOne({ $or: [{ name: nameOrEmail }, { email: nameOrEmail }] });
+    console.log(user)
     
     if (user) {
+    console.log(user) 
+    console.log(password)
+    console.log(user.password)
     const auth = await bcrypt.compare(password, user.password);
     console.log(auth)
       if (auth) {
