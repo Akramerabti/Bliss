@@ -175,21 +175,19 @@ module.exports.verifs_post = async (req, res) => {
 };
 
 module.exports.login_post = async (req, res) => {
-    const { nameOrEmail, password } = req.body;
+  const { nameOrEmail, password } = req.body;
 
   try {
     const user = await User.logins(nameOrEmail, password);
-    console.log('User:', user);
     const token = createToken(user._id);
     res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.status(200).json({ user: user._id, user:user });
- } 
- catch (err) {
+    res.redirect('/');
+  } catch (err) {
     const errors = handleErrors(err);
+    // Send JSON response for errors
     res.status(400).json({ errors });
   }
-
-}
+};
 
 module.exports.logout_get = async (req, res) => {
   res.cookie('jwt', '', { maxAge: 1 }); //Response to change the token (make it empty of empty value ' ' since we cannot delete it and only one ms just to logout)

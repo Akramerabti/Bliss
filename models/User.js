@@ -37,16 +37,20 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
 
 });
 
- 
 LoginSchema.pre('save', async function (next) {
-    const saltRounds = 10; // Number of salt rounds for hashing
-    const salt = await bcrypt.genSalt(saltRounds);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  });
+  const salt = await bcrypt.genSalt();
+  this.password = await bcrypt.hash(this.password, salt)
+  next(); // to move on keep it going from this mongoose middleware (from get to post to terminal)
+});
+
+// fire a function before doc saved to db to see user in terminal with info
+LoginSchema.pre('save', function (next) {
+  console.log('user about to be created & saved', this);
+  next(); // to move on keep it going from this mongoose middleware (from get to post to terminal)
+});
   
   // Static Method schema analysis for LOGIN in order to retrieve info from this schema
-  LoginSchema.statics.logins = function (nameOrEmail, password) {
+  LoginSchema.statics.logins = async function (nameOrEmail, password) {
 
     const user = await this.findOne({ $or: [{ name: nameOrEmail }, { email: nameOrEmail }] })
 
