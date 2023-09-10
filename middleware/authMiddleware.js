@@ -12,7 +12,6 @@ const User = require('../models/User');
 app.use(cookieParser()) // necessary to parse cookie into readable format
 
 
-
 const requireAuth = (req, res, next) => { // function with three attributes
 
   const token = req.cookies.jwt; // request authentification cookie
@@ -41,15 +40,18 @@ const checkUser = (req, res, next) => {
     jwt.verify(token, 'I swear to god no one should no this and no one will ever do', async (err, decodedToken) => {
       if (err) {
         res.locals.user = null;
+        console.log("tf is going on", err)
         next();
       } else {
         let user = await User.findById(decodedToken.id);
         res.locals.user = user;
+        console.log(user)
         next();
       }
     });
   } else {
     res.locals.user = null;
+    console.log("assd")
     next();
   }
 };

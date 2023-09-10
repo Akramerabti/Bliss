@@ -10,6 +10,8 @@ const routing=express() //Launches express.js
 const authController = require('../controllers/APIS')
 const nodemailer = require("nodemailer");
 const passport = require("passport");
+const passportController = require('../controllers/passport-config')
+const jwt = require("jsonwebtoken")
 
 routing.get('/signup', authController.signup_get) 
 
@@ -27,10 +29,19 @@ routing.post('/verification', authController.verifs_post)
 
 routing.get('/google',passport.authenticate('google', { scope: ['profile', 'email'] })); 
 
-routing.get('/google/redirect',passport.authenticate('google'),(req,res)=>{
-    res.send('you reached the redirect URI');
-})
+routing.get(
+    "/google/redirect",
+    passport.authenticate("google", { failureRedirect: '/login' }),(req,res) => {    
+     
+      res.cookie('userData', JSON.stringify(req.user)); 
   
-  
+      res.redirect('/set-password');
+      }
+    );
+
+routing.post('/set-password', passportController.password_post);
+
+routing.get('/set-password', passportController.password_get);
+
 
 module.exports = routing;

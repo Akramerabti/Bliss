@@ -11,7 +11,7 @@
     <form> <!form for the login system as a method to post>
 
             <label for ="name">Username or email</label>
-            <input placeholder="Name / email" name="name" type="text" required/> <!Box for the username>
+            <input placeholder="Name / email" name="nameOrEmail" type="text" required/> <!Box for the username>
             <div class="name error"></div>
         
             <label for ="password">Password</label>
@@ -20,29 +20,7 @@
         
             <button>Login</button>
 
-            <div id="my-signin2"></div>
-            <script>
-              function onSuccess(googleUser) {
-                console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
-              }
-              function onFailure(error) {
-                console.log(error);
-              }
-              function renderButton() {
-                gapi.signin2.render('my-signin2', {
-                  'scope': 'profile email',
-                  'width': 240,
-                  'height': 50,
-                  'longtitle': true,
-                  'margin-left': 200,
-                  'theme': 'dark',
-                  'onsuccess': onSuccess,
-                  'onfailure': onFailure
-                });
-              }
-            </script>
-          
-            <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
+  
         
     </form>
 
@@ -56,23 +34,22 @@
             e.preventDefault(); //prevents refreshing
 
             //reset errors everytime there is a submit
-        emailError.textContent = "" 
         nameError.textContent = ""
         passwordError.textContent = ""
     
             // get the values
-            const email = form.name.value // form.the name of the input to get the value
-            const name = form.name.value // form.the name of the input to get the value
+            const nameOrEmail = form.nameOrEmail.value // form.the name of the input to get the value
             const password = form.password.value // form.the name of the input to get the value
     
             try {
             const res = await fetch('/login', { 
                 method: "POST",
-                body: JSON.stringify({ name:name, email:email, password:password}), // passing data from the input values to the signup POST function
+                body: JSON.stringify({ nameOrEmail:nameOrEmail, password:password}), // passing data from the input values to the signup POST function
                 headers: { "Content-Type" : "application/json"}
             })
 
-            const data = await res.json() // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
+            const data = await res.json()
+             // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
 
             if(data.errors){ // if there is errors coming from the json response
                 nameError.textContent = data.errors.name // populates the div class email error in the form with the errors handle that we built in authController
@@ -84,34 +61,11 @@
             location.assign(`/${lastDirectory}`);
             }
 
-        else{ const res = await fetch('/login', { 
-                method: "POST",
-                body: JSON.stringify({name:name, email:email, password:password}), // passing data from the input values to the signup POST function
-                headers: { "Content-Type" : "application/json"}
-            })
-
-            const data = await res.json() // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
-            console.log(data);
-
-            if(data.errors){ // if there is errors coming from the json response
-                emailError.textContent =data.errors.email // populates the div class email error in the form with the errors handle that we built in authController
-                passwordError.textContent =data.errors.password
-            }
-
-            if (data.user) {
-            const lastDirectory = window.location.pathname.split('/').filter(Boolean).pop();
-             location.assign(`/${lastDirectory}`);
-}
-
-        }
-
         } 
          catch (err) {
             console.log(err)
 
         }
-
-
         })
     </script>
 

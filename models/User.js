@@ -16,19 +16,26 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
     },
     password:{
         type:String,
-        required:[ true, 'Please enter a password' ],
         minlength: [8, 'Minimum password length of 8 characters']
     },
+
     verificationCode: { // Add this field for storing the verification code
         type: String,
-        required: true,
       },
 
     Verified: {
         type: Boolean,
         default: false,
+    },
 
-}});
+    googleId: {
+        type: String,
+    },
+    thumbnail: {
+      type: String
+    },
+
+});
 
  
 LoginSchema.pre('save', async function (next) {
@@ -39,40 +46,26 @@ LoginSchema.pre('save', async function (next) {
   });
   
   // Static Method schema analysis for LOGIN in order to retrieve info from this schema
-  LoginSchema.statics.login = async function (name, email, password) {
-    const userByEmail = await this.findOne({ email: email });
-    const userByName = await this.findOne({ name: name });
+  LoginSchema.statics.logins = function (nameOrEmail, password) {
 
-    if (userByEmail) {
-    console.log(bcrypt.password)
-    console.log(userByEmail.password)
-      const auth = await bcrypt.compare(password, userByEmail.password);
+    const user = await this.findOne({ $or: [{ name: nameOrEmail }, { email: nameOrEmail }] })
+
+    console.log(user)
+    
+    if (user) {
+    const auth = await bcrypt.compare(password, user.password);
       if (auth) {
-        return userByEmail;
+        return user;
       }
       throw new Error("Incorrect password for the provided email");
     }
-  
-    if (userByName) {
-    console.log(bcrypt.password)
-    console.log(userByEmail.password)
-      const auth = await bcrypt.compare(password, userByName.password);
-      if (auth) {
-        return userByName;
-      }
-      throw new Error("Incorrect password for the provided name");
-    }
-  
     throw new Error("User not found");
   };
-
-
-
-
   
 
   LoginSchema.statics.verification = async function (givenverificationCode) {
     const user = await this.findOne({ givenverificationCode });
+
   
     if (givenverificationCode === user.givenverificationCode) {
         return user

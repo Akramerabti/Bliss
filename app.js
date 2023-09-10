@@ -3,7 +3,6 @@ const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const io = require('socket.io')(server);
-const nodemailer = require('nodemailer');
 const authRoutes = require("./routes/authroutes");
 const mongoose = require("mongoose");
 const { requireAuth, checkUser } = require("./middleware/authMiddleware");
@@ -17,17 +16,44 @@ const messageSchema = require("./models/messages");
 const moment = require("moment");
 const { name } = require("ejs");
 const passportSetup = require("./controllers/passport-config");
+const passport = require("passport");
+const expressSession = require('express-session');
+const cors = require('cors');
 
-/*assuming an express app is declared here*/
+app.use(cors({
+  origin: 'http://localhost:3000',
+}));
+
+app.use(
+  expressSession({
+    secret: "I swear to god no one should no this and no one will ever do",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+    },
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
-app.use('/socket.io', express.static(__dirname + '/node_modules/socket.io-client/dist'));
+
 app.use(cookieParser());
+
+app.use('/socket.io', express.static(__dirname + '/node_modules/socket.io-client/dist'));
 app.use(authRoutes);
 
 app.use(express.static(path.join(__dirname, '/public')));
 app.use(express.json());
 app.set('view engine', "ejs"); // Setting the "view engine" name default by express.js as "hbs"
+
+
+
+
 
 const dbURI = 'mongodb+srv://Akramvd:lF9UjtVXF0iWsxetr2MK@cluster0.7wctpqm.mongodb.net/appdatabase';
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -49,31 +75,31 @@ app.use((req, res, next) => {
 
 app.use("*", checkUser) // when you write just localhost 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
 
-app.get('/', (req, res) => {
+app.get('/', checkUser, (req, res) => {
   // when you write just localhost 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
   res.render('home'); // FETCHES HOME FILE IN PUBLIC FOLDER
 })
 
-app.get("/chat", requireAuth, (req, res) => {
+app.get("/chat", requireAuth,checkUser, (req, res) => {
   const user = res.locals.user;
   console.log(user)
   res.render(path.join(__dirname, 'public', 'chat'), { user });
 });
 
 // Serve the rooms.ejs file
-app.get("/rooms", requireAuth, (req, res) => {
+app.get("/rooms", requireAuth,checkUser, (req, res) => {
   const user = res.locals.user;
   console.log(user)
   res.render(path.join(__dirname, 'public', 'rooms'), { user });
 });
 
-app.get("/personalchat", requireAuth, (req, res) => {
+app.get("/personalchat", requireAuth,checkUser, (req, res) => {
   const user = res.locals.user;
   console.log(user)
   res.render(path.join(__dirname, 'public', 'personalchat'), { user });
 });
 
-app.get("/personal", requireAuth, (req, res) => {
+app.get("/personal", requireAuth, checkUser, (req, res) => {
   const user = res.locals.user;
   console.log(user)
   res.render(path.join(__dirname, 'public', 'personal'), { user });
