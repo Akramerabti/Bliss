@@ -15,8 +15,7 @@
 </body>
 </html>
 <script>
-  const form =document.querySelector('form'); //searches for "form" info
-
+  const form =document.querySelector('form'); //searches for "form" info 
   const verifError = document.querySelector('.verif.error'); // grabs the "<div>" of email error from the form
  
     form.addEventListener("submit", async (e) => {
@@ -28,14 +27,16 @@
       const verificationCodes = form.verification.value // form.the name of the input to get the value
 
       try {
+        const verificationDataCookie = getCookie('verificationData');
+        const verificationData = verificationDataCookie ? JSON.parse(decodeURIComponent(verificationDataCookie)) : null;
+
           const res = await fetch('/verification', { 
               method: "POST",
-              body: JSON.stringify({verificationCode:verificationCodes}), // passing data from the input values to the signup POST function
+              body: JSON.stringify({verificationCode:verificationCodes, data: verificationData}), // passing data from the input values to the signup POST function
               headers: { "Content-Type" : "application/json"}
           })
 
           const data = await res.json() // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
-
 
           if(data.errors){ // if there is errors coming from the json response
              verifError.textContent =data.errors.verif // populates the div class email error in the form with the errors handle that we built in authController
@@ -52,6 +53,11 @@
 
       }
     })
-      
+
+    function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
 </script>
 <%- include('../public/partials/footer'); -%>

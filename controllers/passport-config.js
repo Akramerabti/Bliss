@@ -98,7 +98,6 @@ module.exports.password_post = async (req, res) => {
 
   res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
   res.status(200).json({ user: newUser._id, user: newUser });
-  res.redirect('/');
   } catch{(err) => {
     // Handle registration error
     console.error('Error registering user:', err);

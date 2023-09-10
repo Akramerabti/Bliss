@@ -69,13 +69,15 @@ form.addEventListener("submit", async (e) => { //Waits for submit event from inp
             headers: { "Content-Type" : "application/json"}
         })
 
+          const data = await res.json()
+
         if (res.status === 200) {
 
         window.location.href = '/verification';
 
         } else {
 
-        const data = await res.json() // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
+         // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
 
         if(data.errors){ // if there is errors coming from the json response
             emailError.textContent =data.errors.email // populates the div class email error in the form with the errors handle that we built in authController

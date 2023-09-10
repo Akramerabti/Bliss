@@ -51,7 +51,6 @@ const checkUser = (req, res, next) => {
     });
   } else {
     res.locals.user = null;
-    console.log("assd")
     next();
   }
 };

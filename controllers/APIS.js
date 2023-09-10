@@ -8,6 +8,7 @@ const nodemailer = require("nodemailer");
 const crypto = require('crypto')
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({extended: true}));
+const session = require('express-session');
 
 
 
@@ -108,7 +109,6 @@ module.exports.login_get = (req,res) => {//gets from folder with a slash "/" req
 module.exports.signup_post = async (req, res) => {
   const { email, name, password } = req.body;
   const generatedcode = crypto.randomInt(100000, 999999).toString();
-  const verificationCode = JSON.stringify(generatedcode)
   const Verified = false;
 
   const Verification_sendEmail = async (email) => {
@@ -131,12 +131,14 @@ module.exports.signup_post = async (req, res) => {
   };
 
   try {
-    const user = await User.create({ email, name, password, verificationCode: verificationCode, Verified: Verified });
 
- 
+    const data = { email:email, name:name, password:password, verificationCode:generatedcode, Verified:Verified };
+    
     await Verification_sendEmail(email);
 
-    res.status(200).json({ user: user._id, user:user });
+    req.session.data = data;
+
+    res.status(200).json({data: data});
 
   } catch (err) {
     const errors = handleErrors(err);
@@ -144,17 +146,32 @@ module.exports.signup_post = async (req, res) => {
   }
 }
 
-module.exports.verifs_get = (req, res) => {//gets from folder with a slash "/signup" request and response => (arrow function)
-  res.render('verification'); // WILL LOOK IN THE SIGNUP FILE NAME renders response for signup.hbs file
+module.exports.verifs_get = (req, res) => {
+  const data = req.session.data;
+  
+  res.cookie('verificationData', JSON.stringify(data));
+
+  res.render('verification',{ data }); // WILL LOOK IN THE SIGNUP FILE NAME renders response for signup.hbs file
 }
 
 module.exports.verifs_post = async (req, res) => {
-  const { givenverificationCode } = req.body;
+  const { verificationCode, data} = req.body;
+
+
+  console.log(data)
+
 
   try {
-    const user = await User.verification(givenverificationCode); // Assuming you've authenticated the user
 
-    if (givenverificationCode === user.givenverificationCode) {
+
+    if (!data) {
+      return res.status(400).json({ error: "User data not found for the verification code" });
+    }
+    console.log(data)
+    console.log(verificationCode)
+    if ( verificationCode === data.verificationCode) {
+
+      const user = await User.create(data);
 
       const token = createToken(user._id);
       // Update the user's Verified field to true
@@ -181,7 +198,8 @@ module.exports.login_post = async (req, res) => {
     const user = await User.logins(nameOrEmail, password);
     const token = createToken(user._id);
     res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.redirect('/');
+    res.status(200).json({ user: user._id, user:user });
+
   } catch (err) {
     const errors = handleErrors(err);
     // Send JSON response for errors
