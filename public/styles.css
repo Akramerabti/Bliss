@@ -217,51 +217,98 @@ footer {
   background-color: #FFD700;
 }
 
-.dropbtn {
- 
-    text-transform: uppercase;
-    font-weight: 700;
-    font-size: 0.8em;
-    display: block;
-    padding: 10px 16px;
-    letter-spacing: 2px;
-    margin-left: 10px; /* Adjust the left margin to move it to the right */
-    margin-top: 0px;
-  
-}
-
-/* The container <div> - needed to position the dropdown content */
-.dropdown {
+.dropdown, .profile-picture {
   position: relative;
-  display:inline-block;
+  display: inline-block;
 }
 
-/* Dropdown Content (Hidden by Default) */
+/* Style for the dropdown button text and profile picture text */
+.dropdown a, .profile-picture a {
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.8em;
+  letter-spacing: 2px;
+  padding: 10px 16px;
+  margin-left: 10px;
+  margin-top: 0;
+  cursor: pointer; /* Change cursor to pointer on hover */
+  transition: background-color 0.2s ease; /* Add a smooth transition */
+}
+
+/* Style for the dropdown content (Hidden by Default) */
 .dropdown-content {
   display: none;
   position: absolute;
   background-color: #f1f1f1;
   min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 1;
+  top: 100%;
+  left: 0;
 }
 
-/* Links inside the dropdown */
+/* Style for the links inside the dropdown */
 .dropdown-content a {
   color: black;
-  padding: 12px 16px;
+  padding: 10px 16px; /* Slightly reduce padding for a more compact look */
   text-decoration: none;
+  display: block;
+  opacity: 0; /* Start with a 0 opacity for fade-in effect */
+  transform: translateX(-10px); /* Move links to the left for fade-in effect */
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Add fade-in and transform transition */
+  border-radius: 10px; /* Add some curvature to the links */
+  background-color: #f1f1f1; /* Background color of the links container */
+  border-color: #000000;
+}
+
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {
+  background-color: #868585;
+}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content, .profile-picture:hover .dropdown-content {
   display: block;
 }
 
-/* Change color of dropdown links on hover */
-.dropdown-content a:hover {background-color: #ddd;}
-
-/* Show the dropdown menu on hover */
-.dropdown:hover .dropdown-content {display: block;}
-
 /* Change the background color of the dropdown button when the dropdown content is shown */
-.dropdown:hover .dropbtn {background-color: #7f8e3e;}
+.dropdown:hover a, .profile-picture:hover a {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.1s;
+}
+
+.profile-picture {
+  width: 40px; /* Adjust the width and height as needed */
+  height: 40px;
+  border-radius: 50%; /* Creates a round shape */
+  left: -10px;
+  overflow: hidden; /* Clips the image to the container's shape */
+  position: relative; /* Add this for proper positioning of the dropdown content */
+  display: inline-block; /* Add this to make the profile picture inline */
+}
+
+/* Style for the profile picture itself */
+.profile-picture-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image fills the container */
+  transition: transform 0.4s ease; /* Add a smooth transition for the hover effect */
+}
+
+/* Hover effect on profile picture */
+.profile-picture:hover .profile-picture-img {
+  transform: scale(1.1); /* Scale up slightly on hover */
+}
+
+.dropdown-content {
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for a soft edge */
+  background-color: #f1f1f1;
+  width: auto; /* Adjust the width as needed */
+  left: -120px; /* Adjust the left positioning to move it more to the left */
+}
 
 :root {
 	--dark-color-a: #000000;
@@ -614,3 +661,4 @@ i.fas.fa-paper-plane{
 }
 
 @import url(https://fonts.googleapis.com/css?family=Roboto:500);
+

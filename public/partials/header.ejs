@@ -13,19 +13,32 @@
       <% if (locals.user)  { %>
         <li>Welcome, <%= locals.user.name %></li>
         <li><a href="/logout">Log out</a></li>
-
-        <div class="dropdown">
-          <button class="dropbtn">Dropdown</button>
-          <div class="dropdown-content">
-            <a href="#">Link 1</a>
-            <a href="#">Link 2</a>
-            <a href="#">Link 3</a>
-          </div>
-        </div>
       <% } else {  %>
         <li><a href="/login">Log in</a></li>
         <li><a href="/signup" class="btn">Sign up</a></li> 
       <% } %>
         <li><a  class="Notifs">test</a></li> 
+        
+        <li class="dropdown">
+          <div class="profile-picture">
+            <% if (locals.user) { %>
+              <img src="<%= locals.user && locals.user.thumbnail ? locals.user.thumbnail : '/pictures/default-profile-pic.jpg' %>" alt="Profile Picture" class="profile-picture-img">
+            </div>
+            <div class="dropdown-content">
+              <a href="#">Profile</a>
+              <a href="#">Dashboard</a>
+              <a href="#">Saves</a>
+            </div>
+            <% } else { %>
+              <img src="/pictures/default-profile-pic.jpg" alt="Profile Picture" class="profile-picture-img">
+            </div>
+            <div class="dropdown-content">
+              <a href="/login">Log in</a>
+              <a href="/verification">Verify</a>
+              <a href="#">Contact Us</a>
+            </div>
+            <% } %>
+          </div>
+        </li>
     </ul>
   </nav>

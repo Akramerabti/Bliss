@@ -136,6 +136,8 @@ module.exports.signup_post = async (req, res) => {
     
     await Verification_sendEmail(email);
 
+    console.log(generatedcode)
+
     req.session.data = data;
 
     res.status(200).json({data: data});
