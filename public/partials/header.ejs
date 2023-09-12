@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-signin-client_id" content="29841924121-3j6mdglnkqgcsppn5igqi27913r01hbd.apps.googleusercontent.com">
   <title>Document</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
@@ -22,7 +23,7 @@
         <li class="dropdown">
           <div class="profile-picture">
             <% if (locals.user) { %>
-              <img src="<%= locals.user && locals.user.thumbnail ? locals.user.thumbnail : '/pictures/default-profile-pic.jpg' %>" alt="Profile Picture" class="profile-picture-img">
+              <img src="<%= locals.user && locals.user.thumbnail ? (locals.user.thumbnail + '?refresh=' + Date.now()) : '/pictures/default-profile-pic.jpg' %>" alt="Profile Picture" class="profile-picture-img">
             </div>
             <div class="dropdown-content">
               <a href="#">Profile</a>

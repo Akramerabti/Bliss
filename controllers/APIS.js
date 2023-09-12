@@ -74,9 +74,22 @@ const handleErrors = (err) => {
   if (err.message.includes('incorrect validation')) {
     errors.password = 'One or many entries are invalid';
     };
+
+    try {
+      // Your code that may throw an error
+      if (someCondition) {
+        throw new Error('Custom error message');
+      }
+    } catch (err) {
+      const errors = handleErrors(err);
+      console.error(err.message);
+    }
+
    return errors;
    
   }
+
+  module.exports.handleErrors = handleErrors;
 
 const transporter = nodemailer.createTransport({
     host:"smtp-relay.brevo.com",
@@ -101,7 +114,8 @@ module.exports.signup_get = (req, res) => {//gets from folder with a slash "/sig
 }
 
 
-module.exports.login_get = (req,res) => {//gets from folder with a slash "/" request and response => (arrow function)
+module.exports.login_get = (req,res) => {//gets from folder with a slash "/" request and response => (arrow function)  
+    // Render the login page and pass the message as a variable
     res.render('login'); // WILL LOOK IN THE LOGIN FILE NAME renders response for login.hbs file
 }
 
