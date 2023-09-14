@@ -16,7 +16,7 @@ if (roomuserNameElement) {
 }
 
 // Your JavaScript logic here
-console.log(username);
+console.log("personal.js this is you:", username);
 
 // Log when you join a room using roomNameParam
 socket.emit('joinName', { username, room: NameParam });

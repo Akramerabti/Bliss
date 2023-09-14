@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { isEmail } = require('validator');
 const bcrypt = require('bcryptjs');
+const messageSchema = require('./messages');
 
 const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our database
     email: {
@@ -29,13 +30,23 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
         default: false,
     },
 
-    JoinedRooms : [
-      {
-        type : mongoose.Types.ObjectId,
-        ref: 'Room',
-      }
-    ],
-default: [],
+    JoinedRooms: {
+      type: [
+        {
+          room: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Room',
+          },
+          messages: [
+            {
+              type: messageSchema, // Reference to message schema
+            },
+          ],
+        },
+      ],
+      default: [],
+    },
+
 
     Friends : [
       {
@@ -58,11 +69,11 @@ default: [],
 
 LoginSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
-  console.log(this.password)
+
   const salt = bcrypt.genSaltSync();
   this.password = bcrypt.hashSync(this.password, salt)
 }
-  console.log(this)
+  
   next();
 });
   
@@ -70,14 +81,11 @@ LoginSchema.pre('save', async function (next) {
   LoginSchema.statics.login = async function (nameOrEmail, password) {
 
     const user = await this.findOne({ $or: [{ name: nameOrEmail }, { email: nameOrEmail }] });
-    console.log(user)
     
     if (user) {
-    console.log(user) 
-    console.log(password)
-    console.log(user.password)
+  
     const auth = await bcrypt.compare(password, user.password);
-    console.log(auth)
+   
       if (auth) {
         return user;
       }

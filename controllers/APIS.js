@@ -150,8 +150,6 @@ module.exports.signup_post = async (req, res) => {
     
     await Verification_sendEmail(email);
 
-    console.log(generatedcode)
-
     req.session.data = data;
 
     res.status(200).json({data: data});
@@ -174,8 +172,6 @@ module.exports.verifs_post = async (req, res) => {
   const { verificationCode, data} = req.body;
 
 
-  console.log(data)
-
 
   try {
 
@@ -183,7 +179,6 @@ module.exports.verifs_post = async (req, res) => {
     if (!data) {
       return res.status(400).json({ error: "User data not found for the verification code" });
     }
-    console.log(data)
     console.log(verificationCode)
     if ( verificationCode === data.verificationCode) {
 

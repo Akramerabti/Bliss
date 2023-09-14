@@ -120,19 +120,30 @@ const roomUsers = new Map();
 
 io.on('connection', socket => {
   // Function to load and emit database messages to a user
-  const loadDatabaseMessages = async (socket, room) => {
+  const loadDatabaseMessages = async (socket, room, username) => {
+
     const roomInfo = rooms.get(room);
+
     if (roomInfo) {
       const Message = roomInfo.Message;
 
       // Fetch messages from the specific room's database
       const messages = await Message.find({ room });
 
-      // Emit the messages to the user who just joined
+      const messageSchemaData = messages.filter((message) => message.sender === username)
+      .map((message) => ({
+        sender: message.sender,
+        room: message.room,
+        time: message.time,
+        msg: message.msg,
+      }));
+
       socket.emit('messages', messages);
-      
+
+      return messageSchemaData;
+
 }}
-    
+
 
   // Function to handle user joining a room
   const handleJoinRoom = async ({ username, room }) => {
@@ -154,25 +165,9 @@ io.on('connection', socket => {
       // Load and emit database messages
       rooms.set(room, roomInfo)
 
-      // Create the RoomInfo model
-      const newRoomInfo = new RoomInfoModel();
-      newRoomInfo._id = roomInfo._id;
-      newRoomInfo.messageDB = roomInfo.messageDB;
-      newRoomInfo.Message = roomInfo.Message;
-      newRoomInfo.messages = roomInfo.messages;
-    
-      // Save the new RoomInfoModel instance
-      newRoomInfo.save()
-        .then(savedRoomInfo => {
-          console.log(savedRoomInfo);
-        })
-        .catch(error => {
-          console.error('Error saving RoomInfoModel:', error);
-        });
+      //Create the RoomInfo model
+      
 
-   
-
-    
     }
 
     socket.join(room);
@@ -197,33 +192,68 @@ io.on('connection', socket => {
     addUserToRoom({ username, room, socket });
 
     // Load and emit database messages for the user who joined
-    await loadDatabaseMessages(socket, room);
+    await loadDatabaseMessages(socket, room, username);
 
     // Push the user object into the messages array
     const user = { id: socket.id, username, room };
     roomInfo.messages.push(user);
 
+    const messageSchemaData = await loadDatabaseMessages(socket, room, username); // Retrieve messageSchemaData
 
-  User.findOne({ name: username, JoinedRooms: roomInfo._id })
+
+    User.findOne({ name: username, 'JoinedRooms.room': roomInfo._id })
     .then((user) => {
       if (!user) {
         // User is not in the room's JoinedRooms array, so add it
-        User.updateOne(
-          { name: username }, // Find the user by their username
-          { $addToSet: { JoinedRooms: roomInfo._id  } } // Add the room ObjectId to the array
+        User.findOneAndUpdate(
+          { name: username },
+          {
+            $addToSet: {
+              JoinedRooms: {
+                room: roomInfo._id,
+                messages: messageSchemaData,
+              },
+            },
+          },
+          { new: true }
         )
           .then(() => {
-            console.log('Room added to JoinedRooms array');
+            console.log('Room and message added to JoinedRooms array');
           })
           .catch((err) => {
-            console.error('Error adding room to JoinedRooms array:', err);
+            console.error('Error adding room and message to JoinedRooms array:', err);
           });
+      }else {
+        // User exists, check if messages match
+        const roomIndex = user.JoinedRooms.findIndex((room) => room.room.equals(roomInfo._id));
+        if (roomIndex !== -1) {
+          const existingMessages = user.JoinedRooms[roomIndex].messages;
+          const messagesMatch = existingMessages.some((message) =>
+            // Check if messages match here
+            message.sender === messageSchemaData.sender &&
+            message.room === messageSchemaData.room &&
+            message.time === messageSchemaData.time &&
+            message.msg === messageSchemaData.msg
+          );
+  
+          if (!messagesMatch) {
+            // If messages don't match, update the messages
+            user.JoinedRooms[roomIndex].messages = messageSchemaData;
+  
+            user.save()
+              .then(() => {
+                console.log('Messages updated in JoinedRooms array', );
+              })
+              .catch((err) => {
+                console.error('Error updating messages in JoinedRooms array:', err);
+              });
+          }
+        }
       }
     })
     .catch((err) => {
-      console.error('User is already in JoinedRooms array:', err);
+      console.error('Error finding user:', err);
     });
-
 
    const Messaging = roomInfo.Message;
       const newMessage = new roomInfo.Message({ room, msg:`${username} has joined the room `, sender: 'Captain Collaboard', time: moment().format("lll") });
@@ -257,8 +287,75 @@ io.on('connection', socket => {
           io.emit("messages", result);
           io.emit("notifications", result);
         });
-      });
-    };
+
+        User.findOne({ name: sender, 'JoinedRooms.room': roomInfo._id })
+        .then((user) => {
+          if (!user) {
+            // User is not in the room's JoinedRooms array, so add it
+            User.findOneAndUpdate(
+              { name: sender },
+              {
+                $addToSet: {
+                  JoinedRooms: {
+                    room: roomInfo._id, // Convert to ObjectId
+                    messages: {
+                      sender: sender,
+                      room: room, // Convert to ObjectId
+                      time: moment().format("lll"),
+                      msg: msg,
+                    },
+                  },
+                },
+              },
+              { new: true }
+            )
+              .then(() => {
+                console.log('Room and message added to JoinedRooms array');
+              })
+              .catch((err) => {
+                console.error('Error adding room and message to JoinedRooms array:', err);
+              });
+          } else {
+            // User exists, check if messages match
+            const roomIndex = user.JoinedRooms.findIndex((joinedRoom) => joinedRoom.room.equals(roomInfo._id));
+            if (roomIndex !== -1) {
+              const existingMessages = user.JoinedRooms[roomIndex].messages;
+              const messagesMatch = existingMessages.some((message) =>
+                // Check if messages match here
+                message.sender === sender &&
+                message.room === room && // Convert to ObjectId
+                message.time === moment().format("lll") &&
+                message.msg === msg
+              );
+
+              if (!messagesMatch) {
+                // If messages don't match, update the messages
+                user.JoinedRooms[roomIndex].messages.push({
+                  sender: sender,
+                  room: room, // Convert to ObjectId
+                  time: moment().format("lll"),
+                  msg: msg,
+                });
+
+                user.save()
+                  .then(() => {
+                    console.log('Messages updated in JoinedRooms array');
+                  })
+                  .catch((err) => {
+                    console.error('Error updating messages in JoinedRooms array:', err);
+                  });
+              }
+            }
+          }
+        })
+        .catch((err) => {
+          console.error('Error finding user:', err);
+        });
+    })
+    .catch((err) => {
+      console.error("Error saving message to the database:", err);
+    });
+};
 
     socket.on('userLeave', (data) => {
       const { room, socketId } = data;
@@ -288,7 +385,6 @@ io.on('connection', socket => {
         // Find and emit updated messages
         Message.find().then((result) => {
           io.emit('messages', result);
-          console.log(result);
           // Assuming 'loadDatabaseMessages' handles loading messages for a specific room
           loadDatabaseMessages(io, room);
         });

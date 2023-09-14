@@ -19,7 +19,7 @@ if (roomNameElement) {
 
 
 // Your JavaScript logic here
-console.log(username);
+console.log("Main.js: this is you:", username);
 
 const socket = io();
 
@@ -59,8 +59,6 @@ socket.on('roomUsers', ({ room, users }) => {
 
 
 socket.on('messages', (data) => {
-  console.log(data);
-
 
   // Clear existing messages from the chatMessages element
   chatMessages.innerHTML = '';

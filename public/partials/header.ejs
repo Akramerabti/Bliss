@@ -23,7 +23,7 @@
         <li class="dropdown">
           <div class="profile-picture">
             <% if (locals.user) { %>
-              <img src="<%= locals.user && locals.user.thumbnail ? (locals.user.thumbnail + '?refresh=' + Date.now()) : '/pictures/default-profile-pic.jpg' %>" alt="Profile Picture" class="profile-picture-img">
+              <img src="<%= locals.user && locals.user.thumbnail ? (locals.user.thumbnail + '?refresh=' + Date.now()) : '/pictures/default-profile-pic.jpg' %>" alt="Profile Picture" class="profile-picture-img" referrerPolicy="no-referrer">
             </div>
             <div class="dropdown-content">
               <a href="#">Profile</a>

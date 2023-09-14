@@ -40,12 +40,11 @@ const checkUser = (req, res, next) => {
     jwt.verify(token, 'I swear to god no one should no this and no one will ever do', async (err, decodedToken) => {
       if (err) {
         res.locals.user = null;
-        console.log("tf is going on", err)
+        console.log("Middleware issue", err)
         next();
       } else {
         let user = await User.findById(decodedToken.id);
         res.locals.user = user;
-        console.log( user)
         next();
       }
     });

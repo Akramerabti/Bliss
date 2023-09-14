@@ -40,7 +40,7 @@ passport.use(
             done(null, currentUser);
           } else {
 
-            console.log("all google data:", profile,email)
+            console.log("all google data:", profile, email)
             // User doesn't exist in your database, create a user object and pass it to Passport
             const user = {
               email: email.emails[0].value,

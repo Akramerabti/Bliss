@@ -31,6 +31,14 @@ routing.post('/verification', authController.verifs_post)
 
 routing.get('/google',passport.authenticate('google', { scope: ['profile', 'email'] })); 
 
+
+
+routing.post('/set-password', passportController.password_post);
+
+routing.get('/set-password', passportController.password_get);
+
+
+
 routing.get(
   "/google/redirect",
   passport.authenticate("google", { failureRedirect: '/login' }),
@@ -71,9 +79,6 @@ routing.get(
   }
 );
 
-routing.post('/set-password', passportController.password_post);
-
-routing.get('/set-password', passportController.password_get);
 
 
 module.exports = routing;
