@@ -31,8 +31,8 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
 
     JoinedRooms : [
       {
-        type : String,
-
+        type : mongoose.Types.ObjectId,
+        ref: 'Room',
       }
     ],
 default: [],

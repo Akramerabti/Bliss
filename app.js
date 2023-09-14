@@ -153,15 +153,33 @@ io.on('connection', socket => {
 
       // Load and emit database messages
       rooms.set(room, roomInfo)
-      
-    new RoomInfoModel(roomInfo);
-     
+
+      // Create the RoomInfo model
+      const newRoomInfo = new RoomInfoModel();
+      newRoomInfo._id = roomInfo._id;
+      newRoomInfo.messageDB = roomInfo.messageDB;
+      newRoomInfo.Message = roomInfo.Message;
+      newRoomInfo.messages = roomInfo.messages;
+    
+      // Save the new RoomInfoModel instance
+      newRoomInfo.save()
+        .then(savedRoomInfo => {
+          console.log(savedRoomInfo);
+        })
+        .catch(error => {
+          console.error('Error saving RoomInfoModel:', error);
+        });
+
+   
+
+    
     }
 
     socket.join(room);
 
 
-      
+
+     
 
     // Function to add a user to roomUsers Map
     const addUserToRoom = ({ username, room, socket }) => {
@@ -192,7 +210,7 @@ io.on('connection', socket => {
         // User is not in the room's JoinedRooms array, so add it
         User.updateOne(
           { name: username }, // Find the user by their username
-          { $addToSet: { JoinedRooms: room  } } // Add the room ObjectId to the array
+          { $addToSet: { JoinedRooms: roomInfo._id  } } // Add the room ObjectId to the array
         )
           .then(() => {
             console.log('Room added to JoinedRooms array');
@@ -277,6 +295,7 @@ io.on('connection', socket => {
     
         // Emit the updated roomUsers set to the room
         const updatedRoomUsers = Array.from(roomUsers.get(room).values());
+
         io.to(room).emit('roomUsers', { room, users: updatedRoomUsers });
       });
     });

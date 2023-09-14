@@ -61,6 +61,7 @@ socket.on('roomUsers', ({ room, users }) => {
 socket.on('messages', (data) => {
   console.log(data);
 
+
   // Clear existing messages from the chatMessages element
   chatMessages.innerHTML = '';
 
@@ -72,6 +73,8 @@ socket.on('messages', (data) => {
   // Scroll down (if you still want to do it here)
   chatMessages.scrollTop = chatMessages.scrollHeight;
 });
+
+
 
 if (chatForm) {
   chatForm.addEventListener('submit', async (e) => {
