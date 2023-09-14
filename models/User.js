@@ -32,14 +32,18 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
     JoinedRooms : [
       {
         type : String,
-        ref : 'Room'
+
       }
     ],
 default: [],
 
-    Friends : { 
-      type : Array , 
-      "default" : [] },
+    Friends : [
+      {
+        type : String,
+
+      }
+    ],
+default: [],
 
 
 
