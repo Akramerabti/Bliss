@@ -62,9 +62,9 @@ passport.use(
 
 module.exports.password_get = async (req, res) => {
   const userDataCookie = req.cookies.userData;
+  console.log(userDataCookie)
   const user = JSON.parse(userDataCookie);
   res.render('set-password', { user });
-  
 };
 
 

@@ -168,3 +168,4 @@ leavingButton.addEventListener('click', async (e) => {
   window.location.href = "/rooms";
 });
 }
+

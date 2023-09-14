@@ -10,6 +10,7 @@ const cookieParser = require('cookie-parser');
 const bodyparser = require('body-parser');
 const path = require('path');
 const User = require("./models/User");
+const RoomInfoModel = require("./models/RoomsInfo");
 const PORT = process.env.PORT || 3000;
 const jwt = require("jsonwebtoken");
 const messageSchema = require("./models/messages");
@@ -144,15 +145,16 @@ io.on('connection', socket => {
       const Message = roomDB.model('Message', messageSchema);
 
       roomInfo = {
+        _id: new mongoose.Types.ObjectId(),
         messageDB: roomDB,
         Message: Message,
         messages: []
-
       };
 
       // Load and emit database messages
       rooms.set(room, roomInfo)
-
+      
+    new RoomInfoModel(roomInfo);
      
     }
 
@@ -182,6 +184,28 @@ io.on('connection', socket => {
     // Push the user object into the messages array
     const user = { id: socket.id, username, room };
     roomInfo.messages.push(user);
+
+
+  User.findOne({ name: username, JoinedRooms: roomInfo._id })
+    .then((user) => {
+      if (!user) {
+        // User is not in the room's JoinedRooms array, so add it
+        User.updateOne(
+          { name: username }, // Find the user by their username
+          { $addToSet: { JoinedRooms: room  } } // Add the room ObjectId to the array
+        )
+          .then(() => {
+            console.log('Room added to JoinedRooms array');
+          })
+          .catch((err) => {
+            console.error('Error adding room to JoinedRooms array:', err);
+          });
+      }
+    })
+    .catch((err) => {
+      console.error('User is already in JoinedRooms array:', err);
+    });
+
 
    const Messaging = roomInfo.Message;
       const newMessage = new roomInfo.Message({ room, msg:`${username} has joined the room `, sender: 'Captain Collaboard', time: moment().format("lll") });

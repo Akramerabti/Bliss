@@ -228,3 +228,12 @@ module.exports.logout_get = async (req, res) => {
   res.redirect('/');
 
 }
+
+
+//NECESSARY TO CONVERT OBJECT IDS TO THEIR REFERENCED OBJECTS
+
+//User.findById(User._id)
+  //.populate('JoinedRooms')
+  //.exec((err, user) => {
+    // user.JoinedRooms will contain an array of 'Room' documents, not just ObjectIds
+  //});

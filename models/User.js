@@ -29,6 +29,20 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
         default: false,
     },
 
+    JoinedRooms : [
+      {
+        type : String,
+        ref : 'Room'
+      }
+    ],
+default: [],
+
+    Friends : { 
+      type : Array , 
+      "default" : [] },
+
+
+
     googleId: {
         type: String,
     },

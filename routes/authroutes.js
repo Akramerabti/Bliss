@@ -32,23 +32,44 @@ routing.post('/verification', authController.verifs_post)
 routing.get('/google',passport.authenticate('google', { scope: ['profile', 'email'] })); 
 
 routing.get(
-    "/google/redirect",
-    passport.authenticate("google", { failureRedirect: '/login' }),(req,res) => {  
-      if (req.isAuthenticated()) {
-        // User is authenticated, check if they exist in your database
-        User.findOne({ googleId: req.user.googleId }).then((existingUser) => {
-          if (existingUser) {
+  "/google/redirect",
+  passport.authenticate("google", { failureRedirect: '/login' }),
+  (req, res) => {
+    if (req.isAuthenticated()) {
+      // User is authenticated, check if they exist in your database
+      User.findOne({ googleId: req.user.googleId }).then((existingUser) => {
+        if (existingUser) {
+          // User exists, redirect to the appropriate page
+          res.redirect('/login');
+        } else {
           
-             res.redirect('/login'); 
-          
-          } else {
-            // New user, redirect to registration or onboarding page
-            res.redirect('/set-password'); // Change '/register' to the appropriate URL
-          }
-        });
+          const user = {
+            email: req.user.email,
+            googleId: req.user.googleId,
+            name: req.user.name,
+            thumbnail: req.user.thumbnail,
+            verified: req.user.verified,
+          };
+
+          const maxAge = 5 * 24 * 60 * 60; // 5 days in seconds
+
+          // Convert the user object to a JSON string
+          const userDataJSON = JSON.stringify(user);
+
+          // Set the JSON string as a cookie named "userData"
+          res.cookie('userData', userDataJSON, {
+            maxAge: maxAge * 1000, // Convert to milliseconds
+            httpOnly: true, // Ensures the cookie is accessible only via HTTP(S)
+            // Other cookie options (e.g., secure, sameSite) can be set as needed
+          });
+
+          // Redirect to the appropriate page
+          res.redirect('/set-password'); // Change to the desired URL
+        }
+      });
     }
   }
-  );
+);
 
 routing.post('/set-password', passportController.password_post);
 
