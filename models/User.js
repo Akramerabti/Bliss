@@ -37,6 +37,9 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
             type: mongoose.Types.ObjectId,
             ref: 'Room',
           },
+          roomName: {
+            type: String,
+          },
           messages: [
             {
               type: messageSchema, // Reference to message schema
@@ -52,7 +55,7 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
       type: [
         {
           friend: {
-            type: mongoose.Types.ObjectId,
+            type: String,
             ref: 'Room',
           },
         },

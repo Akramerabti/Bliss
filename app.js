@@ -10,7 +10,7 @@ const cookieParser = require('cookie-parser');
 const bodyparser = require('body-parser');
 const path = require('path');
 const User = require("./models/User");
-const RoomInfoModel = require("./models/RoomsInfo");
+const RoomInfo = require("./models/RoomsInfo");
 const PORT = process.env.PORT || 3000;
 const jwt = require("jsonwebtoken");
 const messageSchema = require("./models/messages");
@@ -156,28 +156,38 @@ io.on('connection', socket => {
       const roomDB = createDatabaseConnection(sanitizedRoomName);
       const Message = roomDB.model('Message', messageSchema);
 
+      console.log("asdasdasdasdasdasdasdasd", roomDB);
+
       const existingRoomInfo = Array.from(rooms.values()).find(
         (info) => info.messageDB.name === roomDB.name
       );
 
       if (existingRoomInfo) {
         roomInfo = existingRoomInfo;
-        comsole.log(existingRoomInfo)
+        comsole.log("asdasdasdasdasdasdasdasd", existingRoomInfo)
       } else {
       roomInfo = Object.freeze({
         _id: new mongoose.Types.ObjectId(),
-        messageDB: roomDB,
+        creator: username,
         Message: Message,
-        messages: []
+        messages: [Message],
+        roomName: room,
       });
 
       // Load and emit database messages
       rooms.set(room, roomInfo)
 
       //Create the RoomInfo model
-      }
-
+      }  const savedRoomInfo = new RoomInfo(roomInfo);
+      savedRoomInfo.save()
+        .then((result) => {
+          console.log('RoomInfo document saved:', result);
+        })
+        .catch((error) => {
+          console.error('Error saving RoomInfo document:', error);
+        });
     }
+  
 
     socket.join(room);
 
@@ -220,6 +230,7 @@ io.on('connection', socket => {
             $addToSet: {
               JoinedRooms: {
                 room: roomInfo._id,
+                roomName: roomInfo.roomName,
                 messages: messageSchemaData,
               },
             },
@@ -320,6 +331,7 @@ io.on('connection', socket => {
                 $addToSet: {
                   JoinedRooms: {
                     room: roomInfo._id, // Convert to ObjectId
+                    roomName: roomInfo.roomName,
                     messages: {
                       sender: sender,
                       room: room, // Convert to ObjectId
@@ -426,7 +438,7 @@ io.on('connection', socket => {
 
     socket.on('chatMessage', (msg) => { 
       console.log(msg);
-      socket.emit('notification', { msg: 'Your notification message' });
+      io.emit('notification', { msg: 'Your notification message' });
   });
 }
 

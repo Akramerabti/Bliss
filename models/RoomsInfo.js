@@ -1,25 +1,13 @@
-const mongoose=require("mongoose");
-const messageSchema = require("./messages");
+const mongoose = require('mongoose');
 
 const roomInfoSchema = new mongoose.Schema({
+  _id: mongoose.Schema.Types.ObjectId,
+  // Define the properties of your roomInfo document here
+  // For example, you can include properties like room name, description, owner, etc.
+  creator: String,
+  roomName: String,
+});
 
-    _id: mongoose.Schema.Types.ObjectId, // Automatically generated ObjectId
+const RoomInfo = mongoose.model('RoomInfo', roomInfoSchema);
 
-    messageDB:
-     { type: mongoose.Schema.Types.ObjectId,
-         ref: 'MessageDB' }, // Reference to the MessageDB
-
-    Message: 
-    { type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Message' }, // Reference to the Message model
-
-    messages: 
-    [messageSchema], // Array of messages or users
-
-    // Add other fields you want to store here
-  });
-  
-  // Create the RoomInfo model
-  const RoomInfoModel = mongoose.model('RoomInfoModel', roomInfoSchema);
-  
-  module.exports = RoomInfoModel;
+module.exports = RoomInfo;
