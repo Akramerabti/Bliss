@@ -660,5 +660,74 @@ i.fas.fa-paper-plane{
   }
 }
 
+
 @import url(https://fonts.googleapis.com/css?family=Roboto:500);
 
+/* Style for the links inside the dropdown */
+.notifications-content a {
+  color: black;
+  padding: 10px 16px; /* Slightly reduce padding for a more compact look */
+  text-decoration: none;
+  display: block;
+  opacity: 0; /* Start with a 0 opacity for fade-in effect */
+  transform: translateX(-10px); /* Move links to the left for fade-in effect */
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Add fade-in and transform transition */
+  border-radius: 50px; /* Add some curvature to the links */
+  background-color: #f1f1f1; /* Background color of the links container */
+  border-color: #000000;
+}
+
+
+/* Change color of dropdown links on hover */
+.notifications-content a:hover {
+  background-color: #868585;
+}
+
+/* Show the dropdown menu on hover */
+.notifications:hover .notifications-content, .material-icons:hover .dropdown-content {
+  display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.notifications:hover a, .material-icons:hover a {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.1s;
+}
+
+/* fallback */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hover effect on profile picture */
+.material-icons:hover .material-icons {
+  transform: scale(1.1); /* Scale up slightly on hover */
+}
+
+.notifications-content {
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for a soft edge */
+  background-color: #f1f1f1;
+  width: auto; /* Adjust the width as needed */
+  /* Adjust the left positioning to move it more to the left */
+}

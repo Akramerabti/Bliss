@@ -48,15 +48,16 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
     },
 
 
-    Friends : [
-      {
-        type : String,
-
-      }
-    ],
-default: [],
-
-
+    Friends :  {
+      type: [
+        {
+          friend: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Room',
+          },
+        },
+      ],
+    },
 
     googleId: {
         type: String,

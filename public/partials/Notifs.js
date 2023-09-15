@@ -1,10 +1,7 @@
 
+const socket = io();
 
-const socket = io()
-
-socket.on('notifications', (data) => {
-    console.log(data);
-    if(data.length){
-        const element = document.querySelector('.notifs');
-        element.style.backgroundColor = 'red';
-    }});
+socket.on('notification', ({ msg }) => {
+    console.log('Received notification:', msg);
+    // You can add more debugging code or handle the notification here.
+});
