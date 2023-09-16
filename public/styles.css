@@ -765,3 +765,14 @@ i.fas.fa-paper-plane{
   background-color: rgba(12, 243, 12, 0.5); /* Faded green color */
   border: 2px solid #000; /* Black border with 2px width */
 }
+
+.hover-container {
+  display: none;
+  /* Additional styling for the container */
+}
+
+/* Show the hover container on hover */
+.message-img-container:hover .hover-container {
+  display: block;
+  /* Additional styling for the container when hovered */
+}

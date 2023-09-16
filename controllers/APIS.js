@@ -224,6 +224,22 @@ module.exports.logout_get = async (req, res) => {
 
 }
 
+module.exports.findUserByName_get = async (req, res) => {
+  const { name } = req.query;
+
+  try {
+    const user = await User.findOne({ name });
+    if (user) {
+      // Send user data as JSON response
+      res.json({ name: user.name, Friends: user.Friends, email: user.email, thumbnail: user.thumbnail }); // Customize the response data as needed
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error finding user by name:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
 //NECESSARY TO CONVERT OBJECT IDS TO THEIR REFERENCED OBJECTS
 

@@ -31,7 +31,7 @@ routing.post('/verification', authController.verifs_post)
 
 routing.get('/google',passport.authenticate('google', { scope: ['profile', 'email'] })); 
 
-
+routing.get('/findUserByName' , authController.findUserByName_get)
 
 routing.post('/set-password', passportController.password_post);
 

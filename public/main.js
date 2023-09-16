@@ -37,8 +37,7 @@ const socket = io({
 socket.emit('joinRoom', { username, room: roomNameParam });
 
 
-socket.on('roomUsers', ({ room, users }) => {
-
+socket.on('roomUsers', async ({ room, users }) => {
   const originalArray = users;
   const uniqueSet = new Set(originalArray);
   const uniqueArray = Array.from(uniqueSet);
@@ -50,14 +49,37 @@ socket.on('roomUsers', ({ room, users }) => {
   const existingUsernames = new Set(userItems.map(item => item.textContent));
 
   // Loop through the users array and add new users to the list
-  uniqueArray.forEach(user => {
-    // Check if the user is not already in the list
+  for (const user of uniqueArray) {
     if (!existingUsernames.has(user)) {
-      const li = document.createElement('li');
-      li.textContent = user; // Set the text content to the user's name
-      userList.appendChild(li); // Append the <li> element to the userList
+      const innerUser = user;
+
+    try {
+      const response = await fetch(`/findUserByName?name=${innerUser}`);
+      if (response.ok) {
+        const userData = await response.json();
+        // Use userData to display user information in hoverContainer
+        const li = document.createElement('li');
+        li.textContent = innerUser;
+
+        // Create a div for user info on hover
+        const userInfoContainer = document.createElement('div');
+        userInfoContainer.classList.add('user-info-container');
+
+        // Display user info on hover
+        userInfoContainer.textContent = `Username: ${userData.name}, Email: ${userData.email}`;
+        li.appendChild(userInfoContainer);
+
+        // Append the <li> element to the userList
+        userList.appendChild(li);
+      } else {
+        console.error(`User information not found for ${innerUser}`);
+      }
+    } catch (error) {
+      console.error('Error fetching user information:', error);
     }
-  });
+  }
+  }
+
   // Remove users who have left the room
   userItems.forEach(item => {
     if (!uniqueArray.includes(item.textContent)) {
@@ -70,6 +92,7 @@ socket.on('roomUsers', ({ room, users }) => {
 
 
 socket.on('messages', (data) => {
+
 
   // Clear existing messages from the chatMessages element
   chatMessages.innerHTML = '';
@@ -107,13 +130,15 @@ if (chatForm) {
 }
 
 function outputMessage(message) {
+
   const div = document.createElement('div');
   div.classList.add('message');
 
   const img = document.createElement('img');
-  img.classList.add('messageimg'); // You can add a CSS class for styling
-  img.src = message.img; 
+  img.classList.add('messageimg');
+  img.src = message.img;
   div.appendChild(img);
+
 
   const p = document.createElement('p');
   p.classList.add('meta');
