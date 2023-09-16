@@ -21,10 +21,17 @@ if (roomNameElement) {
 // Your JavaScript logic here
 console.log("Main.js: this is you:", username);
 
-const socket = io();
+// Establish a socket.io connection and pass the username
+const socket = io({
+  auth: {
+    username: username,
+  }
+});
 
 // Log when you join a room using roomNameParam
 socket.emit('joinRoom', { username, room: roomNameParam });
+
+socket.emit('Username', { username });
 
 socket.on('roomUsers', ({ room, users }) => {
 
