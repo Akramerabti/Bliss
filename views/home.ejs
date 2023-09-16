@@ -1,14 +1,23 @@
 <%- include('../public/partials/header'); -%>
    
-    <h2>Home</h2>
-    <% if (user) { %>
-    <h2>hello
-           <%= user.name %>
-        <% } else{} %>
-    </h2>
-    
-    <a href="/rooms" >Collaboardate</a>
+<h2>Home</h2>
+<% if (user) { %>
+  <h2>hello <%= user.name %></h2>
+<% } %>
 
-    <script src="/socket.io/socket.io.js"></script>
-  <script src="../public/partials/Notifs.js"></script>
-    <%- include('../public/partials/footer'); -%>
+<a href="/rooms">Collaboardate</a>
+
+<script>
+  const rawUsername = "<%= user && user.name ? user.name : null %>";
+  const decodedUsername = rawUsername.replace(/<\/?[^>]+(>|$)/g, ''); // Remove HTML tags
+  const username = decodedUsername.replace(/[^\w\s]/g, ''); // Remove special characters
+
+  
+  const rawUserID = "<%= user && user._id ? user._id : null %>";
+  const decodedUserID = rawUserID.replace(/<\/?[^>]+(>|$)/g, ''); // Remove HTML tags
+  const userID = decodedUserID.replace(/[^\w\s]/g, ''); // Remove special characters
+</script>
+
+<script src="/socket.io/socket.io.js"></script>
+<script type="module" src="/partials/Notifs.js"></script>
+<%- include('../public/partials/footer'); -%>

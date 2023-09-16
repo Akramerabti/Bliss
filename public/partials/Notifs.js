@@ -1,5 +1,35 @@
+const socket = io({
+  auth: {
+    username: username,
+  }
+});
 
-const socket = io();
+console.log('Socket connection established:', socket.connected);
+
+if (username !== "" ) {
+  console.log("Notifs.js: this is you:", username), userID;
+  socket.emit("online", { username, userID });
+} else {
+  console.log("Notifs.js: username is empty");
+}
+
+function updateOnlineStatusDot(status) {
+  const onlineStatusDot = document.getElementById('onlineStatusDot'); // Assuming you have an element with this ID
+  if (onlineStatusDot) {
+    if (status === 'online') {
+      onlineStatusDot.style.backgroundColor = 'green'; // Online status, set to green
+    } else if (status === 'offline') {
+      onlineStatusDot.style.backgroundColor = 'red'; // Offline status, set to red
+    }
+  }
+}
+
+socket.on('userOnlineStatus', ({ status }) => {
+
+  console.log('Received online status:', status);
+  // Update the online status dot based on the received status
+  updateOnlineStatusDot(status);
+});
 
 socket.on('notification', ({ msg }) => {
     console.log('Received notification:', msg);
@@ -7,8 +37,10 @@ socket.on('notification', ({ msg }) => {
 });
 
 socket.on("users", (users) => {
+
     users.forEach((user) => {
       user.self = user.userID === socket.id;
+      console.log(user.self);
       initReactiveProperties(user);
     });
     // put the current user first, and then sort by username

@@ -2,6 +2,11 @@ const mongoose=require("mongoose")
 const moment = require("moment")
 
 const messageSchema= new mongoose.Schema({ // Creates a login Schema for our database
+
+    img: {
+        type: String,
+    },
+
     msg: {
         type: String,
         required: [true, 'Enter message'],

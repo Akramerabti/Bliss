@@ -15,40 +15,13 @@ if (roomuserNameElement) {
   roomuserNameElement.innerText = NameParam; // Replace with your actual room name
 }
 
-onMessage(content) {
-  if (this.selectedUser) {
-    socket.emit("private message", {
-      content,
-      to: this.selectedUser.userID,
-    });
-    this.selectedUser.messages.push({
-      content,
-      fromSelf: true,
-    });
-  }
-}
-
-socket.on("private message", ({ content, from }) => {
-  for (let i = 0; i < this.users.length; i++) {
-    const user = this.users[i];
-    if (user.userID === from) {
-      user.messages.push({
-        content,
-        fromSelf: false,
-      });
-      if (user !== this.selectedUser) {
-        user.hasNewMessages = true;
-      }
-      break;
-    }
-  }
-});
+console.log(userID)
 
 // Your JavaScript logic here
 console.log("personal.js this is you:", username);
 
 // Log when you join a room using roomNameParam
-socket.emit('joinName', { username, room: NameParam });
+socket.emit('joinName', { username, room: NameParam, userID });
 
 socket.on('roomUsers', ({ room, users }) => {
 

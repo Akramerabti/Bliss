@@ -1,3 +1,5 @@
+
+
 // Get references to HTML elements
 const chatForm = document.getElementById("chat-form");
 const chatMessages = document.querySelector(".chat-messages");
@@ -22,16 +24,18 @@ if (roomNameElement) {
 console.log("Main.js: this is you:", username);
 
 // Establish a socket.io connection and pass the username
+
+
 const socket = io({
   auth: {
     username: username,
   }
 });
 
+
 // Log when you join a room using roomNameParam
 socket.emit('joinRoom', { username, room: roomNameParam });
 
-socket.emit('Username', { username });
 
 socket.on('roomUsers', ({ room, users }) => {
 
@@ -105,6 +109,11 @@ if (chatForm) {
 function outputMessage(message) {
   const div = document.createElement('div');
   div.classList.add('message');
+
+  const img = document.createElement('img');
+  img.classList.add('messageimg'); // You can add a CSS class for styling
+  img.src = message.img; 
+  div.appendChild(img);
 
   const p = document.createElement('p');
   p.classList.add('meta');

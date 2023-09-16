@@ -54,9 +54,6 @@ app.use(express.json());
 app.set('view engine', "ejs"); // Setting the "view engine" name default by express.js as "hbs"
 
 
-
-
-
 const dbURI = 'mongodb+srv://Akramvd:lF9UjtVXF0iWsxetr2MK@cluster0.7wctpqm.mongodb.net/appdatabase';
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
@@ -84,26 +81,26 @@ app.get('/', checkUser, (req, res) => {
 
 app.get("/chat", requireAuth,checkUser, (req, res) => {
   const user = res.locals.user;
-  console.log(user)
+  
   res.render(path.join(__dirname, 'public', 'chat'), { user });
 });
 
 // Serve the rooms.ejs file
 app.get("/rooms", requireAuth,checkUser, (req, res) => {
   const user = res.locals.user;
-  console.log(user)
+  
   res.render(path.join(__dirname, 'public', 'rooms'), { user });
 });
 
 app.get("/personalchat", requireAuth,checkUser, (req, res) => {
   const user = res.locals.user;
-  console.log(user)
+
   res.render(path.join(__dirname, 'public', 'personalchat'), { user });
 });
 
 app.get("/personal", requireAuth, checkUser, (req, res) => {
   const user = res.locals.user;
-  console.log(user)
+
   res.render(path.join(__dirname, 'public', 'personal'), { user });
 });
 
@@ -163,28 +160,55 @@ io.use((socket, next) => {
 
 const rooms = new Map();
 const roomUsers = new Map();
-
+const userSocketMap = new Map();
 
 
 io.on('connection', socket => {
 
+  console.log(`User connected: ${socket.username}`);
+
+  socket.on('online', ({ username, userID }) => {
 
   const users = [];
 
-  for (let [id, socket] of io.of("/").sockets) {
+  for (let [id] of io.of("/").sockets) {
     users.push({
-      userID: id,
-      username: socket.username,
+      userID: userID,
+      socketID: id,
+      username: username,
     });
   }
+  userSocketMap[userID] = socket;
+    console.log(`${username} with ID ${userID} is now connected`);
 
-  console.log(users);
-  socket.emit("users", users);
+    socket.emit('userOnlineStatus', { status: 'online' });
+})
 
-  socket.broadcast.emit("user connected", {
-    userID: socket.id,
-    username: socket.username,
-  });
+  
+socket.on('disconnect', () => {
+  const userID = Object.keys(userSocketMap).find(
+    (key) => userSocketMap[key] === socket
+  );
+  
+  if (userID) {
+    delete userSocketMap[userID];
+    console.log(`User with ID ${userID} disconnected`);
+    socket.emit('userOnlineStatus', { status: 'offline' });
+  }
+});
+
+  const sendMessageToUser = async (userID, message)  =>  {
+    const userSocket = userSocketMap[userID];
+    if (userSocket) {
+      userSocket.emit('newMessage', message);
+      console.log(`Message sent to user with ID ${userID}`);
+    } else {
+      console.log(`User with ID ${userID} is not online`);
+      // You can handle offline user scenarios here, like storing the message for later delivery
+    }
+  }
+
+
 
   // Function to load and emit database messages to a user
   const loadDatabaseMessages = async (socket, room, username) => {
@@ -199,6 +223,7 @@ io.on('connection', socket => {
 
       const messageSchemaData = messages.filter((message) => message.sender === username)
       .map((message) => ({
+        img: message.img,
         sender: message.sender,
         room: message.room,
         time: message.time,
@@ -252,25 +277,7 @@ io.on('connection', socket => {
         });
     }
   
-
     socket.join(room);
-
-    socket.on("connect", () => {
-      this.users.forEach((user) => {
-        if (user.self) {
-          user.connected = true;
-        }
-      });
-    });
-    
-    socket.on("disconnect", () => {
-      this.users.forEach((user) => {
-        if (user.self) {
-          user.connected = false;
-        }
-      });
-    });
-
 
     // Function to add a user to roomUsers Map
     const addUserToRoom = ({ username, room, socket }) => {
@@ -327,6 +334,7 @@ io.on('connection', socket => {
           const existingMessages = user.JoinedRooms[roomIndex].messages;
           const messagesMatch = existingMessages.some((message) =>
             // Check if messages match here
+            message.img === messageSchemaData.img &&
             message.sender === messageSchemaData.sender &&
             message.room === messageSchemaData.room &&
             message.time === messageSchemaData.time &&
@@ -385,15 +393,27 @@ io.on('connection', socket => {
       if (!sentMessages.has(socket.id)) {
         sentMessages.add(socket.id);
       }
-  
-      const newMessage = new roomInfo.Message({ room, msg, sender, time: moment().format("lll") });
-  
-      newMessage.save().then(() => {
-        // Find and emit updated messages
-        roomInfo.Message.find().then((result) => {
-          io.emit("messages", result);
 
-        });
+      User.findOne({ name: sender, 'JoinedRooms.roomName': room })
+      .then((user) => {
+        if (user && user.thumbnail) {
+          const img = user.thumbnail;
+  
+          const newMessage = new roomInfo.Message({
+            img: img,
+            room,
+            msg,
+            sender,
+            time: moment().format("lll"),
+          });
+          newMessage.save().then(() => {
+            // Find and emit updated messages
+            roomInfo.Message.find().then((result) => {
+              io.emit("messages", result);
+            });
+          });
+        }
+      
 
         sendNotification(room, sender, `${sender}: ${msg}`);
     
@@ -512,21 +532,9 @@ io.on('connection', socket => {
     
     // Event listener for chat messages
     socket.on('chatMessage', handleChatMessage);
-
-    socket.on('chatMessage', (msg) => { 
-      console.log(msg);
-      io.emit('notification', { msg: 'Your notification message' });
-  });
 }
   // Event listener for joining a room
   socket.on('joinRoom', handleJoinRoom);
-
-  socket.on("private message", ({ content, to }) => {
-    socket.to(to).emit("private message", {
-      content,
-      from: socket.id,
-    });
-  });
 
 });
 

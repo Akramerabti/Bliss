@@ -3,11 +3,23 @@
         <h1> Collababoard!</h1>
       </header>
       <form >
-        <button  class="btn"><a href="/personalchat" >Private server</a></button>
+        <button  class="btn"><a href="./groupchat" >Private server</a></button>
       </form > 
-      <form id="chat-form" action="/personalchat" method="get">
-        <button  class="btn"><a href="/personalchat" >Chat to user</a></button>
-      </form>
+      <form action="/personal">
+        <div class="form-control">
+          <label for ="personal"> Public collaboardation:</label>
+           <input
+            type = "text"
+            name = "name"
+            id="room"
+            placeholder="Enter User's name"
+            required
+            />
+            <div class="flex">
+              <button type="submit" class="btn">Chat to specific user</button>
+            </div>
+        </div>
+      </form >
         <form action="/chat">
           <div class="form-control">
             <label for ="room"> Public collaboardation:</label>
@@ -56,13 +68,13 @@
         </div>
       </main>
     </div>
-
-   <script>
-    // Set a JavaScript variable with the user.name value
-    const username = "<%= user.name %>";
-  </script>
+    <script>
+      // Set a JavaScript variable with the user.name value
+      const username = "<%= user.name %>";
+      const userID = "<%= user._id %>"
+    </script>
    <script src="/socket.io/socket.io.js"></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.11.2/qs.min.js" integrity="sha512-vCegEXqPUYpZsTGz2lk0jaQ1psxtFeniVJACAXhMVxuoYa/N4nZkjoVFOxLwP7uGeQOoemiz7DQrIpRTj4IBPw==" crossorigin="anonymous"></script>
   <script src="main.js"></script>
-  <script src="../partials/Notifs.js"></script> 
+  <script type="module" src="../partials/Notifs.js"></script> 
   <%- include('partials/footer'); -%>

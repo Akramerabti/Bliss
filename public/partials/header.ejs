@@ -32,10 +32,12 @@
   
         
         <li class="dropdown">
+          <div id="onlineStatusDot" class="online-dot"></div>
           <div class="profile-picture">
             <% if (locals.user) { %>
+              
               <img src="<%= locals.user && locals.user.thumbnail ? (locals.user.thumbnail + '?refresh=' + Date.now()) : '/pictures/default-profile-pic.jpg' %>" alt="Profile Picture" class="profile-picture-img" referrerPolicy="no-referrer">
-            </div>
+              </div>
             <div class="dropdown-content">
               <a href="#">Profile</a>
               <a href="#">Dashboard</a>
