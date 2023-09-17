@@ -48,18 +48,37 @@ socket.on('roomUsers', async ({ room, users }) => {
   // Create a Set of existing usernames for efficient checking
   const existingUsernames = new Set(userItems.map(item => item.textContent));
 
+  console.log(uniqueArray);
+
+  userList.innerHTML = '';
+
   // Loop through the users array and add new users to the list
   for (const user of uniqueArray) {
     if (!existingUsernames.has(user)) {
-      const innerUser = user;
+    const innerUser = user;
+    console.log(innerUser);
 
     try {
       const response = await fetch(`/findUserByName?name=${innerUser}`);
       if (response.ok) {
         const userData = await response.json();
+
         // Use userData to display user information in hoverContainer
+        const imgContainer = document.createElement('div');
+        imgContainer.classList.add('user-image-container');
+        imgContainer.setAttribute('data-username', innerUser); // Set a data attribute
+
+        // Create the img element
+        const img = document.createElement('img');
+        img.classList.add('roomuserimg');
+        img.src = userData.thumbnail;
+
+        // Append the img element to the container
+        imgContainer.appendChild(img);
+
         const li = document.createElement('li');
         li.textContent = innerUser;
+        li.setAttribute('data-username', innerUser); // Set a data attribute
 
         // Create a div for user info on hover
         const userInfoContainer = document.createElement('div');
@@ -67,10 +86,38 @@ socket.on('roomUsers', async ({ room, users }) => {
 
         // Display user info on hover
         userInfoContainer.textContent = `Username: ${userData.name}, Email: ${userData.email}`;
+
+        // Create a button for adding friends
+        const friendButton = document.createElement('button');
+        friendButton.textContent = '+';
+        friendButton.classList.add('add-friend-button');
+
+        // Check if the user is not yourself
+        if (userData.name !== currentUsername) {
+          // Attach a click event listener to the button
+          friendButton.addEventListener('click', () => {
+            const username = userData.name; // Get the username associated with this message
+            socket.emit('addFriend', { username }); // Emit the 'addFriend' event with the username
+          });
+        } else {
+          // If it's yourself, hide the button
+          friendButton.style.display = 'none';
+        }
+
+        // Append the add friend button to the list item
+        li.appendChild(friendButton);
+
+        // Append the user info container to the list item
         li.appendChild(userInfoContainer);
 
-        // Append the <li> element to the userList
+        // Append the user image container to the list item
+        li.appendChild(imgContainer);
+
+        // Append the list item to the userList
         userList.appendChild(li);
+
+        // Add the username to the existingUsernames set
+        existingUsernames.add(innerUser);
       } else {
         console.error(`User information not found for ${innerUser}`);
       }
@@ -82,17 +129,20 @@ socket.on('roomUsers', async ({ room, users }) => {
 
   // Remove users who have left the room
   userItems.forEach(item => {
-    if (!uniqueArray.includes(item.textContent)) {
+    const username = item.getAttribute('data-username'); // Get the username from data attribute
+    if (!uniqueArray.includes(username)) {
       item.remove();
     }
   });
 
+  // Output room name if needed
   outputRoomName(room);
 });
 
 
-socket.on('messages', (data) => {
 
+
+socket.on('messages', (data) => {
 
   // Clear existing messages from the chatMessages element
   chatMessages.innerHTML = '';
@@ -129,16 +179,75 @@ if (chatForm) {
   });
 }
 
-function outputMessage(message) {
 
+async function fetchUserInfoByName(userName) {
+  try {
+    const response = await fetch(`/findUserByName?name=${userName}`);
+    if (response.ok) {
+      const userData = await response.json();
+      return userData;
+    } else {
+      console.error(`User information not found for ${userName}`);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching user information:', error);
+    return null;
+  }
+}
+
+const currentUsername = username;
+
+function outputMessage(message) {
   const div = document.createElement('div');
   div.classList.add('message');
+
+  const imgContainer = document.createElement('div');
+  imgContainer.classList.add('message-img-container');
 
   const img = document.createElement('img');
   img.classList.add('messageimg');
   img.src = message.img;
-  div.appendChild(img);
 
+  const hoverContainer = document.createElement('div');
+  hoverContainer.classList.add('hover-container');
+  hoverContainer.textContent = 'Loading...'; // Initial loading text
+
+  imgContainer.appendChild(img);
+  imgContainer.appendChild(hoverContainer);
+
+  // Add event listener for mouseenter to trigger user info fetch
+  imgContainer.addEventListener('mouseenter', async () => {
+    // Fetch user information (async)
+    const userInfo = await fetchUserInfoByName(message.sender);
+
+    if (userInfo) {
+      // Update hoverContainer with user info
+      hoverContainer.textContent = `Username: ${userInfo.name}, Email: ${userInfo.email}`;
+      
+      // Check if the message sender is not the current user
+      if (message.sender !== currentUsername) {
+        // Create a button for adding friends
+        const addFriendButton = document.createElement('button');
+        addFriendButton.textContent = 'Friends';
+        addFriendButton.classList.add('add-friend-button');
+    
+        // Attach a click event listener to the button
+        addFriendButton.addEventListener('click', () => {
+          const username = message.sender; // Get the username associated with this message
+          socket.emit('addFriend', { username }); // Emit the 'addFriend' event with the username
+        });
+    
+        // Append the add friend button to the hoverContainer
+        hoverContainer.appendChild(addFriendButton);
+      }
+    } else {
+      // Handle error or no user info found
+      hoverContainer.textContent = 'User information not found';
+    }
+  });
+
+  div.appendChild(imgContainer);
 
   const p = document.createElement('p');
   p.classList.add('meta');

@@ -17,8 +17,26 @@ function updateOnlineStatusDot(status) {
   const onlineStatusDot = document.getElementById('onlineStatusDot'); // Assuming you have an element with this ID
   if (onlineStatusDot) {
     if (status === 'online') {
+      onlineStatusDot.style.width = '15px';
+      onlineStatusDot.style.height = '15px';
+      onlineStatusDot.style.borderRadius = '50%';
+      onlineStatusDot.style.left = '10px';
+      onlineStatusDot.style.zIndex = '1';
+      onlineStatusDot.style.overflow = 'hidden';
+      onlineStatusDot.style.position = 'relative';
+      onlineStatusDot.style.display = 'inline-block';
+      onlineStatusDot.style.border = '2px solid #000';
       onlineStatusDot.style.backgroundColor = 'green'; // Online status, set to green
     } else if (status === 'offline') {
+      onlineStatusDot.style.width = '15px';
+      onlineStatusDot.style.height = '15px';
+      onlineStatusDot.style.borderRadius = '50%';
+      onlineStatusDot.style.left = '10px';
+      onlineStatusDot.style.zIndex = '1';
+      onlineStatusDot.style.overflow = 'hidden';
+      onlineStatusDot.style.position = 'relative';
+      onlineStatusDot.style.display = 'inline-block';
+      onlineStatusDot.style.border = '2px solid #000';
       onlineStatusDot.style.backgroundColor = 'red'; // Offline status, set to red
     }
   }

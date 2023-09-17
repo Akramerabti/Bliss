@@ -304,7 +304,7 @@ socket.on('disconnect', () => {
     const messageSchemaData = await loadDatabaseMessages(socket, room, username); // Retrieve messageSchemaData
 
 
-    User.findOne({ name: username, 'JoinedRooms.room': roomInfo._id })
+    User.findOne({ name: username, 'JoinedRooms.roomName': roomInfo.roomName })
     .then((user) => {
       if (!user) {
         // User is not in the room's JoinedRooms array, so add it
@@ -418,7 +418,7 @@ socket.on('disconnect', () => {
         sendNotification(room, sender, `${sender}: ${msg}`);
     
 
-        User.findOne({ name: sender, 'JoinedRooms.room': roomInfo._id })
+        User.findOne({ name: sender, 'JoinedRooms.roomName': room })
         .then((user) => {
           if (!user) {
             // User is not in the room's JoinedRooms array, so add it
@@ -428,7 +428,7 @@ socket.on('disconnect', () => {
                 $addToSet: {
                   JoinedRooms: {
                     room: roomInfo._id, // Convert to ObjectId
-                    roomName: roomInfo.roomName,
+                    roomName: room,
                     messages: {
                       sender: sender,
                       room: room, // Convert to ObjectId
