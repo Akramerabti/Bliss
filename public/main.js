@@ -218,6 +218,12 @@ function outputMessage(message) {
   imgContainer.appendChild(hoverContainer);
 
   const friendButtonStates = new Map(JSON.parse(localStorage.getItem('friendButtonStates')) || []);
+
+  friendButtonStates.delete("AkramVD");
+  friendButtonStates.delete("Elmos Almos");
+
+  // Save the updated friendButtonStates to localStorage
+  localStorage.setItem('friendButtonStates', JSON.stringify(Array.from(friendButtonStates.entries())));
   // Add event listener for mouseenter to trigger user info fetch
   imgContainer.addEventListener('mouseenter', async () => {
     // Fetch user information (async)
@@ -251,7 +257,7 @@ function outputMessage(message) {
             addFriendButton.disabled = true;
         
             // Emit the 'addFriend' event with the username
-            socket.emit('addFriend', { username, userID: userInfo._id, email: userInfo.email })
+            socket.emit('addFriend', { username, sender:currentUsername , userID: userInfo._id, email: userInfo.email })
 
           socket.on("addFriendResponse", (response) => {
               // This callback will be executed when you receive a response from the server

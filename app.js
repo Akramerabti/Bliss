@@ -161,29 +161,52 @@ io.use((socket, next) => {
 const rooms = new Map();
 const roomUsers = new Map();
 const userSocketMap = new Map();
-
+const offlineNotifications = new Map();
 
 io.on('connection', socket => {
+
+  console.log(offlineNotifications)
 
   console.log(`User connected: ${socket.username}`);
 
   socket.on('online', ({ username, userID }) => {
 
-  const users = [];
+    const users = [];
+  
+    for (let [id] of io.of("/").sockets) {
+      users.push({
+        userID: userID,
+        socketID: id,
+        username: username,
+      });
+    }
 
-  for (let [id] of io.of("/").sockets) {
-    users.push({
-      userID: userID,
-      socketID: id,
-      username: username,
-    });
-  }
-  userSocketMap[userID] = socket;
+    userSocketMap[userID] = socket;
     console.log(`${username} with ID ${userID} is now connected`);
+  
+    const notifications = offlineNotifications.get(username._id);
+    
+    if (notifications && notifications.length > 0) {
+      for (const notification of notifications) {
+        socket.emit('friendRequestNotif', {sender: notification.sender, message: notification.message});
+      }
 
+      const recipientSocket = userSocketMap.get(username._id);
+
+      if (recipientSocket) {
+        // Emit the notification to the specific user's socket
+        recipientSocket.emit('friendRequestNotif', notification);
+      } else {
+        // Handle the case where the recipient's socket is not found
+        console.log(`Recipient with ID ${username._id} is not online.`);
+      }
+
+      // Remove sent notifications from storage
+      offlineNotifications.delete(username._id); // Use delete method to remove the item
+    }
+  
     socket.emit('userOnlineStatus', { status: 'online' });
-})
-
+  });
   
 socket.on('disconnect', () => {
   const userID = Object.keys(userSocketMap).find(
@@ -208,15 +231,34 @@ socket.on('disconnect', () => {
     }
   }
 
-  socket.on('addFriend', ({ username, userID, email}) => {
-    console.log('Added friend:', { username, userID, email });
-    io.emit('addFriendResponse', { success: true });
 
-    io.to(userID).emit('friendRequestNotif', {
-      sender: username,
-      message: 'You have received a friend request.'
-    });
-    console.log("Notification sent");
+  function sendFriendRequestNotification(sender, username) {
+    const recipientSocket = userSocketMap.get(username._id); // Use .get() to retrieve from Map
+  
+    if (recipientSocket) {
+      // Recipient is online, send the notification immediately
+      recipientSocket.emit('friendRequestNotif', { sender, message: 'Friend request received youre online' });
+    } else {
+      // Recipient is offline, store the notification
+      if (!offlineNotifications.has(username._id)) {
+        // Initialize the array for this user if it doesn't exist
+        offlineNotifications.set(username._id, []);
+      }
+      // Get the notifications array for this user
+      const notifications = offlineNotifications.get(username._id);
+      
+      notifications.push({ sender, message: 'Friend request received you werent there' });
+      console.log("Notifications:", notifications);
+    }
+  }
+  
+
+  socket.on('addFriend', ({ sender, username, userID, email}) => {
+    console.log('Request friend:', { sender, username, userID, email });
+    io.emit('addFriendResponse', { success: true });
+   
+    sendFriendRequestNotification(sender, username);
+    console.log("Notification sender:", sender);
     // You can add more debugging code or handle the notification here.
 });
 

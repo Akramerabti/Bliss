@@ -54,8 +54,40 @@ socket.on('notification', ({ msg }) => {
     // You can add more debugging code or handle the notification here.
 });
 
-socket.on("friendRequestNotif", ({sender,message}) => {
-    console.log('Received friend request notification:', sender, message);
+socket.on("friendRequestNotif", ({sender, message}) => {
+    console.log('Received friend request notification:', {sender, message});
+
+    const notificationDiv = document.createElement('div');
+    notificationDiv.classList.add('notification'); // Add a CSS class for styling
+  
+    // Create a paragraph element for the message
+    const messageParagraph = document.createElement('p');
+    messageParagraph.textContent =  {sender, message}; // Set the message content
+  
+    // Create a button element for "Add"
+    const addButton = document.createElement('button');
+    addButton.textContent = 'Add';
+    addButton.classList.add('add-button'); // Add a CSS class for styling
+    addButton.addEventListener('click', () => {
+      
+    });
+    
+    const refuseButton = document.createElement('button');
+    refuseButton.textContent = 'Remove';
+    refuseButton.classList.add('refuse-button'); // Add a CSS class for styling
+    refuseButton.addEventListener('click', () => {
+      
+    });
+  
+    // Append the message and button to the notification div
+    notificationDiv.appendChild(messageParagraph);
+    notificationDiv.appendChild(addButton);
+  
+    // Append the notification div to the notifications container
+    const notificationsContainer = document.getElementById('notifications-container');
+    if (notificationsContainer) {
+      notificationsContainer.appendChild(notificationDiv);
+    }
     // You can add more debugging code or handle the notification here.
 });
 
