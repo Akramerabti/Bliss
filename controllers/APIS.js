@@ -231,7 +231,7 @@ module.exports.findUserByName_get = async (req, res) => {
     const user = await User.findOne({ name });
     if (user) {
       // Send user data as JSON response
-      res.json({ name: user.name, Friends: user.Friends, email: user.email, thumbnail: user.thumbnail }); // Customize the response data as needed
+      res.json({ _id:user._id, name: user.name, Friends: user.Friends, email: user.email, thumbnail: user.thumbnail }); // Customize the response data as needed
     } else {
       res.status(404).json({ error: 'User not found' });
     }

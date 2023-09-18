@@ -193,7 +193,7 @@ socket.on('disconnect', () => {
   if (userID) {
     delete userSocketMap[userID];
     console.log(`User with ID ${userID} disconnected`);
-    socket.emit('userOnlineStatus', { status: 'offline' });
+    io.emit('userOnlineStatus', { status: 'offline' });
   }
 });
 
@@ -207,6 +207,18 @@ socket.on('disconnect', () => {
       // You can handle offline user scenarios here, like storing the message for later delivery
     }
   }
+
+  socket.on('addFriend', ({ username, userID, email}) => {
+    console.log('Added friend:', { username, userID, email });
+    io.emit('addFriendResponse', { success: true });
+
+    io.to(userID).emit('friendRequestNotif', {
+      sender: username,
+      message: 'You have received a friend request.'
+    });
+    console.log("Notification sent");
+    // You can add more debugging code or handle the notification here.
+});
 
 
 

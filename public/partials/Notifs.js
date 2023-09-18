@@ -54,12 +54,10 @@ socket.on('notification', ({ msg }) => {
     // You can add more debugging code or handle the notification here.
 });
 
-
-socket.on('addFriend', ({ username }) => {
-    console.log('Added friend:', username);
+socket.on("friendRequestNotif", ({sender,message}) => {
+    console.log('Received friend request notification:', sender, message);
     // You can add more debugging code or handle the notification here.
 });
-
 
 socket.on("users", (users) => {
 

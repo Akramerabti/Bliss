@@ -48,7 +48,7 @@ socket.on('roomUsers', async ({ room, users }) => {
   // Create a Set of existing usernames for efficient checking
   const existingUsernames = new Set(userItems.map(item => item.textContent));
 
-  console.log(uniqueArray);
+  console.log(existingUsernames);
 
   userList.innerHTML = '';
 
@@ -130,9 +130,10 @@ socket.on('roomUsers', async ({ room, users }) => {
   // Remove users who have left the room
   userItems.forEach(item => {
     const username = item.getAttribute('data-username'); // Get the username from data attribute
-    if (!uniqueArray.includes(username)) {
+    if (!uniqueArray.has(username)) {
       item.remove();
     }
+    console.log(uniqueArray);
   });
 
   // Output room name if needed
@@ -216,6 +217,7 @@ function outputMessage(message) {
   imgContainer.appendChild(img);
   imgContainer.appendChild(hoverContainer);
 
+  const friendButtonStates = new Map(JSON.parse(localStorage.getItem('friendButtonStates')) || []);
   // Add event listener for mouseenter to trigger user info fetch
   imgContainer.addEventListener('mouseenter', async () => {
     // Fetch user information (async)
@@ -224,27 +226,71 @@ function outputMessage(message) {
     if (userInfo) {
       // Update hoverContainer with user info
       hoverContainer.textContent = `Username: ${userInfo.name}, Email: ${userInfo.email}`;
-      
-      // Check if the message sender is not the current user
-      if (message.sender !== currentUsername) {
-        // Create a button for adding friends
+
+      if (userInfo.name !== currentUsername) {
         const addFriendButton = document.createElement('button');
-        addFriendButton.textContent = 'Friends';
-        addFriendButton.classList.add('add-friend-button');
-    
-        // Attach a click event listener to the button
-        addFriendButton.addEventListener('click', () => {
-          const username = message.sender; // Get the username associated with this message
-          socket.emit('addFriend', { username }); // Emit the 'addFriend' event with the username
+        
+        if (friendButtonStates.get(message.sender) === true) {
+          addFriendButton.textContent = 'Sent';
+          addFriendButton.style.cursor = 'default';
+          addFriendButton.disabled = true;
+        } else {
+          addFriendButton.textContent = 'Friends';
+          addFriendButton.classList.add('add-friend-button');
+          addFriendButton.style.cursor = 'pointer';
+        }
+        
+
+        // Create a button for adding friends
+        addFriendButton.addEventListener('click', async () => {
+          if (!friendButtonStates.get(message.sender)) {
+            console.log('Clicked add friend button');
+            const username = message.sender; // Get the username associated with this message
+        
+            // Disable the button immediately to prevent further clicks
+            addFriendButton.disabled = true;
+        
+            // Emit the 'addFriend' event with the username
+            socket.emit('addFriend', { username, userID: userInfo._id, email: userInfo.email })
+
+          socket.on("addFriendResponse", (response) => {
+              // This callback will be executed when you receive a response from the server
+              console.log('Server response:', response);
+              if (response.success) {
+                // If the server confirms success, change the button text to "Sent"
+                addFriendButton.textContent = 'Sent';
+                // Update the state to indicate that the button has been clicked for this user
+                friendButtonStates.set(message.sender, true);
+        
+                // Save the updated friendButtonStates to localStorage
+                localStorage.setItem('friendButtonStates', JSON.stringify(Array.from(friendButtonStates.entries())));
+        
+                console.log('Friend request sent successfully');
+              } else {
+                // If the server indicates an error, enable the button again and handle the error
+                addFriendButton.disabled = false;
+
+                localStorage.setItem('friendButtonStates', JSON.stringify(Array.from(friendButtonStates.entries())));
+
+                console.error('Error sending friend request:', response.error);
+              }
+            
+            });
+          }
         });
-    
+
         // Append the add friend button to the hoverContainer
         hoverContainer.appendChild(addFriendButton);
+      } else {
+        // Handle error or no user info found
+        hoverContainer.textContent = 'Error fetching user information';
       }
-    } else {
-      // Handle error or no user info found
-      hoverContainer.textContent = 'User information not found';
     }
+  });
+
+  // Add event listener for mouseleave to clear the hoverContainer
+  imgContainer.addEventListener('mouseleave', () => {
+    hoverContainer.textContent = '';
   });
 
   div.appendChild(imgContainer);
@@ -262,6 +308,7 @@ function outputMessage(message) {
 
   chatMessages.appendChild(div); // Append the message to the chatMessages element
 }
+
 
 function outputRoomName(room) {
   if (roomNameElement) {
