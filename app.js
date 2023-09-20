@@ -136,7 +136,6 @@ io.use((socket, next) => {
     const session = sessionStore.findSession(sessionID);
     if (session) {
       socket.sessionID = sessionID;
-      socket.userID = session.userID;
       socket.username = session.username;
       return next();
     }
@@ -151,7 +150,6 @@ io.use((socket, next) => {
 
   // Create a new session
   socket.sessionID = randomId();
-  socket.userID = randomId();
   socket.username = username;
 
   console.log('New WebSocket connection', username);
@@ -175,50 +173,172 @@ io.on('connection', socket => {
   
     for (let [id] of io.of("/").sockets) {
       users.push({
-        userID: userID,
+        userID: username._id,
         socketID: id,
         username: username,
       });
     }
 
     userSocketMap[userID] = socket;
-    console.log(`${username} with ID ${userID} is now connected`);
+
+    console.log(`${username} with ID ${userID} is now connected and this is the the socketMap`);
   
-    const notifications = offlineNotifications.get(username._id);
+    const notifications = offlineNotifications.get(userID);
+
     
-    if (notifications && notifications.length > 0) {
-      for (const notification of notifications) {
-        socket.emit('friendRequestNotif', {sender: notification.sender, message: notification.message});
+    console.log("Notifications are not somewhere:", notifications);
+
+
+if (notifications && notifications.length > 0) {
+  for (const notification of notifications) {
+    console.log("Notification are somewhere:", notification);
+
+    if (notification.sender && notification.receiveruserID) {
+      if (notification.message) {
+        socket.emit('friendRequestNotif', {
+          sender: notification.sender,
+          receiveruserID: notification.receiveruserID,
+          message: notification.message
+        });
+      } else if (notification.success !== undefined) {
+        // Handle both true and false cases
+        if (notification.success === true) {
+          userSocketMap[notification.receiveruserID].emit('ResponseFriendNotif', {
+            sender: notification.sender,
+            receiveruserID: notification.receiveruserID,
+            addedfriend: notification.addedfriend,
+            success: true
+          });
+
+          console.log("Notification success true");
+        } else if (notification.success === false) {
+          io.emit('addFriendResponse', { success: false });
+          userSocketMap[notification.receiveruserID].emit('ResponseFriendNotif', {
+            sender: notification.sender,
+            receiveruserID: notification.receiveruserID,
+            addedfriend: notification.addedfriend,
+            success: false
+          });
+
+          console.log("Notification success false");
+        }
       }
-
-      const recipientSocket = userSocketMap.get(username._id);
-
-      if (recipientSocket) {
-        // Emit the notification to the specific user's socket
-        recipientSocket.emit('friendRequestNotif', notification);
-      } else {
-        // Handle the case where the recipient's socket is not found
-        console.log(`Recipient with ID ${username._id} is not online.`);
-      }
-
-      // Remove sent notifications from storage
-      offlineNotifications.delete(username._id); // Use delete method to remove the item
     }
+  }
+
+
+        socket.on('FriendRequestResponse', ({ sender, receiveruserID, addedfriend, success }) => {
+        console.log("The friend request is ... (false = declined)", { success });
+      
+        // Remove sent notifications from storage
+        offlineNotifications.delete(username._id);
+      
+        if (success) {
+
+          console.log(" FRIENDS INTERACTION SENDER AND THE FRIEND TO ADD WHEN ACCEPTED", { sender, addedfriend });
+          // Add the friend to the user's Friends array
+          try {
+            User.findOne({ name: addedfriend, 'Friends.friend': sender })
+            .then((user) => {
+              if (!user) {
+               User.findOneAndUpdate(
+              { name: addedfriend },
+              {
+                $addToSet: {
+                  Friends: {
+                    friend: sender,
+                  },
+                },
+              },
+              { new: true }
+            )
+            .then(() => {
+              console.log('sender added to Friends array');
+            })
+            .catch((err) => {
+              console.error('Error adding the sender to Friends array:', err);
+            });
+
+              }})
+
+            User.findOne({ name: sender, 'Friends.friend': addedfriend })
+            .then((user) => {
+                if (!user) {
+                 User.findOneAndUpdate(
+                { name: sender },
+                {
+                  $addToSet: {
+                    Friends: {
+                      friend: addedfriend,
+                    },
+                  },
+                },
+                { new: true }
+              )
+              .then(() => {
+                console.log('wanted friend added to Friends array');
+              })
+              .catch((err) => {
+                console.error('Error adding the wanted to Friends array:', err);
+              });
   
+                }
+              }
+              )
+
+          } catch (error) {
+            console.error("Error accepting friend request:", error);
+            // Handle any errors that may occur during the update.
+          }
+          
+          ResponseNotification(sender, receiveruserID, addedfriend, true);
+
+        } if (!success){
+
+          console.log("Refused and not added", { Friends: sender.Friends});
+
+          ResponseNotification(sender, receiveruserID, addedfriend, false);
+          //When user refueses friend request
+        }
+      });
+    
+    }
+
     socket.emit('userOnlineStatus', { status: 'online' });
   });
+
+    function ResponseNotification(sender, receiveruserID, addedfriend, success) {
+    const recipientSocket = userSocketMap.get(receiveruserID); // Use .get() to retrieve from Map
+    console.log("Recipient socket for WHEN USER RESPONDS TO THE FRIEND REQUEST (false means offline since not in socketMap):", recipientSocket !== undefined);
   
-socket.on('disconnect', () => {
-  const userID = Object.keys(userSocketMap).find(
-    (key) => userSocketMap[key] === socket
-  );
-  
-  if (userID) {
-    delete userSocketMap[userID];
-    console.log(`User with ID ${userID} disconnected`);
-    io.emit('userOnlineStatus', { status: 'offline' });
+    if (recipientSocket) {
+      // Recipient is online, send the notification immediately
+      recipientSocket.emit('ResponseFriendNotif', { sender:addedfriend, receiveruserID, addedfriend:sender, success });
+    } else {
+      // Recipient is offline, store the notification
+      if (!offlineNotifications.has(receiveruserID)) {
+        // Initialize the array for this user if it doesn't exist
+        offlineNotifications.set(receiveruserID, []);
+      }
+      // Get the notifications array for this user
+      const notifications = offlineNotifications.get(receiveruserID);
+      
+      notifications.push({ sender:addedfriend, receiveruserID, addedfriend:sender, success });
+      console.log("Sent Notifications:", notifications);
+    }
   }
-});
+
+  socket.on('disconnect', () => {
+    const userID = Object.keys(userSocketMap).find(
+      (key) => userSocketMap[key] === socket
+    );
+    
+    if (userID) {
+      delete userSocketMap[userID];
+      console.log(`User with ID ${userID} disconnected`);
+      io.emit('userOnlineStatus', { status: 'offline' });
+    }
+  });
 
   const sendMessageToUser = async (userID, message)  =>  {
     const userSocket = userSocketMap[userID];
@@ -232,32 +352,36 @@ socket.on('disconnect', () => {
   }
 
 
-  function sendFriendRequestNotification(sender, username) {
-    const recipientSocket = userSocketMap.get(username._id); // Use .get() to retrieve from Map
+  function sendFriendRequestNotification(sender, userID, senderID) {
+    const recipientSocket = userSocketMap.get(userID); // Use .get() to retrieve from Map
+    console.log("Recipient socket (false means offline since not in socketMap):", recipientSocket !== undefined);
   
     if (recipientSocket) {
       // Recipient is online, send the notification immediately
       recipientSocket.emit('friendRequestNotif', { sender, message: 'Friend request received youre online' });
     } else {
       // Recipient is offline, store the notification
-      if (!offlineNotifications.has(username._id)) {
+      if (!offlineNotifications.has(userID)) {
         // Initialize the array for this user if it doesn't exist
-        offlineNotifications.set(username._id, []);
+        offlineNotifications.set(userID, []);
       }
       // Get the notifications array for this user
-      const notifications = offlineNotifications.get(username._id);
+      const notifications = offlineNotifications.get(userID);
       
-      notifications.push({ sender, message: 'Friend request received you werent there' });
-      console.log("Notifications:", notifications);
+      notifications.push({ sender, receiveruserID: senderID, message: 'Friend request received you werent there' });
+      console.log("Sent Notifications:", notifications);
     }
   }
+
+
   
 
-  socket.on('addFriend', ({ sender, username, userID, email}) => {
-    console.log('Request friend:', { sender, username, userID, email });
+  socket.on('addFriend', ({ sender, username, senderID, userID, email}) => {
+    console.log('Request friend:', { sender, username, senderID, userID, email });
     io.emit('addFriendResponse', { success: true });
-   
-    sendFriendRequestNotification(sender, username);
+    sendFriendRequestNotification(sender, userID, senderID);
+
+    
     console.log("Notification sender:", sender);
     // You can add more debugging code or handle the notification here.
 });
@@ -307,7 +431,7 @@ socket.on('disconnect', () => {
 
       if (existingRoomInfo) {
         roomInfo = existingRoomInfo;
-        comsole.log("asdasdasdasdasdasdasdasd", existingRoomInfo)
+        comsole.log("EXISTING ROOM INFO", existingRoomInfo)
       } else {
       roomInfo = Object.freeze({
         _id: new mongoose.Types.ObjectId(),

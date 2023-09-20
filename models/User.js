@@ -60,6 +60,7 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
           },
         },
       ],
+      default: [],    // Default value is an empty array
     },
 
     googleId: {
