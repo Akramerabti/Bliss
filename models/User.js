@@ -70,6 +70,31 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
       type: String
     },
 
+    notifications :  {
+      type: [
+        {
+          friendnotification: {
+            
+              sender: String,
+              receiveruserID: String,
+              addedfriend: String,
+              success: Boolean,
+              message: String
+            
+          },
+        },
+      ],
+      default: [],    // Default value is an empty array
+    },
+
+    googleId: {
+        type: String,
+    },
+    thumbnail: {
+      type: String
+    },
+
+
 });
 
 LoginSchema.pre('save', async function (next) {

@@ -4,6 +4,12 @@ const socket = io({
   }
 });
 
+
+
+
+
+
+
 console.log('Socket connection established:', socket.connected);
 
 if (username !== "" ) {
@@ -42,11 +48,63 @@ function updateOnlineStatusDot(status) {
   }
 }
 
-socket.on('userOnlineStatus', ({ status }) => {
+
+
+
+function updateNotifcount(notificationCount) {
+  const notifdot = document.getElementById('notificationdot');
+  if (notifdot) {
+    console.log('Notifcount:', notificationCount);
+
+    if (notificationCount > 0) {
+      notifdot.innerHTML = notificationCount; // Update the content with notification count
+      notifdot.style.display = 'block'; // Show the dot
+    } else {
+      notifdot.innerHTML = ''; // Clear the content when there are no notifications
+      notifdot.style.display = 'none'; // Hide the dot when there are no notifications
+      const notificationsContent = document.getElementById('notifications-container');
+      notificationsContent.style.display = 'none' // Hide the notifications container
+    }
+  }
+}
+
+socket.on('userOnlineStatus', ({ status, notificationCount }) => {
 
   console.log('Received online status:', status);
   // Update the online status dot based on the received status
   updateOnlineStatusDot(status);
+  updateNotifcount(notificationCount);
+  
+  document.querySelector('.notif-icon-img').addEventListener('click', async function(event) {
+  event.preventDefault();
+  const notificationsContent = document.getElementById('notifications-container');
+
+  if (!notificationsContent.classList.contains('active')) {
+    notificationsContent.classList.add('active');
+    
+    try {
+      const res = await fetch(`/clientnotifications?name=${username}`);
+      
+      const data = await res.json()
+       // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
+       if (Array.isArray(data)) {
+        data.forEach((item) => {
+          if (item.hasOwnProperty('friendnotification')) {
+            // This object has a 'friendnotification' property, you can access it
+            console.log(item.friendnotification);
+            console.log(item.friendnotification.sender);
+            console.log(item.friendnotification.message);
+
+          }
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  } else {
+    notificationsContent.classList.remove('active');
+  }
+});
 });
 
 socket.on('notification', ({ msg }) => {
@@ -71,7 +129,7 @@ async function fetchUserInfoByName(userName) {
 }
 
 
-
+//MAKE THIS WITH MONGODB DATABASE WITH NOTIFICATIONS
 socket.on("friendRequestNotif", ({ sender, receiveruserID, message }) => {
 
   

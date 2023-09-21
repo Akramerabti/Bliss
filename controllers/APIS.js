@@ -242,6 +242,26 @@ module.exports.findUserByName_get = async (req, res) => {
   }
 };
 
+module.exports.clientnotification_get = async (req, res) => {
+  const { name } = req.query;
+
+  try {
+    // Find the user with the specified name
+    const user = await User.findOne({ name });
+
+    if (!user || !user.notifications) {
+      return res.json([]); // Return an empty array if the user or notifications are not found
+    }
+
+    res.json(user.notifications);
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
 //NECESSARY TO CONVERT OBJECT IDS TO THEIR REFERENCED OBJECTS
 
 //User.findById(User._id)

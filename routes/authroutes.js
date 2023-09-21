@@ -33,6 +33,8 @@ routing.get('/google',passport.authenticate('google', { scope: ['profile', 'emai
 
 routing.get('/findUserByName' , authController.findUserByName_get)
 
+routing.get('/clientnotifications' , authController.clientnotification_get)
+
 routing.post('/set-password', passportController.password_post);
 
 routing.get('/set-password', passportController.password_get);

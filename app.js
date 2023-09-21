@@ -181,14 +181,12 @@ io.on('connection', socket => {
   
     console.log(`${username} with ID ${userID} is now connected and this is the socketMap`);
   
-    let notifications = offlineNotifications.get(userID);
+    const notifications = offlineNotifications.get(userID);
   
     console.log("Notifications are not somewhere:", notifications);
   
     if (notifications && notifications.length > 0) {
-      notifications = notifications.filter((notification) => {
-        console.log("Notification is somewhere:", notification);
-  
+      notifications.forEach((notification) => {
         if (notification.sender && notification.receiveruserID) {
           if (notification.message) {
             socket.emit('friendRequestNotif', {
@@ -196,9 +194,7 @@ io.on('connection', socket => {
               receiveruserID: notification.receiveruserID,
               message: notification.message
             });
-            return false; // Remove this notification from the array
           } else if (notification.success !== undefined) {
-            // Handle both true and false cases
             if (notification.success === true) {
               userSocketMap[notification.receiveruserID].emit('ResponseFriendNotif', {
                 sender: notification.sender,
@@ -206,10 +202,6 @@ io.on('connection', socket => {
                 addedfriend: notification.addedfriend,
                 success: true
               });
-  
-              console.log("Notification success true");
-  
-              return false; // Remove this notification from the array
             } else if (notification.success === false) {
               io.emit('addFriendResponse', { success: false });
               userSocketMap[notification.receiveruserID].emit('ResponseFriendNotif', {
@@ -218,18 +210,38 @@ io.on('connection', socket => {
                 addedfriend: notification.addedfriend,
                 success: false
               });
-  
-              console.log("Notification success false");
-  
-              return false; // Remove this notification from the array
             }
           }
+    
+          // Now, add the notification to the user's notifications array
+          User.findOneAndUpdate(
+            { _id: userID },
+            {
+              $addToSet: {
+                notifications: {
+                  friendnotification:{
+                  sender: notification.sender,
+                  receiveruserID: notification.receiveruserID,
+                  addedfriend: notification.addedfriend,
+                  success: notification.success,
+                  message: notification.message
+                  }
+                }
+              }
+            },
+            { new: true }
+          )
+            .then(() => {
+              console.log('Notification added to user.notifications');
+            })
+            .catch((err) => {
+              console.error('Error adding notification to user.notifications:', err);
+            });
         }
-        return true; // Keep this notification in the filtered array
       });
-  
+    
       // Update the notifications in offlineNotifications map
-      offlineNotifications.set(userID, notifications);
+      offlineNotifications.set(userID, []);
     }
   
     socket.on('FriendRequestResponse', ({ sender, receiveruserID, addedfriend, success }) => {
@@ -301,8 +313,21 @@ io.on('connection', socket => {
         // When the user refuses the friend request
       }
     });
-  
-    socket.emit('userOnlineStatus', { status: 'online' });
+
+    User.findOne({ _id: userID })
+    .then((user) => {
+      if (user) {
+        const notificationCount = user.notifications.length; // Count the number of notifications
+        console.log(`User has ${notificationCount} notifications`);
+        socket.emit('userOnlineStatus', { status: 'online', notificationCount: notificationCount });
+      } else {
+        console.log('User not found');
+      }
+    })
+    .catch((err) => {
+      console.error('Error finding user:', err);
+    });
+    
   });
 
   function ResponseNotification(sender, receiveruserID, addedfriend, success) {
@@ -312,6 +337,30 @@ io.on('connection', socket => {
     if (recipientSocket) {
       // Recipient is online, send the notification immediately
       recipientSocket.emit('ResponseFriendNotif', { sender: addedfriend, receiveruserID, addedfriend: sender, success });
+
+      User.findOne({ _id: receiveruserID })
+      .then((user) => {
+        if (!user) {
+          User.findOneAndUpdate(
+            { _id: receiveruserID },
+            {
+              $addToSet: {
+                notifications: {
+                  friendnotification:{ sender: addedfriend, receiveruserID:receiveruserID, addedfriend: sender, success }
+                },
+              },
+            },
+            { new: true }
+          )
+            .then(() => {
+              console.log('Friend notification response saved');
+            })
+            .catch((err) => {
+              console.error('Error adding notification in the array array:', err);
+            });
+        }
+      });
+
     } else {
       // Recipient is offline, store the notification
       if (!offlineNotifications.has(receiveruserID)) {
@@ -319,7 +368,7 @@ io.on('connection', socket => {
         offlineNotifications.set(receiveruserID, []);
       }
       // Get the notifications array for this user
-      let notifications = offlineNotifications.get(receiveruserID);
+      const notifications = offlineNotifications.get(receiveruserID);
   
       notifications.push({ sender: addedfriend, receiveruserID, addedfriend: sender, success });
       console.log("Sent Notifications:", notifications);
@@ -357,6 +406,33 @@ io.on('connection', socket => {
     if (recipientSocket) {
       // Recipient is online, send the notification immediately
       recipientSocket.emit('friendRequestNotif', { sender, message: 'Friend request received you are online' });
+
+      User.findOne({ _id: userID })
+      .then((user) => {
+        if (!user) {
+          User.findOneAndUpdate(
+            { _id: userID },
+            {
+              $addToSet: {
+                notifications: {
+                  friendnotification:{
+                   sender:sender, 
+                   message: 'Friend request received you are online',
+                  }
+                },
+              },
+            },
+            { new: true }
+          )
+            .then(() => {
+              console.log('friend notification saved');
+            })
+            .catch((err) => {
+              console.error('Error adding friend notification array:', err);
+            });
+        }
+      });
+
     } else {
       // Recipient is offline, store the notification
       if (!offlineNotifications.has(userID)) {

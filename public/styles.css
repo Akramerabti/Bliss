@@ -568,11 +568,6 @@ i.fas.fa-paper-plane{
   background-color: #868585;
 }
 
-/* Show the dropdown menu on hover */
-.notifications:hover .notifications-content, .material-icons:hover .dropdown-content {
-  display: block;
-}
-
 /* Change the background color of the dropdown button when the dropdown content is shown */
 .notifications:hover a, .material-icons:hover a {
   opacity: 1;
@@ -580,42 +575,121 @@ i.fas.fa-paper-plane{
   transition-delay: 0.1s;
 }
 
-/* fallback */
-@font-face {
-  font-family: 'Material Icons';
-  font-style: normal;
-  font-weight: 400;
-  src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+
+.notifications-content {
+  /* ... */
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  top: 100%;
+  left: 0;
+  opacity: 0; /* Start with 0 opacity for fade-in effect */
+  transform: translateY(-20px); /* Start with a slight vertical offset */
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.material-icons {
-  font-family: 'Material Icons';
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
+.notifications-content.active {
+  display: block;
+  opacity: 1; /* Fade in */
+  transform: translateY(0); /* Move to the original position */
+  animation: fadeIn 0.5s ease, pop 0.3s ease; /* Apply fade-in and pop animations */
+}
+
+.notifications-content:not(.active) {
+  opacity: 0; /* Set opacity to 0 when not active */
+  animation: fadeOut 0.3s ease forwards; /* Apply fade-out animation */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1); /* Normal scale */
+  }
+  50% {
+    transform: scale(1.1); /* Scale up to 1.2x size */
+  }
+  100% {
+    transform: scale(1); /* Back to normal scale */
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0; /* Fade out */
+    display: none; /* Hide after fading out */
+  }
+}
+
+.notifications-content span {
+  color: black;
+  padding: 10px 16px; /* Slightly reduce padding for a more compact look */
+  text-decoration: none;
+  display: block;
+  opacity: 0; /* Start with a 0 opacity for fade-in effect */
+  transform: translateX(-10px); /* Move links to the left for fade-in effect */
+  transition: opacity ease 0.3s, transform 0.3s ease; /* Add fade-in and transform transition */
+  border-radius: 10px; /* Add some curvature to the links */
+  background-color: #f1f1f1; /* Background color of the links container */
+  border-color: #000000;
+}
+
+.notifications, .notif-icon {
+  position: relative;
   display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-feature-settings: 'liga';
-  -webkit-font-smoothing: antialiased;
+}
+
+.notifications span, .notif-icon a {
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.8em;
+  letter-spacing: 2px;
+  padding: 10px 16px;
+  margin-left: 10px;
+  margin-top: 0;
+  cursor: pointer; /* Change cursor to pointer on hover */
+  transition: background-color 0.1s ease; /* Add a smooth transition */
+}
+
+.notif-icon {
+  width: 30px; /* Adjust the width and height as needed */
+  height: 30px;
+  left: -8px;
+  margin-top:5px;
+  position: relative; /* Add this for proper positioning of the dropdown content */
+  display: inline-block; /* Add this to make the profile picture inline */
+}
+
+
+/* Style for the profile picture itself */
+.notif-icon-img {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s ease; /* Add a smooth transition for the hover effect */
+  z-index: 0; /* Ensure the profile picture is behind the online dot */
 }
 
 /* Hover effect on profile picture */
-.material-icons:hover .material-icons {
-  transform: scale(1.1); /* Scale up slightly on hover */
+.notif-icon:hover .notif-icon-img {
+  transform: scale(0.9); /* Scale up slightly on hover */
+  opacity: 0.9 ;
 }
 
-.notifications-content {
-  border-radius: 10px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for a soft edge */
-  background-color: #f1f1f1;
-  width: auto; /* Adjust the width as needed */
-  /* Adjust the left positioning to move it more to the left */
-}
 
 .dropdown, .profile-picture {
   position: relative;
@@ -712,6 +786,10 @@ i.fas.fa-paper-plane{
   left: -120px; /* Adjust the left positioning to move it more to the left */
 }
 
+.dropdown:hover #onlineStatusDot {
+  transform: scale(1.05); /* Scale up slightly on hover */
+  transition: transform 0.8s ease; /* Add a transition for the scale property */
+}
 
 .hover-container {
   display: none;
@@ -825,4 +903,32 @@ i.fas.fa-paper-plane{
   background-color: #3498db; /* Set your desired color */
   border-radius: 5px; /* Add a rounded shape to the thumb */
   border: 2px solid #fff; /* Add a border around the thumb */
+}
+
+.notifications:hover #notificationdot {
+  transform: scale(0.8); /* Scale up slightly on hover */
+}
+
+#notificationdot {
+  position: absolute;
+  top: 3px; /* Adjust vertical position as needed */
+  right: 4px; /* Adjust horizontal position as needed */
+  width: 18px; /* Adjust size as needed */
+  height: 18px; /* Adjust size as needed */
+  background-image: linear-gradient(45deg, rgb(117, 1, 1), #ff2f00);
+  border: 2px ridge #3a3a3a;
+  border-radius: 50%; /* Rounded dot */
+  color: rgb(0, 0, 0); /* Text color */
+  font-size: 16px; /* Text font size */
+  text-align: center; /* Center text */
+  line-height: 15px; /* Vertically center text */
+  z-index: 1;
+  display: none; /* Initially hide the dot */
+  transform: scale(1); /* Initial scale, no scaling */
+  transition: transform 0.3s ease; /* Add a transition for the scale property */
+  -webkit-text-stroke: 1px rgb(255, 255, 255); /* Text border */
+}
+
+.notifications:hover #notificationdot {
+  transform: scale(0.8); /* Scale up slightly on .notifications hover */
 }
