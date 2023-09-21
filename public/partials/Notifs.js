@@ -70,23 +70,17 @@ async function fetchUserInfoByName(userName) {
   }
 }
 
+
+
 socket.on("friendRequestNotif", ({ sender, receiveruserID, message }) => {
 
-  if (localStorage.getItem('friendRequestSeen') === 'true') {
-    return; // Don't show the notification again
-  }
   
   console.log('Received friend request notification:', { sender, message });
-
-  if (localStorage.getItem('friendRequestSeen') === 'true') {
-    return; // Don't show the notification again
-  }
 
   // Function to remove the notification
   function removeNotification() {
     if (notificationDiv && notificationsContainer) {
       notificationsContainer.removeChild(notificationDiv);
-      localStorage.setItem('friendRequestSeen', 'true');
     }
   }
 
@@ -135,8 +129,7 @@ socket.on("friendRequestNotif", ({ sender, receiveruserID, message }) => {
   if (notificationsContainer) {
     notificationsContainer.appendChild(notificationDiv);
   }
-  // You can add more debugging code or handle the notification here.
-});
+  });
 
 socket.on("ResponseFriendNotif", ({ addedfriend, success })  => {
 
