@@ -48,6 +48,13 @@ function updateOnlineStatusDot(status) {
   }
 }
 
+function refreshSocketConnection() {
+  // Disconnect the socket
+  socket.disconnect();
+
+  // Reconnect the socket
+  socket.connect();
+}
 
 
 
@@ -174,25 +181,33 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
             if (item.hasOwnProperty('friendnotification')) {
               const identifier = item._id
   
-              async function removeNotification( _id, username, notificationDiv) {
-                if (notificationDiv && notificationsContainer) {
-                  notificationsContainer.removeChild(notificationDiv);
-                }
-              
-                try {
-                  const response = await fetch(`/removefriendnotification?_id=${_id}&username=${username}`, {
-                    method: 'DELETE',
-                  });
-  
-                  if (response.ok) {
-                    console.log('Friend notification removed from the server.');
-                  } else {
-                    console.error('Failed to remove friend notification from the server.');
-                  }
-                } catch (error) {
-                  console.error('Error while removing friend notification:', error);
-                }
+              async function removeNotification(_id, username, notificationDiv) {
+  // Check if the identifier is in the existingNotifications set
+              if (existingNotifications.has(_id) && notificationDiv && notificationsContent) {
+    // Remove the notification div
+              notificationsContent.removeChild(notificationDiv);
+
+    // Check if there are no more notificationDiv children
+              if (notificationsContent.childElementCount === 0) {
+      // If there are no more children, remove the 'active' class
+              notificationsContent.classList.remove('active');
               }
+
+              try {
+               const response = await fetch(`/removefriendnotification?_id=${_id}&username=${username}`, {
+              method: 'DELETE',
+             });
+
+              if (response.ok) {
+             console.log('Friend notification removed from the server.');
+             } else {
+            console.error('Failed to remove friend notification from the server.');
+              }
+               } catch (error) {
+               console.error('Error while removing friend notification:', error);
+              }
+            }
+          }
 
               console.log('Existing notifications:', existingNotifications);
               console.log('Identifier:', identifier);
@@ -217,7 +232,8 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
                     if (userData) {
                       socket.emit('FriendRequestResponse', { sender: item.friendnotification.sender, receiveruserID:item.friendnotification.receiveruserID, addedfriend: userData.name , success: true });
                       addButton.textContent = '✔';
-                      removeNotification(item._id, username)
+                      removeNotification(item._id, username, notificationDiv);
+                      refreshSocketConnection()
                     }
                   });
                 });
@@ -230,7 +246,8 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
                     if (userData) {
                       socket.emit('FriendRequestResponse', { sender: item.friendnotification.sender, receiveruserID:item.friendnotification.receiveruserID, addedfriend: userData.name , success: false });
                       refuseButton.textContent = '✔';
-                      removeNotification(item._id, username)
+                      removeNotification(item._id, username, notificationDiv);
+                      refreshSocketConnection()
                     }
                   });
                 });
@@ -281,7 +298,7 @@ socket.on("friendRequestNotif", ({ sender, receiveruserID, message }) => {
       
       try {
         const res = await fetch(`/clientnotifications?name=${username}`);
-        
+
         const data = await res.json();
   
         

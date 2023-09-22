@@ -270,7 +270,7 @@ module.exports.removefriendnotification = async (req, res) => {
       {
         $pull: {
           notifications: {
-            'friendnotification._id': _id,
+            '_id': _id,
           },
         },
       },

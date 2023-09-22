@@ -273,9 +273,6 @@ io.on('connection', socket => {
     socket.on('FriendRequestResponse', ({ sender, receiveruserID, addedfriend, success }) => {
       console.log("The friend request is ... (false = declined)", { success });
   
-      // Remove sent notifications from storage
-      offlineNotifications.delete(userID);
-  
       if (success) {
         console.log("FRIENDS INTERACTION SENDER AND THE FRIEND TO ADD WHEN ACCEPTED", { sender, addedfriend });
         // Add the friend to the user's Friends array
