@@ -35,6 +35,9 @@ routing.get('/findUserByName' , authController.findUserByName_get)
 
 routing.get('/clientnotifications' , authController.clientnotification_get)
 
+
+routing.get('/addoneiffriend' , authController.addoneiffriend)
+
 routing.delete('/removefriendnotification' , authController.removefriendnotification)
 
 routing.post('/set-password', passportController.password_post);

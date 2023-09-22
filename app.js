@@ -216,6 +216,10 @@ io.on('connection', socket => {
               });
           } else if (notification.success !== undefined) {
             if (notification.success === true) {
+              io.emit('addFriendResponse', { success: false });
+
+              console.log("Added and IO EMITTED");
+
               User.findOneAndUpdate(
                 { _id: userID },
                 {
@@ -241,7 +245,10 @@ io.on('connection', socket => {
                   console.error('Error adding notification to user.notifications:', err);
                 });
             } else if (notification.success === false) {
+    
               io.emit('addFriendResponse', { success: false });
+
+              console.log("Refused and not added IO EMITTED");
               
               User.findOneAndUpdate(
                 { _id: userID },
@@ -260,7 +267,7 @@ io.on('connection', socket => {
                 { new: true }
               )
               .then((user) => {
-                console.log('Notification added to user.notifications');
+                console.log('Notification added');
                 const notificationCount = user.notifications.length;
                 socket.emit('updateNotificationCount',  notificationCount );
               })
@@ -278,7 +285,6 @@ io.on('connection', socket => {
     }
   
     socket.on('FriendRequestResponse', ({ sender, receiveruserID, addedfriend, success }) => {
-      console.log("The friend request is ... (false = declined)", { success });
   
       if (success) {
         console.log("FRIENDS INTERACTION SENDER AND THE FRIEND TO ADD WHEN ACCEPTED", { sender, addedfriend });
@@ -362,7 +368,6 @@ io.on('connection', socket => {
 
   function ResponseNotification(sender, receiveruserID, addedfriend, success) {
     const recipientSocket = userSocketMap.get(receiveruserID); // Use .get() to retrieve from Map
-    console.log("Recipient socket for WHEN USER RESPONDS TO THE FRIEND REQUEST (false means offline since not in socketMap):", recipientSocket !== undefined);
   
     if (recipientSocket) {
 
@@ -381,10 +386,9 @@ io.on('connection', socket => {
             { new: true }
           )
             .then((user) => {
-              console.log('Friend notification response saved');
               if (user) {
                 const notificationCount = user.notifications.length;
-                console.log(`User has ${notificationCount} notifications`);
+                console.log(`User has now ${notificationCount} notifications`);
                 recipientSocket.emit('updateNotificationCount', { notificationCount }); // Emit the updated notification count to the recipient's socket
               }
             })
@@ -393,7 +397,7 @@ io.on('connection', socket => {
             });
 
         const notificationCount = user.notifications.length; // Count the number of notifications
-        console.log(`User has ${notificationCount} notifications`);
+        console.log(`User has now ${notificationCount} notifications`);
         recipientSocket.emit('userOnlineStatus', { status: 'online', notificationCount: notificationCount });
 
         }
@@ -490,11 +494,11 @@ io.on('connection', socket => {
 
   
 
-  socket.on('addFriend', ({ sender, username, senderID, userID, email}) => {
+  socket.on('addFriend', ({ sender, username, receiveruserID, addedfriend, success, senderID, userID, email}) => {
     console.log('Request friend:', { sender, username, senderID, userID, email });
     io.emit('addFriendResponse', { success: true });
     sendFriendRequestNotification(sender, userID, senderID);
-
+    ResponseNotification(sender, receiveruserID, addedfriend, success);
 
     console.log("Notification sender:", sender);
     // You can add more debugging code or handle the notification here.

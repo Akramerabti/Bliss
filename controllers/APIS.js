@@ -290,6 +290,49 @@ module.exports.removefriendnotification = async (req, res) => {
 }
 
 
+module.exports.addoneiffriend = async (req, res) => {
+  const { alreadyfriends, tobefriends } = req.query;
+
+  console.log(alreadyfriends, tobefriends);
+
+  try {
+    User.findOne({ name: alreadyfriends, 'Friends.friend': tobefriends })
+      .then((user) => {
+        if (user) {
+          User.findOne({ name: tobefriends, 'Friends.friend': alreadyfriends })
+            .then((usero) => {
+              if (!usero) {
+                User.findOneAndUpdate(
+                  { name: tobefriends },
+                  {
+                    $addToSet: {
+                      Friends: {
+                        friend: alreadyfriends,
+                      },
+                    },
+                  },
+                  { new: true }
+                )
+                  .then(() => {
+                    console.log('Friend added successfully');
+                    res.sendStatus(200); // Success
+                  })
+                  .catch((err) => {
+                    console.error('Error adding friend', err);
+                    res.status(500).json({ error: 'Internal server error' });
+                  });
+              } else {
+                console.log('Already friends');
+                res.sendStatus(200); // They are already friends, you can also send a custom message
+              }
+            });
+        }
+      });
+  } catch (error) {
+    console.error('Error while adding friend:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 
 
