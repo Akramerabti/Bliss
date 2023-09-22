@@ -537,27 +537,27 @@ io.on('connection', socket => {
   const handleJoinRoom = async ({ username, room }) => {
     // Create or get the room information
     let roomInfo = rooms.get(room);
-
+  
     if (!roomInfo) {
       const sanitizedRoomName = room ? room.replace(/\s/g, '_') : '';
       const roomDB = createDatabaseConnection(sanitizedRoomName);
       const Message = roomDB.model('Message', messageSchema);
-
+  
       const existingRoomInfo = Array.from(rooms.values()).find(
-        (info) => info.messageDB.name === roomDB.name
+        (info) => info.messageDB && info.messageDB.name === roomDB.name
       );
-
+  
       if (existingRoomInfo) {
         roomInfo = existingRoomInfo;
-        comsole.log("EXISTING ROOM INFO", existingRoomInfo)
+        console.log("EXISTING ROOM INFO", existingRoomInfo);
       } else {
-      roomInfo = Object.freeze({
-        _id: new mongoose.Types.ObjectId(),
-        creator: username,
-        Message: Message,
-        messages: [Message],
-        roomName: room,
-      });
+        roomInfo = Object.freeze({
+          _id: new mongoose.Types.ObjectId(),
+          creator: username,
+          Message: Message,
+          messages: [Message],
+          roomName: room,
+        });
 
       // Load and emit database messages
       rooms.set(room, roomInfo)

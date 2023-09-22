@@ -209,13 +209,21 @@ async function addoneiffriend(alreadyfriends, tobefriends) {
   try {
     console.log(alreadyfriends, tobefriends);
     const response = await fetch(`/addoneiffriend?alreadyfriends=${alreadyfriends}&tobefriends=${tobefriends}`);
+
     if (response.ok) {
-      console.log('success');
-      return true
-    } 
+      console.log('Friend added successfully');
+      return true; // Friend added successfully
+    } else if (response.status === 409) {
+      console.log('Already friends');
+      return false; // They are already friends
+    } else {
+      const errorMessage = await response.text(); // Read the error message from the response
+      console.error(`Error: ${errorMessage}`);
+      return false; // Other errors
+    }
   } catch (error) {
     console.error('Error fetching user information:', error);
-    return null;
+    return false;
   }
 }
 
@@ -257,7 +265,7 @@ function outputMessage(message) {
     // Fetch user information (async)
     const userInfo = await fetchUserInfoByName(message.sender);
     const currentuserInfo = await fetchUserInfoByName(currentUsername);
-    const addleftfriend = await addoneiffriend(message.sender, currentUsername);
+    
 
 
     if (userInfo) {
@@ -331,7 +339,8 @@ function outputMessage(message) {
 
           // Create a button for adding friends
           addFriendButton.addEventListener('click', async () => {
-
+          
+            const addleftfriend = await addoneiffriend(message.sender, currentUsername);
             const oneisFriend = userInfo.Friends.includes(currentUsername) || currentuserInfo.Friends.includes(userInfo.name);
           
             console.log(oneisFriend);
@@ -345,9 +354,8 @@ function outputMessage(message) {
               
               socket.emit('addFriend', { sender: currentUsername, receiveruserID: userInfo._id, addedfriend: currentUsername, success: true });
               console.log('You are already friends', { sender: currentUsername, receiveruserID:userInfo._id, addedfriend: currentUsername , success: true });
-              }else{
+              }} else {
               
-             
             if (!friendButtonStates.get(message.sender)) {
               console.log('Clicked add friend button');
               const username = message.sender; // Get the username associated with this message
@@ -395,7 +403,7 @@ function outputMessage(message) {
                 }
               });
             } 
-          }
+            
          } 
         });
   
