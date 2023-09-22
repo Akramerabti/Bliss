@@ -82,6 +82,14 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
               message: String
             
           },
+
+          friendresponsenotification: {
+            
+            sender: String,
+            receiveruserID: String,
+            addedfriend: String,
+            success: Boolean,
+        },
         },
       ],
       default: [],    // Default value is an empty array

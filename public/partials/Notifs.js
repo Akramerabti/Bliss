@@ -68,50 +68,6 @@ function updateNotifcount(notificationCount) {
   }
 }
 
-socket.on('userOnlineStatus', ({ status, notificationCount }) => {
-
-  console.log('Received online status:', status);
-  // Update the online status dot based on the received status
-  updateOnlineStatusDot(status);
-  updateNotifcount(notificationCount);
-  
-  document.querySelector('.notif-icon-img').addEventListener('click', async function(event) {
-  event.preventDefault();
-  const notificationsContent = document.getElementById('notifications-container');
-
-  if (!notificationsContent.classList.contains('active')) {
-    notificationsContent.classList.add('active');
-    
-    try {
-      const res = await fetch(`/clientnotifications?name=${username}`);
-      
-      const data = await res.json()
-       // DATA OF THE JSON RESPONSE OF THE SERVER (most of its response come from the authController. await is when an event is asynchronous, gives back the user id
-       if (Array.isArray(data)) {
-        data.forEach((item) => {
-          if (item.hasOwnProperty('friendnotification')) {
-            // This object has a 'friendnotification' property, you can access it
-            console.log(item.friendnotification);
-            console.log(item.friendnotification.sender);
-            console.log(item.friendnotification.message);
-
-          }
-        });
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  } else {
-    notificationsContent.classList.remove('active');
-  }
-});
-});
-
-socket.on('notification', ({ msg }) => {
-    console.log('Received notification:', msg);
-    // You can add more debugging code or handle the notification here.
-});
-
 async function fetchUserInfoByName(userName) {
   try {
     const response = await fetch(`/findUserByName?name=${userName}`);
@@ -129,25 +85,15 @@ async function fetchUserInfoByName(userName) {
 }
 
 
-//MAKE THIS WITH MONGODB DATABASE WITH NOTIFICATIONS
-socket.on("friendRequestNotif", ({ sender, receiveruserID, message }) => {
-
-  
-  console.log('Received friend request notification:', { sender, message });
-
-  // Function to remove the notification
-  function removeNotification() {
-    if (notificationDiv && notificationsContainer) {
-      notificationsContainer.removeChild(notificationDiv);
-    }
-  }
-
+function createNotification(item, sender, message, username, existingNotifications) {
+  // Create the notificationDiv and add necessary attributes
   const notificationDiv = document.createElement('div');
   notificationDiv.classList.add('notification'); // Add a CSS class for styling
+  notificationDiv.setAttribute('data-sender', sender); // Set sender attribute
+  notificationDiv.setAttribute('data-message', message); // Set message attribute
 
-  // Create a paragraph element for the message
   const messageParagraph = document.createElement('p');
-  messageParagraph.textContent = JSON.stringify(sender) + ': ' + JSON.stringify(message);
+  messageParagraph.textContent = JSON.stringify(item.friendnotification.sender) + ': ' + JSON.stringify(item.friendnotification.message);
 
   // Create a button element for "Add"
   const addButton = document.createElement('button');
@@ -157,9 +103,9 @@ socket.on("friendRequestNotif", ({ sender, receiveruserID, message }) => {
   addButton.addEventListener('click', () => {
     fetchUserInfoByName(username).then((userData) => {
       if (userData) {
-        socket.emit('FriendRequestResponse', { sender, receiveruserID, addedfriend: userData.name, success: true });
+        socket.emit('FriendRequestResponse', { sender: item.friendnotification.sender, receiveruserID:item.friendnotification.receiveruserID, addedfriend: userData.name , success: true });
         addButton.textContent = '✔';
-        removeNotification(); // Remove the notification when Add is clicked
+        removeNotification(item.friendnotification.sender, item.friendnotification.message, username)
       }
     });
   });
@@ -170,9 +116,9 @@ socket.on("friendRequestNotif", ({ sender, receiveruserID, message }) => {
   refuseButton.addEventListener('click', () => {
     fetchUserInfoByName(username).then((userData) => {
       if (userData) {
-        socket.emit('FriendRequestResponse', { sender, receiveruserID, addedfriend: userData.name }, { success: false });
+        socket.emit('FriendRequestResponse', { sender: item.friendnotification.sender, receiveruserID:item.friendnotification.receiveruserID, addedfriend: userData.name , success: false });
         refuseButton.textContent = '✔';
-        removeNotification(); // Remove the notification when Remove is clicked
+        removeNotification(item.friendnotification.sender, item.friendnotification.message, username)
       }
     });
   });
@@ -187,7 +133,264 @@ socket.on("friendRequestNotif", ({ sender, receiveruserID, message }) => {
   if (notificationsContainer) {
     notificationsContainer.appendChild(notificationDiv);
   }
-  });
+
+  // Add the identifier to the Set to mark it as existing
+  const identifier = sender + message;
+  existingNotifications.add(identifier);
+}
+
+const existingNotifications = new Set();
+
+socket.on('userOnlineStatus', ({ status, notificationCount }) => {
+
+  console.log('Received online status:', status);
+  // Update the online status dot based on the received status
+  updateOnlineStatusDot(status);
+  updateNotifcount(notificationCount);
+  
+  document.querySelector('.notif-icon-img').addEventListener('click', async function(event) {
+    event.preventDefault();
+    const notificationsContent = document.getElementById('notifications-container');
+  
+    if (!notificationsContent.classList.contains('active')) {
+      notificationsContent.classList.add('active');
+      
+      try {
+        const res = await fetch(`/clientnotifications?name=${username}`);
+        const data = await res.json();
+  
+        
+  
+        // Iterate through existing notifications to populate the Set
+        const existingNotificationDivs = document.querySelectorAll('.notification');
+        existingNotificationDivs.forEach((notificationDiv) => {
+          const identifier = notificationDiv.getAttribute('notif-data');
+          existingNotifications.add(identifier);
+        });
+        
+        // DATA OF THE JSON RESPONSE OF THE SERVER
+        if (Array.isArray(data)) {
+          data.forEach((item) => {
+            if (item.hasOwnProperty('friendnotification')) {
+              const identifier = item._id
+  
+              async function removeNotification( _id, username, notificationDiv) {
+                if (notificationDiv && notificationsContainer) {
+                  notificationsContainer.removeChild(notificationDiv);
+                }
+              
+                try {
+                  const response = await fetch(`/removefriendnotification?_id=${_id}&username=${username}`, {
+                    method: 'DELETE',
+                  });
+  
+                  if (response.ok) {
+                    console.log('Friend notification removed from the server.');
+                  } else {
+                    console.error('Failed to remove friend notification from the server.');
+                  }
+                } catch (error) {
+                  console.error('Error while removing friend notification:', error);
+                }
+              }
+
+              console.log('Existing notifications:', existingNotifications);
+              console.log('Identifier:', identifier);
+
+            if (!existingNotifications.has(identifier)) {
+              function createNotification(item, _id, username, existingNotifications) {
+                // Create the notificationDiv and add necessary attributes
+                const notificationDiv = document.createElement('div');
+                notificationDiv.classList.add('notification'); // Add a CSS class for styling
+                notificationDiv.setAttribute('notif-data', _id); 
+              
+                const messageParagraph = document.createElement('p');
+                messageParagraph.textContent = JSON.stringify(item.friendnotification.sender) + ': ' + JSON.stringify(item.friendnotification.message);
+              
+                // Create a button element for "Add"
+                const addButton = document.createElement('button');
+                addButton.textContent = 'Add';
+                addButton.style.display = 'pointer';
+                addButton.classList.add('add-button'); // Add a CSS class for styling
+                addButton.addEventListener('click', () => {
+                  fetchUserInfoByName(username).then((userData) => {
+                    if (userData) {
+                      socket.emit('FriendRequestResponse', { sender: item.friendnotification.sender, receiveruserID:item.friendnotification.receiveruserID, addedfriend: userData.name , success: true });
+                      addButton.textContent = '✔';
+                      removeNotification(item._id, username)
+                    }
+                  });
+                });
+              
+                const refuseButton = document.createElement('button');
+                refuseButton.textContent = 'Remove';
+                refuseButton.classList.add('refuse-button'); // Add a CSS class for styling
+                refuseButton.addEventListener('click', () => {
+                  fetchUserInfoByName(username).then((userData) => {
+                    if (userData) {
+                      socket.emit('FriendRequestResponse', { sender: item.friendnotification.sender, receiveruserID:item.friendnotification.receiveruserID, addedfriend: userData.name , success: false });
+                      refuseButton.textContent = '✔';
+                      removeNotification(item._id, username)
+                    }
+                  });
+                });
+              
+                // Append the message and buttons to the notification div
+                notificationDiv.appendChild(messageParagraph);
+                notificationDiv.appendChild(addButton);
+                notificationDiv.appendChild(refuseButton);
+              
+                // Append the notification div to the notifications container
+                const notificationsContainer = document.getElementById('notifications-container');
+                if (notificationsContainer) {
+                  notificationsContainer.appendChild(notificationDiv);
+                }
+              
+                // Add the identifier to the Set to mark it as existing
+                const identifier = item._id;
+                existingNotifications.add(identifier);
+              }
+
+              createNotification(item, item._id, username, existingNotifications);
+            }
+
+
+          }
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  } else {
+    notificationsContent.classList.remove('active');
+  }
+});
+});
+
+
+//MAKE THIS WITH MONGODB DATABASE WITH NOTIFICATIONS
+socket.on("friendRequestNotif", ({ sender, receiveruserID, message }) => {
+
+  
+  document.querySelector('.notif-icon-img').addEventListener('click', async function(event) {
+    event.preventDefault();
+    const notificationsContent = document.getElementById('notifications-container');
+  
+    if (!notificationsContent.classList.contains('active')) {
+      notificationsContent.classList.add('active');
+      
+      try {
+        const res = await fetch(`/clientnotifications?name=${username}`);
+        
+        const data = await res.json();
+  
+        
+  
+        // Iterate through existing notifications to populate the Set
+        const existingNotificationDivs = document.querySelectorAll('.notification');
+        existingNotificationDivs.forEach((notificationDiv) => {
+          const identifier = notificationDiv.getAttribute('notif-data');
+          existingNotifications.add(identifier);
+        });
+        
+        // DATA OF THE JSON RESPONSE OF THE SERVER
+        if (Array.isArray(data)) {
+          data.forEach((item) => {
+            if (item.hasOwnProperty('friendnotification')) {
+              const identifier = item._id
+  
+              async function removeNotification( _id, username, notificationDiv) {
+                if (notificationDiv && notificationsContainer) {
+                  notificationsContainer.removeChild(notificationDiv);
+                }
+              
+                try {
+                  const response = await fetch(`/removefriendnotification?_id=${_id}&username=${username}`, {
+                    method: 'DELETE',
+                  });
+  
+                  if (response.ok) {
+                    console.log('Friend notification removed from the server.');
+                  } else {
+                    console.error('Failed to remove friend notification from the server.');
+                  }
+                } catch (error) {
+                  console.error('Error while removing friend notification:', error);
+                }
+              }
+
+              console.log('Existing notifications:', existingNotifications);
+              console.log('Identifier:', identifier);
+
+            if (!existingNotifications.has(identifier)) {
+              function createNotification(item, _id, username, existingNotifications) {
+                // Create the notificationDiv and add necessary attributes
+                const notificationDiv = document.createElement('div');
+                notificationDiv.classList.add('notification'); // Add a CSS class for styling
+                notificationDiv.setAttribute('notif-data', _id); 
+              
+                const messageParagraph = document.createElement('p');
+                messageParagraph.textContent = JSON.stringify(item.friendnotification.sender) + ': ' + JSON.stringify(item.friendnotification.message);
+              
+                // Create a button element for "Add"
+                const addButton = document.createElement('button');
+                addButton.textContent = 'Add';
+                addButton.style.display = 'pointer';
+                addButton.classList.add('add-button'); // Add a CSS class for styling
+                addButton.addEventListener('click', () => {
+                  fetchUserInfoByName(username).then((userData) => {
+                    if (userData) {
+                      socket.emit('FriendRequestResponse', { sender: item.friendnotification.sender, receiveruserID:item.friendnotification.receiveruserID, addedfriend: userData.name , success: true });
+                      addButton.textContent = '✔';
+                      removeNotification(item._id, username)
+                    }
+                  });
+                });
+              
+                const refuseButton = document.createElement('button');
+                refuseButton.textContent = 'Remove';
+                refuseButton.classList.add('refuse-button'); // Add a CSS class for styling
+                refuseButton.addEventListener('click', () => {
+                  fetchUserInfoByName(username).then((userData) => {
+                    if (userData) {
+                      socket.emit('FriendRequestResponse', { sender: item.friendnotification.sender, receiveruserID:item.friendnotification.receiveruserID, addedfriend: userData.name , success: false });
+                      refuseButton.textContent = '✔';
+                      removeNotification(item._id, username)
+                    }
+                  });
+                });
+              
+                // Append the message and buttons to the notification div
+                notificationDiv.appendChild(messageParagraph);
+                notificationDiv.appendChild(addButton);
+                notificationDiv.appendChild(refuseButton);
+              
+                // Append the notification div to the notifications container
+                const notificationsContainer = document.getElementById('notifications-container');
+                if (notificationsContainer) {
+                  notificationsContainer.appendChild(notificationDiv);
+                }
+              
+                // Add the identifier to the Set to mark it as existing
+                const identifier = item._id;
+                existingNotifications.add(identifier);
+              }
+
+              createNotification(item, item._id, username, existingNotifications);
+            }
+
+
+          }
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  } else {
+    notificationsContent.classList.remove('active');
+  }
+});
+});
 
 socket.on("ResponseFriendNotif", ({ addedfriend, success })  => {
 

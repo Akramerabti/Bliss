@@ -260,6 +260,40 @@ module.exports.clientnotification_get = async (req, res) => {
   }
 };
 
+module.exports.removefriendnotification = async (req, res) => {
+  const { _id, username } = req.query;
+
+  try {
+    // Find the user by some identifier, and then remove the notification
+    const user = await User.findOneAndUpdate(
+      { name: username},
+      {
+        $pull: {
+          notifications: {
+            'friendnotification._id': _id,
+          },
+        },
+      },
+      { new: true } // To get the updated user object
+    );
+
+    if (user) {
+      console.log('Friend notification removed from the database.');
+      res.sendStatus(204); // No content (success)
+    } else {
+      res.sendStatus(404); // Not found
+    }
+  } catch (error) {
+    console.error('Error while removing friend notification:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
+
+
+
+
 
 
 //NECESSARY TO CONVERT OBJECT IDS TO THEIR REFERENCED OBJECTS
