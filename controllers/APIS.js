@@ -296,13 +296,15 @@ module.exports.addoneiffriend = async (req, res) => {
   console.log(alreadyfriends, tobefriends);
 
   try {
-    // Check if the users are already friends
+    // Check if alreadyfriends has tobefriends as a friend
     const user = await User.findOne({ name: alreadyfriends, 'Friends.friend': tobefriends });
+    
     if (user) {
+      // Check if tobefriends has alreadyfriends in their friends array
       const usero = await User.findOne({ name: tobefriends, 'Friends.friend': alreadyfriends });
 
       if (!usero) {
-        // They are not already friends, so add the friend
+        // Add alreadyfriends as a friend to tobefriends
         const updatedUser = await User.findOneAndUpdate(
           { name: tobefriends },
           {
@@ -327,16 +329,13 @@ module.exports.addoneiffriend = async (req, res) => {
         res.json({ added: false }); // Return false indicating they are already friends
       }
     } else {
-      res.status(500)
+      res.status(500);
     }
   } catch (error) {
     console.error('Error while adding friend:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
-
-
 
 //NECESSARY TO CONVERT OBJECT IDS TO THEIR REFERENCED OBJECTS
 

@@ -208,25 +208,30 @@ async function fetchUserInfoByName(userName) {
 async function addoneiffriend(alreadyfriends, tobefriends) {
   try {
     console.log(alreadyfriends, tobefriends);
-    const response = await fetch(`/addoneiffriend?alreadyfriends=${alreadyfriends}&tobefriends=${tobefriends}`);
+    const response = await fetch(`/addoneiffriend?alreadyfriends=${alreadyfriends}&tobefriends=${tobefriends}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ alreadyfriends, tobefriends }),
+    });
 
     if (response.ok) {
       console.log('Friend added successfully');
-      return true; // Friend added successfully
+      return true;
     } else if (response.status === 409) {
       console.log('Already friends');
-      return false; // They are already friends
+      return false;
     } else {
-      const errorMessage = await response.text(); // Read the error message from the response
+      const errorMessage = await response.text();
       console.error(`Error: ${errorMessage}`);
-      return false; // Other errors
+      return false;
     }
   } catch (error) {
     console.error('Error fetching user information:', error);
     return false;
   }
 }
-
 const currentUsername = username;
 
 function outputMessage(message) {
