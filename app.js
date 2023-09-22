@@ -189,6 +189,8 @@ io.on('connection', socket => {
       notifications.forEach((notification) => {
         if (notification.sender && notification.receiveruserID) {
           if (notification.message) {
+            io.emit('addFriendResponse', { success: false });
+            console.log("Added and IO EMITTED");
             User.findOneAndUpdate(
               { _id: userID },
               {
@@ -497,9 +499,13 @@ io.on('connection', socket => {
   socket.on('addFriend', ({ sender, username, receiveruserID, addedfriend, success, senderID, userID, email}) => {
     console.log('Request friend:', { sender, username, senderID, userID, email });
     io.emit('addFriendResponse', { success: true });
+    if(sender && userID && senderID) {
     sendFriendRequestNotification(sender, userID, senderID);
-    ResponseNotification(sender, receiveruserID, addedfriend, success);
+    }
 
+    if (sender && receiveruserID && addedfriend && success) {
+    ResponseNotification(sender, receiveruserID, addedfriend, success);
+    } 
     console.log("Notification sender:", sender);
     // You can add more debugging code or handle the notification here.
 });

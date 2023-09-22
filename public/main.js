@@ -207,7 +207,6 @@ async function fetchUserInfoByName(userName) {
 
 async function addoneiffriend(alreadyfriends, tobefriends) {
   try {
-    console.log(alreadyfriends, tobefriends);
     const response = await fetch(`/addoneiffriend?alreadyfriends=${alreadyfriends}&tobefriends=${tobefriends}`, {
       method: 'POST',
       headers: {
@@ -216,15 +215,14 @@ async function addoneiffriend(alreadyfriends, tobefriends) {
       body: JSON.stringify({ alreadyfriends, tobefriends }),
     });
 
-    if (response.ok) {
+    if (response.status === 200) {
       console.log('Friend added successfully');
       return true;
     } else if (response.status === 409) {
       console.log('Already friends');
       return false;
     } else {
-      const errorMessage = await response.text();
-      console.error(`Error: ${errorMessage}`);
+      console.error('Error:', response.statusText);
       return false;
     }
   } catch (error) {
@@ -232,6 +230,7 @@ async function addoneiffriend(alreadyfriends, tobefriends) {
     return false;
   }
 }
+
 const currentUsername = username;
 
 function outputMessage(message) {
@@ -255,9 +254,7 @@ function outputMessage(message) {
   imgContainer.appendChild(img);
   imgContainer.appendChild(hoverContainer);
 
-  const friendButtonStates = new Map(
-    JSON.parse(localStorage.getItem('friendButtonStates'))?.map(([key, _]) => [key, false]) || []
-  );
+  const friendButtonStates = new Map();
 
   function updateFriendButtonStates(username, state) {
     friendButtonStates.set(username, state);

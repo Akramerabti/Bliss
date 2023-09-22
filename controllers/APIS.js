@@ -293,12 +293,10 @@ module.exports.removefriendnotification = async (req, res) => {
 module.exports.addoneiffriend = async (req, res) => {
   const { alreadyfriends, tobefriends } = req.query;
 
-  console.log(alreadyfriends, tobefriends);
-
   try {
     // Check if alreadyfriends has tobefriends as a friend
     const user = await User.findOne({ name: alreadyfriends, 'Friends.friend': tobefriends });
-    
+
     if (user) {
       // Check if tobefriends has alreadyfriends in their friends array
       const usero = await User.findOne({ name: tobefriends, 'Friends.friend': alreadyfriends });
@@ -326,10 +324,11 @@ module.exports.addoneiffriend = async (req, res) => {
         }
       } else {
         console.log('Already friends');
-        res.json({ added: false }); // Return false indicating they are already friends
+        res.status(409).json({ added: false }); // Return false indicating they are already friends
       }
     } else {
-      res.status(500);
+      console.log('No user found');
+      res.status(500).json({ error: 'Internal server error' });
     }
   } catch (error) {
     console.error('Error while adding friend:', error);
