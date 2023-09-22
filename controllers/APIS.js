@@ -232,7 +232,7 @@ module.exports.findUserByName_get = async (req, res) => {
     if (user) {
       const friendNames = user.Friends.map(friend => friend.friend);
       // Send user data as JSON response
-      res.json({ _id:user._id, name: user.name, Friends: friendNames, email: user.email, thumbnail: user.thumbnail }); // Customize the response data as needed
+      res.json({ _id:user._id, name: user.name, Friends: friendNames, email: user.email, thumbnail: user.thumbnail, notifications: user.notifications }); // Customize the response data as needed
     } else {
       res.status(404).json({ error: 'User not found' });
     }

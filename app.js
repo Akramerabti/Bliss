@@ -206,8 +206,10 @@ io.on('connection', socket => {
               },
               { new: true }
             )
-              .then(() => {
+              .then((user) => {
                 console.log('Notification added to user.notifications');
+                const notificationCount = user.notifications.length;
+                socket.emit('updateNotificationCount',  notificationCount );
               })
               .catch((err) => {
                 console.error('Error adding notification to user.notifications:', err);
@@ -230,9 +232,11 @@ io.on('connection', socket => {
                 },
                 { new: true }
               )
-                .then(() => {
-                  console.log('Notification added to user.notifications');
-                })
+              .then((user) => {
+                console.log('Notification added to user.notifications');
+                const notificationCount = user.notifications.length;
+                socket.emit('updateNotificationCount',  notificationCount );
+              })
                 .catch((err) => {
                   console.error('Error adding notification to user.notifications:', err);
                 });
@@ -255,9 +259,11 @@ io.on('connection', socket => {
                 },
                 { new: true }
               )
-                .then(() => {
-                  console.log('Notification added to user.notifications');
-                })
+              .then((user) => {
+                console.log('Notification added to user.notifications');
+                const notificationCount = user.notifications.length;
+                socket.emit('updateNotificationCount',  notificationCount );
+              })
                 .catch((err) => {
                   console.error('Error adding notification to user.notifications:', err);
                 });
@@ -268,6 +274,7 @@ io.on('connection', socket => {
     
       // Update the notifications in offlineNotifications map
       offlineNotifications.set(userID, []);
+      
     }
   
     socket.on('FriendRequestResponse', ({ sender, receiveruserID, addedfriend, success }) => {
@@ -373,8 +380,13 @@ io.on('connection', socket => {
             },
             { new: true }
           )
-            .then(() => {
+            .then((user) => {
               console.log('Friend notification response saved');
+              if (user) {
+                const notificationCount = user.notifications.length;
+                console.log(`User has ${notificationCount} notifications`);
+                recipientSocket.emit('updateNotificationCount', { notificationCount }); // Emit the updated notification count to the recipient's socket
+              }
             })
             .catch((err) => {
               console.error('Error adding notification in the array array:', err);
