@@ -1,4 +1,36 @@
 <footer>Copyright 2022 </footer>
+<div class="cursor"></div>
+<div class="inner-dot"></div>
 </body>
 <script src="/socket.io/socket.io.js"></script>
+<script >
+ 
+const cursor = document.querySelector('.cursor');
+const innerDot = document.querySelector('.inner-dot');
+
+document.addEventListener('mousemove', (e) => {
+  setTimeout(() => {
+    cursor.style.transition = 'transform 0.5s ease-out';
+    const x = e.clientX + window.scrollX; // Adjust for horizontal scroll
+    const y = e.clientY + window.scrollY; // Adjust for vertical scroll
+    cursor.style.left = `${x}px`;
+    cursor.style.top = `${y}px`;
+  }, 100);
+
+  setTimeout(() => {
+    innerDot.style.transition = 'transform 0.2s ease-out';
+    const x = e.clientX + window.scrollX; // Adjust for horizontal scroll
+    const y = e.clientY + window.scrollY; // Adjust for vertical scroll
+    innerDot.style.left = `${x}px`;
+    innerDot.style.top = `${y}px`;
+  }, 50);
+});
+
+document.addEventListener('click', () => {
+  cursor.classList.add('click');
+  setTimeout(() => {
+    cursor.classList.remove('click');
+  }, 200);
+});
+</script>
 </html>

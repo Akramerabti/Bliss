@@ -13,7 +13,28 @@ body {
   margin: 20px 40px;
   font-size: 1.2rem;
   letter-spacing: 1px;
-  background: #fafafa;
+  background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
+  overflow: hidden;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position:0% 50%;
+  }
 }
 
 ul {
@@ -62,15 +83,6 @@ form h2 {
   font-size: 2.4em;
   font-weight: 900;
   margin-bottom: 40px;
-}
-
-form {
-  width: 360px;
-  margin: 0 auto;
-  padding: 30px;
-  box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  background: white;
 }
 
 input {
@@ -175,13 +187,6 @@ footer {
 
 /* Friends and Groups Styles */
 
-.friends-groups-container {
-  background-color: #f4f4f4;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-top: 20px;
-}
 
 .friends-groups-container h2 {
   font-size: 18px;
@@ -453,6 +458,7 @@ i.fas.fa-paper-plane{
 
 .join-main .form-control {
 	margin-bottom: 20px;
+  
 }
 
 .join-main label {
@@ -931,4 +937,306 @@ i.fas.fa-paper-plane{
 
 .notifications:hover #notificationdot {
   transform: scale(0.8); /* Scale up slightly on .notifications hover */
+}
+
+/* Room Container */
+.roomcontainer {
+  display: grid;
+  height: fit-content;
+  margin-top: 0%;
+  position: relative;
+  top: -75px;
+}
+
+/* Friends Container */
+.friends-groups-container {
+  animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: center;
+  flex: 1;
+  float: left;
+  background-color: #f0f0f0; /* Light gray */
+  padding: 10px;
+  border: 1px solid #CCCCCC; /* Slightly darker gray */
+  border-radius: 10px;
+  margin-top: 10px;
+  width: 270px;
+  height: fit-content;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+/* Room Creation Container */
+.roomcreationcontainer {
+  display: flex;
+  animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: center;
+  flex: 0;
+  flex-direction: row;
+  padding: 30px;
+  background-color: #E0E0E0; /* Slightly darker gray */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  width: 270px;
+  top: 1px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  z-index: 1;
+}
+
+/* Form Container */
+form {
+  display: block;
+  animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275, 1, 0.3s ease);
+  transform-origin: center;
+  float: top;
+  flex-direction:inherit; /* Display forms vertically */
+  padding: 10px;
+  background-color: #F0F0F0; /* Light gray */
+  color: #333;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  width: fit-content;
+  font-size: smaller;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+  transform: scale(0.8);
+  cursor: pointer;
+  position: absolute;
+  z-index: 1000;
+}
+
+/* Button Styles */
+.btn {
+  animation: popUp 0.5s ease-in-out;
+  animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: 30px;
+  background: #E5E5E5; /* Light gray, scientifically soothing color */
+  background-color: #F0F0F0; /* Light gray */
+  width: auto;
+  height:auto;
+  transition: background-color 0.3s ease, transform 0.3s ease, color 0.3s ease;
+  color: #333;
+  cursor: pointer;
+  margin-bottom: auto;
+  margin-top: auto;
+  margin: auto;
+  font-size:x-large;
+}
+
+/* Form Styles */
+form h2 {
+  animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: center;
+  flex-direction: row;
+  float: left;
+  font-size: 2.4em;
+  font-weight: 900;
+  margin-bottom: 40px;
+  transition: transform 0.3s ease, color 0.3s ease;
+  cursor: pointer;
+}
+
+input {
+  animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: center;
+  padding: 10px 12px;
+  border-radius: 4px;
+  border: 1px solid #D3D3D3; /* Light gray border */
+  font-size: 1em;
+  width: 100%;
+  transition: border-color 0.3s ease;
+  border-color: #CCCCCC; /* Slightly darker gray border */
+  color: #333;
+  cursor: pointer;
+}
+
+label {
+  animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: center;
+  display: block;
+  margin: 20px 0 10px;
+  color: #333;
+  cursor: pointer;
+}
+
+/* Hover and Focus Styles */
+.friends-groups-container:hover {
+  background-color: #CCCCCC; /* Light gray on hover */
+  transform: scale(1.02);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  z-index: 0;
+}
+
+.roomcreationcontainer:hover {
+  background-color: #F7F7F7; /* Light gray on hover */
+  transform: scale(1.02);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+form:hover {
+  background-color: #CCCCCC; /* Light gray on hover */
+  transform: scale(0.85);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  color: #000;
+}
+
+.btn:hover {
+  background: #CCCCCC; /* Light gray on hover */
+  transform: scale(0.95);
+  color: #000;
+}
+
+form:focus {
+  outline: none;
+  border-color: #FEE996;
+  background-color: #FEE996; /* Yellow background on focus */
+}
+
+/* Click Animations */
+.friends-groups-container:active {
+  transform: scale(0.98);
+}
+
+.roomcreationcontainer:active {
+  transform: scale(0.98);
+}
+
+form:active {
+  transform: scale(0.75);
+}
+
+.btn:active {
+  transform: scale(0.9);
+  background-color: #CCCCCC; /* Light gray on click */
+  color: #000;
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+.fade-out {
+  animation: fadeOut 0.5s ease-in-out forwards;
+}
+
+.cursor {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  background-color: transparent; /* Set the background color to white */
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: transform 0.2s, border-color 0.2s, opacity 0.2s;
+  mix-blend-mode:hard-light;
+  transition-timing-function: ease-out; /* Make cursor move slower */
+  border-color: #fff;
+  color: #fff;
+  -webkit-text-stroke-color: #fff;
+  opacity: 0.5;
+}
+
+.inner-dot {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background-color: #fff;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  opacity: 0.7;
+}
+
+.click {
+  transform: translate(-50%, -50%) scale(0.8);
+  border-color: #fff;
+  opacity: 0.7;
+}
+
+.cursor.active {
+  transform: translate(-50%, -50%) scale(1.5);
+  border-color: #fff;
+  opacity: 0.3;
+}
+
+.cursor.active.click {
+  transform: translate(-50%, -50%) scale(0.8);
+  border-color: #fff;
+  opacity: 0.7;
+}
+
+@keyframes popUp {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  30% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+:root {
+  --scrollbar-start-color: #6b6b6b; /* Start color of the gradient */
+  --scrollbar-end-color: #474747; /* End color of the gradient */
+}
+
+/* Keyframes animation for the gradient effect */
+@keyframes gradient {
+  0%, 100% {
+    --scrollbar-start-color: #ff9900;
+    --scrollbar-end-color: #6d6c6b;
+  }
+  50% {
+    --scrollbar-start-color: #ff6600;
+    --scrollbar-end-color: #ff3300;
+  }
+}
+
+/* Apply the gradient effect to the scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-start-color);
+  animation: gradient 5s linear infinite alternate; /* Apply the gradient animation */
+}
+
+/* Handle (thumb) */
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-end-color);
+  border-radius: 5px;
+  transition: background-color 0.3s ease; /* Smooth transition on hover */
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+  transform: scale(1.2); /* Scale up slightly on hover */
 }
