@@ -29,7 +29,12 @@
           </form>
         </div>
       </div>
-    
+      <div class="error" id="error-container">
+        <div class="error-content">
+          <span class="error-message">An error occurred: Something went wrong.</span>
+          <button class="error-close-button" onclick="closeError()">X</button>
+        </div>
+      </div>
 <script>
     // Set a JavaScript variable with the user.name value
     const username = "<%= user.name %>";

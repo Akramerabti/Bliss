@@ -2,6 +2,7 @@
 const socket = io({
   auth: {
     username: username,
+    userID: userID,
   }
 });
 

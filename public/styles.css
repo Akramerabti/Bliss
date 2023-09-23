@@ -1240,3 +1240,42 @@ form:active {
   background: #555;
   transform: scale(1.2); /* Scale up slightly on hover */
 }
+
+.error {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000; /* Ensure the error container is on top */
+}
+
+.error-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+}
+
+.error-message {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.error-close-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #333;
+}

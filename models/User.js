@@ -14,6 +14,7 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
     name:{
         type: String,
         required: [ true, 'Please enter a username' ],
+        
     },
     password:{
         type:String,

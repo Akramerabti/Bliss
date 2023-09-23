@@ -1,3 +1,5 @@
+
+
 // Get references to HTML elementsmNameElement
 const chatNameForm = document.getElementById("chat-name-form");
 const chatNameMessages = document.querySelector(".chat-name-messages");
@@ -5,23 +7,162 @@ const roomuserNameElement = document.getElementById("room-name");
 const userLists = document.getElementById("users");
 const Leavings = document.getElementById("leaving-button");
 
-// Parse the room name from the URL query parameters
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 const NameParam = urlParams.get('name'); // Get the room name from the URL
 
-// Update the room name element if it exists
-if (roomuserNameElement) {
-  roomuserNameElement.innerText = NameParam; // Replace with your actual room name
+async function fetchData() {
+  if (roomuserNameElement) {
+    if (NameParam !== username) {
+      try {
+        const response = await fetch(`/findUserByName?name=${NameParam}`);
+
+        if (response.ok) {
+          const userData = await response.json();
+          console.log("personal.js this is userData:", userData);
+
+          roomuserNameElement.innerText = userData.name; // Replace with your actual room name
+
+          const joinedRooms = userData.JoinedRooms;
+          let roomID; // Initialize roomID here
+
+          if (Array.isArray(joinedRooms)) {
+            // Check if any roomID exists in the userData.JoinedRooms.room
+            const roomData = joinedRooms.find(item => item.roomName === NameParam);
+
+
+            if (roomData) {
+            roomID = roomData.room; // Assign the found roomID
+
+                  // Emit a socket event after you have the roomID
+                 socket.emit('joinName', { username, room: userData.name, userID, roomID: roomID });
+            }
+              if (!roomData) {
+              try {
+                console.log("personal.js hello");
+                const response = await fetch(`/addonejoinedroom?roomJoiner=${username}&roomName=${NameParam}`);
+
+                if (response.status === 200) {
+                  const responseData = await response.json();
+                  roomID = responseData.roomID;
+                  console.log('user added to room', roomID);
+                  
+                  socket.emit('joinName', { username, room: userData.name, userID, roomID: roomID }); 
+                } 
+                if (response.status === 202) {
+                  const responseData = await response.json();
+                  roomID = responseData.roomID;
+                  console.log('room already exits and this is the ID:', roomID);
+                  
+                  socket.emit('joinName', { username, room: userData.name, userID, roomID: roomID }); 
+                }else if (response.status === 409) {
+                  const responseData = await response.json();
+                  roomID = responseData.roomID;
+                  console.log('user already joined room', roomID);
+                  
+                  socket.emit('joinName', { username, room: userData.name, userID, roomID: roomID });
+                } else {
+                  console.error('Error adding user to room:', response.statusText);
+
+                  // Display an error message for the failed operation
+                  const errorContainer = document.getElementById('error-container');
+                  errorContainer.style.display = "block";
+                  errorContainer.innerText = "Failed to add user to the room.";
+                }
+              } catch (error) {
+                console.error('Error fetching user information:', error);
+                const errorContainer = document.getElementById('error-container');
+                errorContainer.style.display = "block";
+                errorContainer.innerText = "Error fetching info. Please try again.";
+                console.error(error);
+    
+                setTimeout(() => {
+                  window.location.href = "/rooms";
+                }, 5000); // Redir
+              }
+            } 
+            // Emit a socket event for the room
+            
+          } else {
+            console.error(`User information not found for ${NameParam}`);
+
+            // Display an error message for invalid user
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.style.display = "block";
+            errorContainer.innerText = "Invalid user.";
+            console.error(error);
+
+            setTimeout(() => {
+              window.location.href = "/rooms";
+            }, 5000); // Redirect to the rooms page after 2 seconds
+          }
+        } else {
+          console.error('Error fetching user information:', response.statusText);
+
+          // Display an error message for the failed operation
+          const errorContainer = document.getElementById('error-container');
+          errorContainer.style.display = "block";
+          errorContainer.innerText = "Failed to fetch user information.";
+
+          
+          setTimeout(() => {
+            window.location.href = "/rooms";
+          }, 5000); // Redir
+
+        }
+      } catch (error) {
+        console.error('Error fetching user information:', error);
+
+        console.error('Error fetching user information:', error);
+        const errorContainer = document.getElementById('error-container');
+        errorContainer.style.display = "block";
+        errorContainer.innerText = "Error fetching info. Please try again.";
+        console.error(error);
+
+        setTimeout(() => {
+          window.location.href = "/rooms";
+        }, 5000); // Redir
+
+        // Handle other errors, e.g., network issues
+      }
+    } else {
+      // Display an error message and prevent the user from chatting with themselves
+      const errorContainer = document.getElementById('error-container');
+      errorContainer.style.display = "block";
+      errorContainer.innerText = "You cannot talk to yourself.";
+      console.error("You cannot talk to yourself.");
+      // You can also redirect the user to another page or take other actions here
+
+      setTimeout(() => {
+        window.location.href = "/rooms";
+      }, 5000); // Redir
+
+    }
+  } else {
+    window.location.href = "/rooms";
+    // Display an error message for an invalid room name
+    const errorContainer = document.getElementById('error-container');
+    errorContainer.style.display = "block";
+    errorContainer.innerText = "Invalid room name.";
+    console.error("Element with ID 'room-name' not found in the DOM.");
+    // You can also redirect the user to another page or take other actions here
+
+    setTimeout(() => {
+      window.location.href = "/rooms";
+    }, 5000); // Redir
+
+  }
 }
 
-console.log(userID)
+fetchData();
 
 // Your JavaScript logic here
 console.log("personal.js this is you:", username);
 
+const socket = io();
+
 // Log when you join a room using roomNameParam
-socket.emit('joinName', { username, room: NameParam, userID });
+
 
 socket.on('roomUsers', ({ room, users }) => {
 

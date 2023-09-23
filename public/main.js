@@ -28,6 +28,7 @@ console.log("Main.js: this is you:", username);
 const socket = io({
   auth: {
     username: username,
+    userID: userID,
   }
 });
 

@@ -37,6 +37,8 @@ routing.get('/clientnotifications' , authController.clientnotification_get)
 
 routing.post('/addoneiffriend' , authController.addoneiffriend)
 
+routing.get('/addonejoinedroom' , authController.addonejoinedroom)
+
 routing.delete('/removefriendnotification' , authController.removefriendnotification)
 
 routing.post('/set-password', passportController.password_post);

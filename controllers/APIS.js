@@ -9,7 +9,7 @@ const crypto = require('crypto')
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({extended: true}));
 const session = require('express-session');
-
+const mongoose = require('mongoose');
 
 
 //Here, function for errors when logging in
@@ -232,7 +232,7 @@ module.exports.findUserByName_get = async (req, res) => {
     if (user) {
       const friendNames = user.Friends.map(friend => friend.friend);
       // Send user data as JSON response
-      res.json({ _id:user._id, name: user.name, Friends: friendNames, email: user.email, thumbnail: user.thumbnail, notifications: user.notifications }); // Customize the response data as needed
+      res.json({ _id:user._id, name: user.name, Friends: friendNames, email: user.email, thumbnail: user.thumbnail, notifications: user.notifications, JoinedRooms:user.JoinedRooms }); // Customize the response data as needed
     } else {
       res.status(404).json({ error: 'User not found' });
     }
@@ -335,6 +335,55 @@ module.exports.addoneiffriend = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+
+module.exports.addonejoinedroom = async (req, res) => {
+  const { roomJoiner, roomName } = req.query;
+
+  try {
+    // Generate a new roomID
+    const roomID = new mongoose.Types.ObjectId(); // Create a new ObjectId
+
+    // Check if alreadyfriends has tobefriends as a friend
+    const user = await User.findOne({ name: roomJoiner, 'JoinedRooms.roomName': roomName });
+
+    if (!user) {
+      const updatedUser = await User.findOneAndUpdate(
+        { name: roomJoiner },
+        {
+          $push: {
+            JoinedRooms: {
+              room: roomID, // Use the generated ObjectId
+              roomName: roomName,
+              messages: [], // Add any other properties if needed
+            },
+          },
+        },
+        { new: true }
+      );
+
+      if (updatedUser) {
+        return res.status(200).json({ roomID: roomID }) // Return the newly created ObjectId
+      } else {
+        console.log('No user found');
+        res.sendStatus(404); // Not Found
+      }
+    } else if (user){
+      let savedID = user.JoinedRooms.find(item => item.roomName === roomName).room;
+      try {console.log('User already exists');
+      return res.status(202).json({ roomID: savedID }) }
+      catch (error) {
+        console.error('Error while adding friend:', error);
+        res.sendStatus(500); // Internal Server Error
+      }// Return the newly created ObjectId
+    }
+  } catch (error) {
+    console.error('Error while adding friend:', error);
+    res.sendStatus(500); // Internal Server Error
+  }
+};
+
+
 
 //NECESSARY TO CONVERT OBJECT IDS TO THEIR REFERENCED OBJECTS
 
