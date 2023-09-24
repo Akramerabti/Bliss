@@ -214,7 +214,7 @@ io.on('connection', socket => {
               .then((user) => {
                 console.log('Notification added to user.notifications');
                 const notificationCount = user.notifications.length;
-                socket.emit('updateNotificationCount',  notificationCount );
+                socket.emit('userOnlineStatus', { status: 'online', notificationCount: notificationCount });
               })
               .catch((err) => {
                 console.error('Error adding notification to user.notifications:', err);
@@ -244,7 +244,7 @@ io.on('connection', socket => {
               .then((user) => {
                 console.log('Notification added to user.notifications');
                 const notificationCount = user.notifications.length;
-                socket.emit('updateNotificationCount',  notificationCount );
+                socket.emit('userOnlineStatus', { status: 'online', notificationCount: notificationCount });
               })
                 .catch((err) => {
                   console.error('Error adding notification to user.notifications:', err);
@@ -274,7 +274,7 @@ io.on('connection', socket => {
               .then((user) => {
                 console.log('Notification added');
                 const notificationCount = user.notifications.length;
-                socket.emit('updateNotificationCount',  notificationCount );
+                socket.emit('userOnlineStatus', { status: 'online', notificationCount: notificationCount });
               })
                 .catch((err) => {
                   console.error('Error adding notification to user.notifications:', err);

@@ -262,6 +262,7 @@ module.exports.clientnotification_get = async (req, res) => {
 
 module.exports.removefriendnotification = async (req, res) => {
   const { _id, userID } = req.query;
+  console.log(_id, userID);
 
   try {
     // Find the user by some identifier, and then remove the notification

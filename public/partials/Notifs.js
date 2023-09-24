@@ -53,11 +53,12 @@ function updateOnlineStatusDot(status) {
 function updateNotifcount(notificationCount) {
   const notifdot = document.getElementById('notificationdot');
   if (notifdot) {
-    console.log('Notifcount:', notificationCount);
+    console.log('Notifcount FROM FUNCTION:', notificationCount);
 
     if (notificationCount > 0) {
       notifdot.innerHTML = notificationCount; // Update the content with notification count
       notifdot.style.display = 'block'; // Show the dot
+      return notificationCount;
     } else {
       notifdot.innerHTML = ''; // Clear the content when there are no notifications
       notifdot.style.display = 'none'; // Hide the dot when there are no notifications
@@ -83,30 +84,50 @@ async function fetchUserInfoByName(userName) {
   }
 }
 
-socket.on('updateNotificationCount', (notificationCount) => {
-  console.log('Received notification count:', notificationCount);
-  updateNotifcount(notificationCount)
-})
 
 
 const existingNotifications = new Set();
 
-socket.on('userOnlineStatus', ({ status, notificationCount }) => {
+socket.on('userOnlineStatus', async ({ status, notificationCount }) => {
 
   console.log('Received online status:', status);
   // Update the online status dot based on the received status
   updateOnlineStatusDot(status);
-  updateNotifcount(notificationCount);
-  
+  updateNotifcount(notificationCount)
+
+
+  console.log('Received notification count FROM ONLINE:', notificationCount);
   document.querySelector('.notif-icon-img').addEventListener('click', async function(event) {
     event.preventDefault();
+  
+    let latestNotificationCount; // Declare it here
+  
+    try {
+      // Fetch the latest notification count
+      const residue = await fetch(`/clientnotifications?_id=${userID}`);
+      const data = await residue.json();
+  
+      // Check if the response contains the latest count
+      if (Array.isArray(data) && data.length > 0) {
+        latestNotificationCount = data.length; // Assign the value here
+  
+        // Call updateNotifcount with the latest count
+        updateNotifcount(latestNotificationCount);
+      } else {
+        console.log('No notifications available');
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  
+    // Move this code outside of the try block
     const notificationsContent = document.getElementById('notifications-container');
   
-    if (!notificationsContent.classList.contains('active')) {
-      if (notificationCount > 0) {
-      notificationsContent.classList.add('active');
+    if (latestNotificationCount > 0) {
+      if (!notificationsContent.classList.contains('active')) {
+        notificationsContent.classList.add('active');
       }
-
+  
       try {
         const res = await fetch(`/clientnotifications?_id=${userID}`);
         const data = await res.json();
@@ -340,7 +361,7 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
               xButton.addEventListener('click', () => {
                 fetchUserInfoByName(username).then((userData) => {
                   if (userData) {
-                    removeNotification(item._id, username, notificationDiv);
+                    removeNotification(item._id, userID, notificationDiv);
                     updateNotifcount(userData.notifications.length - 1) 
                   }
                 });
@@ -370,8 +391,9 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
       console.log(err);
     }
   } else {
+   if (notificationsContent) {
     notificationsContent.classList.remove('active');
-  }
+  }}
     })  
   });
 
