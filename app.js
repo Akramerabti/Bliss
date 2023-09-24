@@ -523,7 +523,7 @@ io.on('connection', socket => {
     if (roomInfo) {
 
       const Message = roomInfo.Message; 
-
+      console.log("MESSAGE", Message);
       // Fetch messages from the specific room's database
       const messages = await Message.find({ room });
 
@@ -830,19 +830,22 @@ io.on('connection', socket => {
 
 socket.on('joinRoom', handleJoinRoom);
 
-const loadDatabasePrivateMessages = async (socket, roomID, username) => {
+const loadDatabasePrivateMessages = async (socket, roomID, room, username) => {
   const personalInfo = rooms.get(roomID);
 
-  console.log("ROOM ID", personalInfo);
+  console.log("ROOM ID", personalInfo.roomID);
 
   if (personalInfo) {
     const Message = personalInfo.Message;
 
+    console.log("MESSAGE", Message);
+
     // Use the correct query to fetch messages for the specified room and sender
-    const messages = await Message.find({ room: personalInfo.roomName, sender: username });
+    const messages = await Message.find({ username});
 
     // Map the messages to the desired format
-    const messageSchemaData = messages.map((message) => ({
+    const messageSchemaData = messages.filter((message) => message.room === roomID)
+    .map((message) => ({
       img: message.img,
       sender: message.sender,
       room: message.room,
@@ -884,7 +887,7 @@ const handleJoinRoomID = async ({ username, userID, room, roomID }) => {
         creatorID: userID,
         Message: Message,
         messages: [Message],
-        roomName: room,
+        roomID: roomID,
       });
 
     // Load and emit database messages
@@ -937,8 +940,8 @@ const handleJoinRoomID = async ({ username, userID, room, roomID }) => {
         {
           $addToSet: {
             JoinedRooms: {
-              room: roomID,
-              roomName: roomInfo.roomName,
+              room: room._id,
+              roomName: roomInfo.roomID,
               messages: messageSchemaData,
             },
           },
@@ -1005,7 +1008,7 @@ const handleJoinRoomID = async ({ username, userID, room, roomID }) => {
         // Create and save a new message
         const newMessage = new roomInfo.Message({
           img: user.thumbnail, // Use user's thumbnail
-          room: room,
+          room: roomID,
           msg,
           sender,
           time: moment().format("lll"),
@@ -1023,7 +1026,7 @@ const handleJoinRoomID = async ({ username, userID, room, roomID }) => {
             if (roomIndex !== -1) {
               user.JoinedRooms[roomIndex].messages.push({
                 sender: sender,
-                room: room, // Convert to ObjectId
+                room: roomID, // Convert to ObjectId
                 time: moment().format("lll"),
                 msg: msg,
               });

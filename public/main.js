@@ -309,7 +309,7 @@ function outputMessage(message) {
            
             
             if (currentuserInfo) {
-              const areFriends = userInfo.Friends.includes(currentuserInfo.name) && currentuserInfo.Friends.includes(userInfo.name); //fix
+              const areFriends = userInfo.Friends.includes(currentuserInfo.name) && currentuserInfo.Friends.includes(userInfo.name); //fixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
             if (areFriends) { // Check if Friends is an arra
                     addFriendButton.textContent = '👤';
                     addFriendButton.disabled = true;
