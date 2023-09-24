@@ -2,7 +2,24 @@
 
       <div class="roomcontainer">
         <div class="roomcreationcontainer">
-        <button class="btn"><a href="./groupchat" >📟</a></button> 
+          <button  class="btn" id="group-formbutton">📟</button>
+          <form action="/groupchat" id="groupchat-entering" style="display: none;">
+            <div class="form-control" >
+              <label for ="group"> Recommended Groups </label>
+               <input
+                type = "text"
+                name = "name"
+                id="GroupID"
+                placeholder="Enter a url"
+                />
+                <div class="flex">
+                  <button type="submit" class="btn">Join group</button>
+                </div>
+                <div class="flex">
+                  <button type= "submit" class="btn">+</button>
+                </div>
+            </div>
+          </form >
       <button  class="btn" id="personal-formbutton">📟</button>
       <form action="/personal" id="personal-entering" style="display: none;">
         <div class="form-control" >
@@ -83,6 +100,8 @@ document.addEventListener("DOMContentLoaded", function() {
   const personalForm = document.getElementById("personal-entering");
   const publicButton = document.getElementById("public-formbutton");
   const publicForm = document.getElementById("chat-entering");
+  const groupButton = document.getElementById("group-formbutton");
+  const groupForm = document.getElementById("groupchat-entering");
 
   // Variables to track the state of the forms
   let isPersonalFormVisible = false;
@@ -103,6 +122,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Always hide the public form when toggling the personal form
     publicForm.style.display = "none";
+    groupForm.style.display = "none";
     isPublicFormVisible = false;
   });
 
@@ -121,7 +141,27 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Always hide the personal form when toggling the public form
     personalForm.style.display = "none";
+    groupForm.style.display = "none";
     isPersonalFormVisible = false;
+  });
+
+  groupButton.addEventListener("click", () => {
+    if (isPublicFormVisible) {
+      // If the public form is visible, hide it
+      groupForm.style.display = "none";
+    } else {
+      // If the public form is hidden, show it
+      groupForm.style.display = "block";
+    }
+
+    // Toggle the state
+    isPublicFormVisible = !isPublicFormVisible;
+
+    // Always hide the personal form when toggling the public form
+    personalForm.style.display = "none";
+    publicForm.style.display = "none";
+    isPersonalFormVisible = false;
+
   });
 });
   </script>
