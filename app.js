@@ -497,8 +497,6 @@ io.on('connection', socket => {
   }
 
 
-  
-
   socket.on('addFriend', ({ sender, username, receiveruserID, addedfriend, success, senderID, userID, email}) => {
     console.log('Request friend:', { sender, username, senderID, userID, email });
     io.emit('addFriendResponse', { success: true });
@@ -543,7 +541,6 @@ io.on('connection', socket => {
 }
 
 }
-
 
   // Function to handle user joining a room
   const handleJoinRoom = async ({ username, room }) => {
@@ -829,6 +826,7 @@ io.on('connection', socket => {
     socket.on('chatMessage', handleChatMessage);
 }
 
+socket.on('joinRoom', handleJoinRoom);
 
 const loadDatabasePrivateMessages = async (socket, roomID, username) => {
  
@@ -1106,7 +1104,7 @@ const handleJoinRoomID = async ({ username, room, roomID }) => {
   socket.on('chatMessages', handleChatMessage);
 }
   // Event listener for joining a room
-  socket.on('joinRoom', handleJoinRoom);
+  
   socket.on('joinName', handleJoinRoomID);
 
 });

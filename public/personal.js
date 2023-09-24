@@ -61,7 +61,7 @@ async function fetchData() {
                 if (response.status === 202) {
                   const responseData = await response.json();
                   roomID = responseData.roomID;
-                  console.log('room already exits and this is the ID:', roomID);
+                  console.log('room already exits and this is the ID:',roomID);
                   
                   socket.emit('joinName', { username, room: userData.name, userID, roomID: roomID }); 
 
@@ -195,12 +195,16 @@ fetchData();
 // Your JavaScript logic here
 console.log("personal.js this is you:", username);
 
-const socket = io();
-
-// Log when you join a room using roomNameParam
+const socket = io({
+  auth: {
+    username: username,
+    userID: userID,
+  }
+});
 
 
 socket.on('privateUsers', async ({ room, users }) => {
+  console.log('privateUsers', users, room);
   const originalArray = users;
   const uniqueSet = new Set(originalArray);
   const uniqueArray = Array.from(uniqueSet);
