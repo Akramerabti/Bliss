@@ -243,11 +243,11 @@ module.exports.findUserByName_get = async (req, res) => {
 };
 
 module.exports.clientnotification_get = async (req, res) => {
-  const { name } = req.query;
+  const { _id } = req.query;
 
   try {
     // Find the user with the specified name
-    const user = await User.findOne({ name });
+    const user = await User.findOne({ _id });
 
     if (!user || !user.notifications) {
       return res.json([]); // Return an empty array if the user or notifications are not found
@@ -261,12 +261,12 @@ module.exports.clientnotification_get = async (req, res) => {
 };
 
 module.exports.removefriendnotification = async (req, res) => {
-  const { _id, username } = req.query;
+  const { _id, userID } = req.query;
 
   try {
     // Find the user by some identifier, and then remove the notification
     const user = await User.findOneAndUpdate(
-      { name: username},
+      { _id: userID},
       {
         $pull: {
           notifications: {
@@ -291,20 +291,27 @@ module.exports.removefriendnotification = async (req, res) => {
 
 
 module.exports.addoneiffriend = async (req, res) => {
-  const { alreadyfriends, tobefriends } = req.query;
+  const { alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends } = req.query;
+
+  console.log( "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss", alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends);
 
   try {
+    if (!alreadyfriendsID || !tobefriendsID) {
+      console.log('Invalid user IDs');
+      return res.sendStatus(400); // Bad Request
+    }
+
     // Check if alreadyfriends has tobefriends as a friend
-    const user = await User.findOne({ name: alreadyfriends, 'Friends.friend': tobefriends });
+    const user = await User.findOne({ _id: alreadyfriendsID, 'Friends.friend': tobefriends });
 
     if (user) {
       // Check if tobefriends has alreadyfriends in their friends array
-      const usero = await User.findOne({ name: tobefriends, 'Friends.friend': alreadyfriends });
+      const usero = await User.findOne({ _id: tobefriendsID, 'Friends.friend': alreadyfriends });
 
       if (!usero) {
         // Add alreadyfriends as a friend to tobefriends
         const updatedUser = await User.findOneAndUpdate(
-          { name: tobefriends },
+          { _id: tobefriendsID },
           {
             $addToSet: {
               Friends: {
@@ -317,74 +324,97 @@ module.exports.addoneiffriend = async (req, res) => {
 
         if (updatedUser) {
           console.log('Friend added successfully');
-          res.sendStatus(200); // Success
+          return res.sendStatus(200); // Success
         } else {
           console.error('Error adding friend');
-          res.status(500).json({ error: 'Internal server error' });
+          return res.status(500).json({ error: 'Internal server error' });
         }
       } else {
         console.log('Already friends');
-        res.status(409).json({ added: false }); // Return false indicating they are already friends
+        return res.status(409).json({ added: false }); // Return false indicating they are already friends
       }
     } else {
       console.log('No user found');
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(404).json({ error: 'User not found' });
     }
   } catch (error) {
     console.error('Error while adding friend:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-
 module.exports.addonejoinedroom = async (req, res) => {
   const { roomJoiner, roomName } = req.query;
+ 
+  let commonRoomID;
 
   try {
-    // Generate a new roomID
-    const roomID = new mongoose.Types.ObjectId(); // Create a new ObjectId
+    // Find the user with the provided names
+    const userJoiner = await User.findOne({ name: roomJoiner });
+    const userRoomName = await User.findOne({ name: roomName });
 
-    // Check if alreadyfriends has tobefriends as a friend
-    const user = await User.findOne({ name: roomJoiner, 'JoinedRooms.roomName': roomName });
+    if (!userJoiner || !userRoomName) {
+      console.log('User(s) not found');
+      return res.sendStatus(404); // Not Found
+    }
 
-    if (!user) {
-      const updatedUser = await User.findOneAndUpdate(
+ const commonRoomName = userJoiner._id < userRoomName._id ? `${userJoiner._id}_${userRoomName._id}` : `${userRoomName._id}_${userJoiner._id}`; // Generate a common room name
+    // Check if a common room with the same name exists for either user
+    const commonRoomExists = userJoiner.JoinedRooms.some(
+      (room) => room.roomName === commonRoomName
+    );
+
+    if (commonRoomExists) {
+      // Common room already exists, retrieve its ID
+      const commonRoom = userJoiner.JoinedRooms.find(
+        (room) => room.roomName === commonRoomName
+      );
+      commonRoomID = commonRoom.room;
+    } else {
+      // Create a new common room ID
+      commonRoomID = new mongoose.Types.ObjectId();
+
+      // Add the common room to both users
+      const updatedUserJoiner = await User.findOneAndUpdate(
         { name: roomJoiner },
         {
           $push: {
             JoinedRooms: {
-              room: roomID, // Use the generated ObjectId
-              roomName: roomName,
-              messages: [], // Add any other properties if needed
+              room: commonRoomID,
+              roomName: commonRoomName, // Use the common room name
+              messages: [],
             },
           },
         },
         { new: true }
       );
 
-      if (updatedUser) {
-        return res.status(200).json({ roomID: roomID }) // Return the newly created ObjectId
-      } else {
-        console.log('No user found');
-        res.sendStatus(404); // Not Found
+      const updatedUserRoomName = await User.findOneAndUpdate(
+        { name: roomName },
+        {
+          $push: {
+            JoinedRooms: {
+              room: commonRoomID,
+              roomName: commonRoomName, // Use the common room name
+              messages: [],
+            },
+          },
+        },
+        { new: true }
+      );
+
+      if (!updatedUserJoiner || !updatedUserRoomName) {
+        console.error('Error updating user(s)');
+        return res.status(500).json({ error: 'Internal server error' });
       }
-    } else if (user){
-      let savedID = user.JoinedRooms.find(item => item.roomName === roomName).room;
-      try {console.log('User already exists');
-      return res.status(202).json({ roomID: savedID }) }
-      catch (error) {
-        console.error('Error while adding friend:', error);
-        res.sendStatus(500); // Internal Server Error
-      }// Return the newly created ObjectId
     }
+
+    return res.status(200).json({ roomID: commonRoomID });
   } catch (error) {
     console.error('Error while adding friend:', error);
-    res.sendStatus(500); // Internal Server Error
+    res.status(500).json({ error }); // Internal Server Error
   }
 };
-
-
-
 //NECESSARY TO CONVERT OBJECT IDS TO THEIR REFERENCED OBJECTS
 
 //User.findById(User._id)

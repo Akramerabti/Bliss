@@ -14,7 +14,7 @@ const socket = io({
 console.log('Socket connection established:', socket.connected);
 
 if (username !== "" ) {
-  console.log("Notifs.js: this is you:", username), userID;
+  console.log("Notifs.js: this is you:", username)
   socket.emit("online", { username, userID });
 } else {
   console.log("Notifs.js: username is empty");
@@ -108,7 +108,7 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
       }
 
       try {
-        const res = await fetch(`/clientnotifications?name=${username}`);
+        const res = await fetch(`/clientnotifications?_id=${userID}`);
         const data = await res.json();
   
         
@@ -126,7 +126,7 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
             if (item.hasOwnProperty('friendnotification')) {
               const identifier = item._id
   
-              async function removeNotification(_id, username, notificationDiv) {
+              async function removeNotification(_id, userID, notificationDiv) {
   // Check if the identifier is in the existingNotifications set
               if (existingNotifications.has(_id) && notificationDiv && notificationsContent) {
     // Remove the notification div
@@ -140,7 +140,7 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
               }
 
               try {
-               const response = await fetch(`/removefriendnotification?_id=${_id}&username=${username}`, {
+               const response = await fetch(`/removefriendnotification?_id=${_id}&userID=${userID}`, {
               method: 'DELETE',
              });
 
@@ -174,12 +174,12 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
                 addButton.style.display = 'pointer';
                 addButton.classList.add('add-button'); // Add a CSS class for styling
                 addButton.addEventListener('click', () => {
-                  fetchUserInfoByName(username).then((userData) => {
+                  fetchUserInfoByName(item.friendnotification.sender).then((userData) => {
                     if (userData) {
-                      socket.emit('FriendRequestResponse', { sender: item.friendnotification.sender, receiveruserID:item.friendnotification.receiveruserID, addedfriend: userData.name , success: true });
+                      socket.emit('FriendRequestResponse', { sender: userData.name, senderID: userData._id, receiveruserID:item.friendnotification.receiveruserID, addedfriend: username , addedID:userID, success: true });
                       refuseButton.textContent = '✔';
-                      removeNotification(item._id, username, notificationDiv);
-                      updateNotifcount(userData.notifications.length - 1) 
+                      removeNotification(item._id, userID, notificationDiv);
+                      updateNotifcount(userData.notifications.length) 
                     }
                   });
                 });
@@ -188,13 +188,14 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
                 refuseButton.textContent = 'Remove';
                 refuseButton.classList.add('refuse-button'); // Add a CSS class for styling
                 refuseButton.addEventListener('click', () => {
-                  fetchUserInfoByName(username).then((userData) => {
+                  fetchUserInfoByName(item.friendnotification.sender).then((userData) => {
                     if (userData) { 
-                      socket.emit('FriendRequestResponse', { sender: item.friendnotification.sender, receiveruserID:item.friendnotification.receiveruserID, addedfriend: userData.name , success: false });
+                      //userData == username
+                      socket.emit('FriendRequestResponse', { sender: userData.name, senderID: userData._id, receiveruserID:item.friendnotification.receiveruserID, addedfriend: username , addedID:userID, success: false });
                       refuseButton.textContent = '✔';
-                      removeNotification(item._id, username, notificationDiv);
+                      removeNotification(item._id, userID, notificationDiv);
                       console.log('data.length', userData.notifications.length);
-                      updateNotifcount(userData.notifications.length - 1) 
+                      updateNotifcount(userData.notifications.length) 
                     }
                   });
                 });
@@ -232,7 +233,7 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
           if (item.hasOwnProperty('friendresponsenotification')) {
             const identifier = item._id
 
-            async function removeNotification(_id, username, notificationDiv) {
+            async function removeNotification(_id, userID, notificationDiv) {
 // Check if the identifier is in the existingNotifications set
             if (existingNotifications.has(_id) && notificationDiv && notificationsContent) {
   // Remove the notification div
@@ -245,7 +246,7 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
             }
 
             try {
-             const response = await fetch(`/removefriendnotification?_id=${_id}&username=${username}`, {
+             const response = await fetch(`/removefriendnotification?_id=${_id}&userID=${userID}`, {
             method: 'DELETE',
            });
 
@@ -285,7 +286,7 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
                 fetchUserInfoByName(username).then((userData) => {
                   if (userData) {
                     addButton.textContent = '✔';
-                    removeNotification(item._id, username, notificationDiv);
+                    removeNotification(item._id, userID, notificationDiv);
                     updateNotifcount(userData.notifications.length - 1) 
                   }
                 });
@@ -297,7 +298,7 @@ socket.on('userOnlineStatus', ({ status, notificationCount }) => {
               xButton.addEventListener('click', () => {
                 fetchUserInfoByName(username).then((userData) => {
                   if (userData) {
-                    removeNotification(item._id, username, notificationDiv);
+                    removeNotification(item._id, userID, notificationDiv);
                     updateNotifcount(userData.notifications.length - 1) 
                   }
                 });

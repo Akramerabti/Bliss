@@ -289,28 +289,29 @@ io.on('connection', socket => {
       
     }
   
-    socket.on('FriendRequestResponse', ({ sender, receiveruserID, addedfriend, success }) => {
+    socket.on('FriendRequestResponse', ({ sender, receiveruserID, senderID, addedfriend, addedID, success }) => {
   
       if (success) {
         console.log("FRIENDS INTERACTION SENDER AND THE FRIEND TO ADD WHEN ACCEPTED", { sender, addedfriend });
         // Add the friend to the user's Friends array
         try {
-          User.findOne({ name: addedfriend, 'Friends.friend': sender })
+          User.findOne({ _id: addedID, 'Friends._id': senderID })
             .then((user) => {
               if (!user) {
                 User.findOneAndUpdate(
-                  { name: addedfriend },
+                  { _id: addedID },
                   {
                     $addToSet: {
                       Friends: {
                         friend: sender,
+                        _id: senderID,
                       },
                     },
                   },
                   { new: true }
                 )
                   .then(() => {
-                    console.log('sender added to Friends array');
+                    console.log('sender added to Friends array', sender, senderID, addedfriend, addedID);
                   })
                   .catch((err) => {
                     console.error('Error adding the sender to Friends array:', err);
@@ -318,22 +319,23 @@ io.on('connection', socket => {
               }
             });
   
-          User.findOne({ name: sender, 'Friends.friend': addedfriend })
+          User.findOne({ _id: senderID, 'Friends._id': addedID })
             .then((user) => {
               if (!user) {
                 User.findOneAndUpdate(
-                  { name: sender },
+                  { _id: senderID },
                   {
                     $addToSet: {
                       Friends: {
                         friend: addedfriend,
+                        _id: addedID,
                       },
                     },
                   },
                   { new: true }
                 )
                   .then(() => {
-                    console.log('wanted friend added to Friends array');
+                    console.log('wanted friend added to Friends array', sender, senderID, addedfriend, addedID);
                   })
                   .catch((err) => {
                     console.error('Error adding the wanted to Friends array:', err);
@@ -520,7 +522,7 @@ io.on('connection', socket => {
 
     if (roomInfo) {
 
-      const Message = roomInfo.Message;
+      const Message = roomInfo.Message; 
 
       // Fetch messages from the specific room's database
       const messages = await Message.find({ room });
@@ -543,7 +545,7 @@ io.on('connection', socket => {
 }
 
   // Function to handle user joining a room
-  const handleJoinRoom = async ({ username, room }) => {
+  const handleJoinRoom = async ({ username, userID, room }) => {
     // Create or get the room information
     let roomInfo = rooms.get(room);
   
@@ -562,7 +564,7 @@ io.on('connection', socket => {
       } else {
         roomInfo = Object.freeze({
           _id: new mongoose.Types.ObjectId(),
-          creator: username,
+          creatorID: userID,
           Message: Message,
           messages: [Message],
           roomName: room,
@@ -603,18 +605,18 @@ io.on('connection', socket => {
     await loadDatabaseMessages(socket, room, username);
 
     // Push the user object into the messages array
-    const user = { id: socket.id, username, room };
+    const user = { id: socket.id, userID, room };
     roomInfo.messages.push(user);
 
     const messageSchemaData = await loadDatabaseMessages(socket, room, username); // Retrieve messageSchemaData
 
 
-    User.findOne({ name: username, 'JoinedRooms.roomName': roomInfo.roomName })
+    User.findOne({ _id: userID, 'JoinedRooms.roomName': roomInfo.roomName })
     .then((user) => {
       if (!user) {
         // User is not in the room's JoinedRooms array, so add it
         User.findOneAndUpdate(
-          { name: username },
+          { _id: userID },
           {
             $addToSet: {
               JoinedRooms: {
@@ -684,12 +686,12 @@ io.on('connection', socket => {
     const sentMessages = new Set();
   
     // Function to handle chat messages
-    const handleChatMessage = ({ msg, sender }) => {
+    const handleChatMessage = ({ msg, sender, senderID }) => {
       if (!sentMessages.has(socket.id)) {
         sentMessages.add(socket.id);
       }
 
-      User.findOne({ name: sender, 'JoinedRooms.roomName': room })
+      User.findOne({ _id: senderID, 'JoinedRooms.roomName': room })
       .then((user) => {
         if (user && user.thumbnail) {
           const img = user.thumbnail;
@@ -710,12 +712,12 @@ io.on('connection', socket => {
         }
       
 
-        User.findOne({ name: sender, 'JoinedRooms.roomName': room })
+        User.findOne({ _id: senderID, 'JoinedRooms.roomName': room })
         .then((user) => {
           if (!user) {
             // User is not in the room's JoinedRooms array, so add it
             User.findOneAndUpdate(
-              { name: sender },
+              { _id: senderID },
               {
                 $addToSet: {
                   JoinedRooms: {
@@ -829,16 +831,18 @@ io.on('connection', socket => {
 socket.on('joinRoom', handleJoinRoom);
 
 const loadDatabasePrivateMessages = async (socket, roomID, username) => {
- 
   const personalInfo = rooms.get(roomID);
 
-   if (personalInfo) {
-   const Message = personalInfo.Message;
+  console.log("ROOM ID", personalInfo);
 
-    const messages = await Message.find({roomID});
+  if (personalInfo) {
+    const Message = personalInfo.Message;
 
-   const messageSchemaData = messages.filter((message) => message.sender === username)
-      .map((message) => ({
+    // Use the correct query to fetch messages for the specified room and sender
+    const messages = await Message.find({ room: personalInfo.roomName, sender: username });
+
+    // Map the messages to the desired format
+    const messageSchemaData = messages.map((message) => ({
       img: message.img,
       sender: message.sender,
       room: message.room,
@@ -846,14 +850,17 @@ const loadDatabasePrivateMessages = async (socket, roomID, username) => {
       msg: message.msg,
     }));
 
-    socket.emit('privatemessages', messages);
+    console.log("MESSAGES", messageSchemaData);
+
+    // Emit the mapped message data to the socket
+    socket.emit('privatemessages', messageSchemaData);
+
     return messageSchemaData;
+  }
 }
 
-}
 
-
-const handleJoinRoomID = async ({ username, room, roomID }) => {
+const handleJoinRoomID = async ({ username, userID, room, roomID }) => {
 
   
   // Create or get the room information
@@ -874,7 +881,7 @@ const handleJoinRoomID = async ({ username, room, roomID }) => {
     } else {
       roomInfo = Object.freeze({
         _id: new mongoose.Types.ObjectId(),
-        creator: username,
+        creatorID: userID,
         Message: Message,
         messages: [Message],
         roomName: room,
@@ -915,18 +922,18 @@ const handleJoinRoomID = async ({ username, room, roomID }) => {
   await loadDatabasePrivateMessages(socket, roomID, username);
 
   // Push the user object into the messages array
-  const user = { id: socket.id, username, room };
+  const user = { id: socket.id, userID, room };
   roomInfo.messages.push(user);
 
   const messageSchemaData = await loadDatabasePrivateMessages(socket, roomID, username); // Retrieve messageSchemaData
 
 
-  User.findOne({ name: username, 'JoinedRooms.room': roomID })
+  User.findOne({ _id: userID, 'JoinedRooms.room': roomID })
   .then((user) => {
     if (!user) {
       // User is not in the room's JoinedRooms array, so add it
       User.findOneAndUpdate(
-        { name: username },
+        { _id: userID },
         {
           $addToSet: {
             JoinedRooms: {
@@ -987,82 +994,40 @@ const handleJoinRoomID = async ({ username, room, roomID }) => {
   const sentMessages = new Set();
 
   // Function to handle chat messages
-  const handleChatMessage = ({ msg, sender }) => {
+  const handlePrivateChatMessage = ({ msg, sender, senderID }) => {
     if (!sentMessages.has(socket.id)) {
       sentMessages.add(socket.id);
     }
 
-    User.findOne({ name: sender, 'JoinedRooms.room': roomID })
+    User.findOne({ _id: senderID, 'JoinedRooms.room': roomID })
     .then((user) => {
       if (user && user.thumbnail) {
-        const img = user.thumbnail;
-
+        // Create and save a new message
         const newMessage = new roomInfo.Message({
-          img: img,
+          img: user.thumbnail, // Use user's thumbnail
           room: room,
           msg,
           sender,
           time: moment().format("lll"),
         });
-        newMessage.save().then(() => {
-          // Find and emit updated messages
-          roomInfo.Message.find().then((result) => {
-            io.emit("privatemessages", result);
-          });
-        });
-      }
   
-
-      User.findOne({ name: sender, 'JoinedRooms.room': roomID })
-      .then((user) => {
-        if (!user) {
-          // User is not in the room's JoinedRooms array, so add it
-          User.findOneAndUpdate(
-            { name: sender },
-            {
-              $addToSet: {
-                JoinedRooms: {
-                  room: roomID, // Convert to ObjectId
-                  roomName: room,
-                  messages: {
-                    sender: sender,
-                    room: room, // Convert to ObjectId
-                    time: moment().format("lll"),
-                    msg: msg,
-                  },
-                },
-              },
-            },
-            { new: true }
-          )
-            .then(() => {
-              console.log('Room and message added to JoinedRooms array');
-            })
-            .catch((err) => {
-              console.error('Error adding room and message to JoinedRooms array:', err);
+        newMessage.save()
+          .then(() => {
+            // Find and emit updated messages
+            roomInfo.Message.find().then((result) => {
+              io.emit("privatemessages", result);
             });
-        } else {
-          // User exists, check if messages match
-          const roomIndex = user.JoinedRooms.findIndex((joinedRoom) => joinedRoom.room.equals(roomInfo._id));
-          if (roomIndex !== -1) {
-            const existingMessages = user.JoinedRooms[roomIndex].messages;
-            const messagesMatch = existingMessages.some((message) =>
-              // Check if messages match here
-              message.sender === sender &&
-              message.room === room && // Convert to ObjectId
-              message.time === moment().format("lll") &&
-              message.msg === msg
-            );
-
-            if (!messagesMatch) {
-              // If messages don't match, update the messages
+  
+            // Update user's messages in JoinedRooms array
+            const roomIndex = user.JoinedRooms.findIndex((joinedRoom) => joinedRoom.room.equals(roomInfo._id));
+            if (roomIndex !== -1) {
               user.JoinedRooms[roomIndex].messages.push({
                 sender: sender,
                 room: room, // Convert to ObjectId
                 time: moment().format("lll"),
                 msg: msg,
               });
-
+  
               user.save()
                 .then(() => {
                   console.log('Messages updated in JoinedRooms array');
@@ -1071,16 +1036,15 @@ const handleJoinRoomID = async ({ username, room, roomID }) => {
                   console.error('Error updating messages in JoinedRooms array:', err);
                 });
             }
-          }
-        }
-      })
-      .catch((err) => {
-        console.error('Error finding user:', err);
-      });
-  })
-  .catch((err) => {
-    console.error("Error saving message to the database:", err);
-  });
+          })
+          .catch((err) => {
+            console.error("Error saving message to the database:", err);
+          });
+      }
+    })
+    .catch((err) => {
+      console.error('Error finding user:', err);
+    });
   
 };
 
@@ -1093,15 +1057,15 @@ const handleJoinRoomID = async ({ username, room, roomID }) => {
         usersInRoom.delete(socketId);
       }
     }
-     const roomUsersList = Array.from(roomUsers.get(room).values()); // Get usernames from the Map
-      io.to(room).emit('privateUsers', {
+     const roomUsersList = Array.from(roomUsers.get(roomID).values()); // Get usernames from the Map
+      io.to(roomID).emit('privateUsers', {
         room,
         users: roomUsersList,
       });
   });
   
   // Event listener for chat messages
-  socket.on('chatMessages', handleChatMessage);
+  socket.on('chatMessages', handlePrivateChatMessage);
 }
   // Event listener for joining a room
   

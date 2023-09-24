@@ -34,7 +34,7 @@ const socket = io({
 
 
 // Log when you join a room using roomNameParam
-socket.emit('joinRoom', { username, room: roomNameParam });
+socket.emit('joinRoom', { username, userID, room: roomNameParam });
 
 
 socket.on('roomUsers', async ({ room, users }) => {
@@ -95,18 +95,18 @@ socket.on('roomUsers', async ({ room, users }) => {
         friendButton.classList.add('add-friend-button');
 
         // Check if the user is not yourself
-        if (userData.name !== currentUsername) {
+        if (userData._id !== userID) {
           // Attach a click event listener to the button
           friendButton.addEventListener('click', () => {
             const username = userData.name; // Get the username associated with this message
-            console.log('Clicked add friend button', userData.Friends.includes(currentUsername));
-            if (userData.Friends.includes(currentUsername)) {
+            console.log('Clicked add friend button', userData.Friends.includes(userID));
+            if (userData.Friends.includes(userID)) {
               console.log('The guy has you as a friend, so you can be your friend Already friends');
               friendButton.textContent = '👤';
               friendButton.disabled = true;
               friendButton.style.cursor = 'default';
             }
-            socket.emit('addFriend', { username }); // Emit the 'addFriend' event with the username
+            socket.emit('addFriend', { sender:currentUsername, userID: userData._id, senderID: userID }); // Emit the 'addFriend' event with the username
           });
         } else {
           // If it's yourself, hide the button
@@ -180,9 +180,9 @@ if (chatForm) {
     }
 
     sender = username;
-
+    senderID = userID;
     // Emit the new message to the server using roomNameParam
-    socket.emit('chatMessage', { room: roomNameParam, msg, sender });
+    socket.emit('chatMessage', { room: NameParam, msg, sender, senderID });
     // Clear input
     e.target.elements.msg.value = '';
     e.target.elements.msg.focus();
@@ -206,14 +206,14 @@ async function fetchUserInfoByName(userName) {
   }
 }
 
-async function addoneiffriend(alreadyfriends, tobefriends) {
+async function addoneiffriend(alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends) {
   try {
-    const response = await fetch(`/addoneiffriend?alreadyfriends=${alreadyfriends}&tobefriends=${tobefriends}`, {
+    const response = await fetch(`/addoneiffriend?alreadyfriendsID=${alreadyfriendsID}&tobefriendsID=${tobefriendsID}&alreadyfriends=${alreadyfriends}&tobefriends=${tobefriends}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ alreadyfriends, tobefriends }),
+      body: JSON.stringify({ alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends }),
     });
 
     if (response.status === 200) {
@@ -231,7 +231,6 @@ async function addoneiffriend(alreadyfriends, tobefriends) {
     return false;
   }
 }
-
 const currentUsername = username;
 
 function outputMessage(message) {
@@ -257,8 +256,8 @@ function outputMessage(message) {
 
   const friendButtonStates = new Map();
 
-  function updateFriendButtonStates(username, state) {
-    friendButtonStates.set(username, state);
+  function updateFriendButtonStates(userID, state) {
+    friendButtonStates.set(userID, state);
     localStorage.setItem('friendButtonStates', JSON.stringify(Array.from(friendButtonStates.entries())));
   }
 
@@ -276,14 +275,14 @@ function outputMessage(message) {
       console.log(userInfo.Friends);
       hoverContainer.textContent = `Username: ${userInfo.name}, Email: ${userInfo.email}`;
   
-      if (userInfo.name !== currentUsername) {
+      if (userInfo._id !== userID) {
   
         function createAddFriendButton(userInfo, message, currentUsername) {
           const addFriendButton = document.createElement('button');
 
           socket.on('FriendButtonState', (response) => {
             if (response.success) {
-              friendButtonStates.set(message.sender, false);
+              friendButtonStates.set(userInfo._id, false);
               addFriendButton.textContent = '+';
               addFriendButton.disabled = false;
               addFriendButton.style.cursor = 'pointer';
@@ -296,7 +295,7 @@ function outputMessage(message) {
       
         // Handle error or no user info found
       
-          if (friendButtonStates.get(message.sender) === true) {
+          if (friendButtonStates.get(userInfo._id) === true) {
             addFriendButton.textContent = 'Sent';
             addFriendButton.style.cursor = 'default';
             addFriendButton.disabled = true;
@@ -305,23 +304,23 @@ function outputMessage(message) {
             addFriendButton.classList.add('add-friend-button');
             addFriendButton.style.cursor = 'pointer';
             addFriendButton.disabled = false;
-            updateFriendButtonStates(message.sender, false);
+            updateFriendButtonStates(userInfo._id, false);
 
            
             
             if (currentuserInfo) {
-              const areFriends = userInfo.Friends.includes(currentUsername) && currentuserInfo.Friends.includes(userInfo.name);
+              const areFriends = userInfo.Friends.includes(currentuserInfo.name) && currentuserInfo.Friends.includes(userInfo.name); //fix
             if (areFriends) { // Check if Friends is an arra
                     addFriendButton.textContent = '👤';
                     addFriendButton.disabled = true;
-                    friendButtonStates.set(message.sender, false);
+                    friendButtonStates.set(userInfo._id, false);
                     addFriendButton.style.cursor = 'default'; }  
                   else {
 
               socket.on("FriendButtonState", (response) => {
                 if (response.success) {
 
-                  updateFriendButtonStates(message.sender, false);
+                  updateFriendButtonStates(userInfo._id, false);
 
                     addFriendButton.textContent = 'Add Friend';
                     addFriendButton.style.cursor = 'pointer';
@@ -329,7 +328,7 @@ function outputMessage(message) {
                     // Save the updated friendButtonStates to localStorage
                   }
                   else {
-                  friendButtonStates.set(message.sender, false);
+                  friendButtonStates.set(userInfo._id, false);
                   addFriendButton.style.cursor = 'default';
                   addFriendButton.disabled = false;
                   console.error('Still no answers')
@@ -342,9 +341,9 @@ function outputMessage(message) {
 
           // Create a button for adding friends
           addFriendButton.addEventListener('click', async () => {
-          
-            const addleftfriend = await addoneiffriend(message.sender, currentUsername);
-            const oneisFriend = userInfo.Friends.includes(currentUsername) || currentuserInfo.Friends.includes(userInfo.name);
+
+            const addleftfriend = await addoneiffriend(userInfo._id, userID, message.sender, currentUsername);
+            const oneisFriend = userInfo.Friends.includes(currentuserInfo.name) || currentuserInfo.Friends.includes(userInfo.name); //fix
           
             console.log(oneisFriend);
             if (oneisFriend) { // Check if Friends is an arra
@@ -352,14 +351,14 @@ function outputMessage(message) {
               if (addleftfriend) {
               addFriendButton.textContent = '👤';
               addFriendButton.disabled = true;
-              friendButtonStates.set(message.sender, false);
+              friendButtonStates.set(userInfo._id, false);
               addFriendButton.style.cursor = 'default';
               
               socket.emit('addFriend', { sender: currentUsername, receiveruserID: userInfo._id, addedfriend: currentUsername, success: true });
               console.log('You are already friends', { sender: currentUsername, receiveruserID:userInfo._id, addedfriend: currentUsername , success: true });
               }} else {
               
-            if (!friendButtonStates.get(message.sender)) {
+            if (!friendButtonStates.get(userInfo._id)) {
               console.log('Clicked add friend button');
               const username = message.sender; // Get the username associated with this message
               
@@ -371,7 +370,7 @@ function outputMessage(message) {
               socket.on('FriendButtonState', (response) => {
                     if (response.success) {
 
-                      updateFriendButtonStates(message.sender, false);
+                      updateFriendButtonStates(userInfo._id, false);
 
                       addFriendButton.textContent = 'Add Friend';
               
@@ -390,7 +389,7 @@ function outputMessage(message) {
                   addFriendButton.textContent = 'Sent';
                   // Update the state to indicate that the button has been clicked for this user
                   
-                  updateFriendButtonStates(message.sender, true);
+                  updateFriendButtonStates(userInfo._id, true);
                  
   
                   console.log('Friend request sent successfully');
@@ -400,7 +399,7 @@ function outputMessage(message) {
                   // If the server indicates an error, enable the button again and handle the error
                   addFriendButton.disabled = false;
   
-                  updateFriendButtonStates(message.sender, false);
+                  updateFriendButtonStates(userInfo._id, false);
 
                   console.error('wait dude:', response.error);
                 }
@@ -419,7 +418,7 @@ function outputMessage(message) {
           // Update hoverContainer with user info
           hoverContainer.textContent = `Username: ${userInfo.name}, Email: ${userInfo.email}`;
         
-          if (userInfo.name !== currentUsername) {
+          if (userInfo._id !== userID) {
             // Create the add friend button and append it to hoverContainer
             const addFriendButton = createAddFriendButton(userInfo, message, currentUsername);
             hoverContainer.appendChild(addFriendButton);

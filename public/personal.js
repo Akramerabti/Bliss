@@ -19,7 +19,6 @@ async function fetchData() {
 
         if (response.ok) {
           const userData = await response.json();
-          console.log("personal.js this is userData:", userData);
 
           roomuserNameElement.innerText = userData.name; // Replace with your actual room name
 
@@ -30,7 +29,6 @@ async function fetchData() {
             // Check if any roomID exists in the userData.JoinedRooms.room
             const roomData = joinedRooms.find(item => item.roomName === NameParam);
 
-
             if (roomData) {
             roomID = roomData.room; // Assign the found roomID
 
@@ -39,7 +37,6 @@ async function fetchData() {
             }
               if (!roomData) {
               try {
-                console.log("personal.js hello");
                 const response = await fetch(`/addonejoinedroom?roomJoiner=${username}&roomName=${NameParam}`);
 
                 if (response.status === 200) {
@@ -92,7 +89,8 @@ async function fetchData() {
                   window.location.href = "/rooms";
                     });
 
-                } else {
+                } else if (response.status === 500) {
+
                   console.error('Error adding user to room:', response.statusText);
 
                   // Display an error message for the failed operation
@@ -210,14 +208,14 @@ socket.on('privateUsers', async ({ room, users }) => {
   const uniqueArray = Array.from(uniqueSet);
 
   // Get the existing user list items
-  const userItems = Array.from(userList.getElementsByTagName('li'));
+  const userItems = Array.from(userLists.getElementsByTagName('li'));
 
   // Create a Set of existing usernames for efficient checking
   const existingUsernames = new Set(userItems.map(item => item.textContent));
 
   console.log(existingUsernames);
 
-  userList.innerHTML = '';
+  userLists.innerHTML = '';
 
   // Loop through the users array and add new users to the list
   for (const user of uniqueArray) {
@@ -262,18 +260,18 @@ socket.on('privateUsers', async ({ room, users }) => {
         friendButton.classList.add('add-friend-button');
 
         // Check if the user is not yourself
-        if (userData.name !== currentUsername) {
+        if (userData._id !== userID) {
           // Attach a click event listener to the button
           friendButton.addEventListener('click', () => {
             const username = userData.name; // Get the username associated with this message
-            console.log('Clicked add friend button', userData.Friends.includes(currentUsername));
-            if (userData.Friends.includes(currentUsername)) {
+            console.log('Clicked add friend button', userData.Friends.includes(userID));
+            if (userData.Friends.includes(userID)) {
               console.log('The guy has you as a friend, so you can be your friend Already friends');
               friendButton.textContent = '👤';
               friendButton.disabled = true;
               friendButton.style.cursor = 'default';
             }
-            socket.emit('addFriend', { username }); // Emit the 'addFriend' event with the username
+            socket.emit('addFriend', { sender:currentUsername, userID: userData._id, senderID: userID }); // Emit the 'addFriend' event with the username
           });
         } else {
           // If it's yourself, hide the button
@@ -290,7 +288,7 @@ socket.on('privateUsers', async ({ room, users }) => {
         li.appendChild(imgContainer);
 
         // Append the list item to the userList
-        userList.appendChild(li);
+        userLists.appendChild(li);
 
         // Add the username to the existingUsernames set
         existingUsernames.add(innerUser);
@@ -321,8 +319,10 @@ socket.on('privateUsers', async ({ room, users }) => {
 
 socket.on('privatemessages', (data) => {
 
+  console.log(data);
+
   // Clear existing messages from the chatMessages element
-  chatMessages.innerHTML = '';
+  chatNameMessages.innerHTML = '';
 
   data.forEach((message) => {
     outputMessage(message);
@@ -330,7 +330,7 @@ socket.on('privatemessages', (data) => {
   
   
   // Scroll down (if you still want to do it here)
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  chatNameMessages.scrollTop = chatNameMessages.scrollHeight;
 });
 
 
@@ -347,9 +347,9 @@ if (chatNameForm) {
     }
 
     sender = username;
-
+    senderID = userID;
     // Emit the new message to the server using roomNameParam
-    socket.emit('chatMessages', { room: NameParam, msg, sender });
+    socket.emit('chatMessages', { room: NameParam, msg, sender, senderID });
     // Clear input
     e.target.elements.msg.value = '';
     e.target.elements.msg.focus();
@@ -373,14 +373,14 @@ async function fetchUserInfoByName(userName) {
   }
 }
 
-async function addoneiffriend(alreadyfriends, tobefriends) {
+async function addoneiffriend(alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends) {
   try {
-    const response = await fetch(`/addoneiffriend?alreadyfriends=${alreadyfriends}&tobefriends=${tobefriends}`, {
+    const response = await fetch(`/addoneiffriend?alreadyfriendsID=${alreadyfriendsID}&tobefriendsID=${tobefriendsID}&alreadyfriends=${alreadyfriends}&tobefriends=${tobefriends}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ alreadyfriends, tobefriends }),
+      body: JSON.stringify({ alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends }),
     });
 
     if (response.status === 200) {
@@ -403,6 +403,7 @@ const currentUsername = username;
 
 function outputMessage(message) {
 
+
   const div = document.createElement('div');
   div.classList.add('message');
 
@@ -424,8 +425,8 @@ function outputMessage(message) {
 
   const friendButtonStates = new Map();
 
-  function updateFriendButtonStates(username, state) {
-    friendButtonStates.set(username, state);
+  function updateFriendButtonStates(userID, state) {
+    friendButtonStates.set(userID, state);
     localStorage.setItem('friendButtonStates', JSON.stringify(Array.from(friendButtonStates.entries())));
   }
 
@@ -440,17 +441,17 @@ function outputMessage(message) {
 
     if (userInfo) {
       // Update hoverContainer with user info
-      console.log(userInfo.Friends);
+      console.log(userInfo.Friends._id);
       hoverContainer.textContent = `Username: ${userInfo.name}, Email: ${userInfo.email}`;
   
-      if (userInfo.name !== currentUsername) {
+      if (userInfo._id !== userID) {
   
         function createAddFriendButton(userInfo, message, currentUsername) {
           const addFriendButton = document.createElement('button');
 
           socket.on('FriendButtonState', (response) => {
             if (response.success) {
-              friendButtonStates.set(message.sender, false);
+              friendButtonStates.set(userInfo._id, false);
               addFriendButton.textContent = '+';
               addFriendButton.disabled = false;
               addFriendButton.style.cursor = 'pointer';
@@ -460,10 +461,10 @@ function outputMessage(message) {
       } 
     });
         
-      
+    
         // Handle error or no user info found
-      
-          if (friendButtonStates.get(message.sender) === true) {
+    
+          if (friendButtonStates.get(userInfo._id) === true) {
             addFriendButton.textContent = 'Sent';
             addFriendButton.style.cursor = 'default';
             addFriendButton.disabled = true;
@@ -472,23 +473,24 @@ function outputMessage(message) {
             addFriendButton.classList.add('add-friend-button');
             addFriendButton.style.cursor = 'pointer';
             addFriendButton.disabled = false;
-            updateFriendButtonStates(message.sender, false);
+            updateFriendButtonStates(userInfo._id, false);
 
            
-            
+            console.log('ssssssssssssssssssss', currentuserInfo);
             if (currentuserInfo) {
-              const areFriends = userInfo.Friends.includes(currentUsername) && currentuserInfo.Friends.includes(userInfo.name);
+              console.log(userInfo.Friends)
+              const areFriends = userInfo.Friends.includes(currentuserInfo.name) && currentuserInfo.Friends.includes(userInfo.name);
             if (areFriends) { // Check if Friends is an arra
                     addFriendButton.textContent = '👤';
                     addFriendButton.disabled = true;
-                    friendButtonStates.set(message.sender, false);
+                    friendButtonStates.set(userInfo._id, false);
                     addFriendButton.style.cursor = 'default'; }  
                   else {
 
               socket.on("FriendButtonState", (response) => {
                 if (response.success) {
 
-                  updateFriendButtonStates(message.sender, false);
+                  updateFriendButtonStates(userInfo._id, false);
 
                     addFriendButton.textContent = 'Add Friend';
                     addFriendButton.style.cursor = 'pointer';
@@ -496,7 +498,7 @@ function outputMessage(message) {
                     // Save the updated friendButtonStates to localStorage
                   }
                   else {
-                  friendButtonStates.set(message.sender, false);
+                  friendButtonStates.set(userInfo._id, false);
                   addFriendButton.style.cursor = 'default';
                   addFriendButton.disabled = false;
                   console.error('Still no answers')
@@ -510,8 +512,8 @@ function outputMessage(message) {
           // Create a button for adding friends
           addFriendButton.addEventListener('click', async () => {
           
-            const addleftfriend = await addoneiffriend(message.sender, currentUsername);
-            const oneisFriend = userInfo.Friends.includes(currentUsername) || currentuserInfo.Friends.includes(userInfo.name);
+            const addleftfriend = await addoneiffriend(userInfo._id, userID, message.sender, currentUsername);
+            const oneisFriend = userInfo.Friends.includes(currentuserInfo.name) || currentuserInfo.Friends.includes(userInfo.name); //fix
           
             console.log(oneisFriend);
             if (oneisFriend) { // Check if Friends is an arra
@@ -519,14 +521,14 @@ function outputMessage(message) {
               if (addleftfriend) {
               addFriendButton.textContent = '👤';
               addFriendButton.disabled = true;
-              friendButtonStates.set(message.sender, false);
+              friendButtonStates.set(userInfo._id, false);
               addFriendButton.style.cursor = 'default';
               
               socket.emit('addFriend', { sender: currentUsername, receiveruserID: userInfo._id, addedfriend: currentUsername, success: true });
               console.log('You are already friends', { sender: currentUsername, receiveruserID:userInfo._id, addedfriend: currentUsername , success: true });
               }} else {
               
-            if (!friendButtonStates.get(message.sender)) {
+            if (!friendButtonStates.get(userInfo._id)) {
               console.log('Clicked add friend button');
               const username = message.sender; // Get the username associated with this message
               
@@ -538,7 +540,7 @@ function outputMessage(message) {
               socket.on('FriendButtonState', (response) => {
                     if (response.success) {
 
-                      updateFriendButtonStates(message.sender, false);
+                      updateFriendButtonStates(userInfo._id, false);
 
                       addFriendButton.textContent = 'Add Friend';
               
@@ -557,7 +559,7 @@ function outputMessage(message) {
                   addFriendButton.textContent = 'Sent';
                   // Update the state to indicate that the button has been clicked for this user
                   
-                  updateFriendButtonStates(message.sender, true);
+                  updateFriendButtonStates(userInfo._id, true);
                  
   
                   console.log('Friend request sent successfully');
@@ -567,7 +569,7 @@ function outputMessage(message) {
                   // If the server indicates an error, enable the button again and handle the error
                   addFriendButton.disabled = false;
   
-                  updateFriendButtonStates(message.sender, false);
+                  updateFriendButtonStates(userInfo._id, false);
 
                   console.error('wait dude:', response.error);
                 }
@@ -586,7 +588,7 @@ function outputMessage(message) {
           // Update hoverContainer with user info
           hoverContainer.textContent = `Username: ${userInfo.name}, Email: ${userInfo.email}`;
         
-          if (userInfo.name !== currentUsername) {
+          if (userInfo._id !== userID) {
             // Create the add friend button and append it to hoverContainer
             const addFriendButton = createAddFriendButton(userInfo, message, currentUsername);
             hoverContainer.appendChild(addFriendButton);
@@ -626,13 +628,13 @@ function outputMessage(message) {
   para.innerText = message.msg;
   div.appendChild(para);
 
-  chatMessages.appendChild(div); // Append the message to the chatMessages element
+  chatNameMessages.appendChild(div); // Append the message to the chatMessages element
 }
 
 
 function outputRoomName(room) {
-  if (roomNameElement) {
-    roomNameElement.innerText = room;
+  if (roomuserNameElement) {
+    roomuserNameElement.innerText = room;
   } else {
     console.error("Element with ID 'room-name' not found in the DOM.");
   }
@@ -647,7 +649,7 @@ function addUserToUserList(user) {
     const li = document.createElement('li');
     li.classList.add('text');
     li.innerText = user;
-    userList.appendChild(li); // Append the <li> element to the userList
+    userLists.appendChild(li); // Append the <li> element to the userList
     users.add(user);
   }
 }
@@ -661,7 +663,7 @@ function outputUsers(username) {
     const uniqueUsernames = [...new Set(username)];
 
     // Clear the userList before adding the updated list of users
-    userList.innerHTML = ''; // Clear the existing list
+    userLists.innerHTML = ''; // Clear the existing list
 
     // Add each unique username to the userList
     uniqueUsernames.forEach(addUserToUserList);

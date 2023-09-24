@@ -57,7 +57,9 @@ const LoginSchema=new mongoose.Schema({ // Creates a login Schema for our databa
         {
           friend: {
             type: String,
-            ref: 'Room',
+          },
+          _id: {
+            type: String,
           },
         },
       ],
