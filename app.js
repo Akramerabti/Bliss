@@ -830,7 +830,7 @@ io.on('connection', socket => {
 
 socket.on('joinRoom', handleJoinRoom);
 
-const loadDatabasePrivateMessages = async (socket, roomID, room, username) => {
+const loadDatabasePrivateMessages = async (socket, roomID, userID) => {
   const personalInfo = rooms.get(roomID);
 
   console.log("ROOM ID", personalInfo.roomID);
@@ -841,7 +841,7 @@ const loadDatabasePrivateMessages = async (socket, roomID, room, username) => {
     console.log("MESSAGE", Message);
 
     // Use the correct query to fetch messages for the specified room and sender
-    const messages = await Message.find({ username});
+    const messages = await Message.find({room: roomID});
 
     // Map the messages to the desired format
     const messageSchemaData = messages.filter((message) => message.room === roomID)
@@ -922,13 +922,13 @@ const handleJoinRoomID = async ({ username, userID, room, roomID }) => {
   addUserToRoom({ username, roomID, socket });
 
   // Load and emit database messages for the user who joined
-  await loadDatabasePrivateMessages(socket, roomID, username);
+  await loadDatabasePrivateMessages(socket, roomID, userID);
 
   // Push the user object into the messages array
   const user = { id: socket.id, userID, room };
   roomInfo.messages.push(user);
 
-  const messageSchemaData = await loadDatabasePrivateMessages(socket, roomID, username); // Retrieve messageSchemaData
+  const messageSchemaData = await loadDatabasePrivateMessages(socket, roomID, userID); // Retrieve messageSchemaData
 
 
   User.findOne({ _id: userID, 'JoinedRooms.room': roomID })
