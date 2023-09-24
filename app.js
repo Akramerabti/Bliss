@@ -20,6 +20,7 @@ const passportSetup = require("./controllers/passport-config");
 const passport = require("passport");
 const expressSession = require('express-session');
 const cors = require('cors');
+const axios = require('axios');
 
 
 app.use(cors({
@@ -514,10 +515,10 @@ io.on('connection', socket => {
 
 
   // Function to load and emit database messages to a user
-  const loadDatabaseMessages = async (socket, room, roomID, username) => {
+  const loadDatabaseMessages = async (socket, room, username) => {
 
     const roomInfo = rooms.get(room);
-    const personalInfo = rooms.get(roomID);
+
 
     if (roomInfo) {
 
@@ -540,25 +541,6 @@ io.on('connection', socket => {
       return messageSchemaData;
 
 }
-
-     if (personalInfo) {
-     const Message = personalInfo.Message;
-
-      const messages = await Message.find({roomID});
-
-     const messageSchemaData = messages.filter((message) => message.sender === username)
-        .map((message) => ({
-        img: message.img,
-        sender: message.sender,
-        room: message.room,
-        time: message.time,
-        msg: message.msg,
-      }));
-
-      socket.emit('messages', messages);
-      return messageSchemaData;
-  }
-
 
 }
 
@@ -701,18 +683,8 @@ io.on('connection', socket => {
       room,
       users: roomUsersList
     });
-
-    
   
     const sentMessages = new Set();
-
-    const sendNotification = (room, sender, message) => {
-      socket.to(room).emit('notifications', {
-        sender,
-        message,
-      });
-    };
-  
   
     // Function to handle chat messages
     const handleChatMessage = ({ msg, sender }) => {
@@ -740,9 +712,6 @@ io.on('connection', socket => {
           });
         }
       
-
-        sendNotification(room, sender, `${sender}: ${msg}`);
-    
 
         User.findOne({ name: sender, 'JoinedRooms.roomName': room })
         .then((user) => {
@@ -861,19 +830,39 @@ io.on('connection', socket => {
 }
 
 
+const loadDatabasePrivateMessages = async (socket, roomID, username) => {
+ 
+  const personalInfo = rooms.get(roomID);
+
+   if (personalInfo) {
+   const Message = personalInfo.Message;
+
+    const messages = await Message.find({roomID});
+
+   const messageSchemaData = messages.filter((message) => message.sender === username)
+      .map((message) => ({
+      img: message.img,
+      sender: message.sender,
+      room: message.room,
+      time: message.time,
+      msg: message.msg,
+    }));
+
+    socket.emit('privatemessages', messages);
+    return messageSchemaData;
+}
+
+}
 
 
-
-
-
-const handleJoinRoomID = async ({ username, room }) => {
+const handleJoinRoomID = async ({ username, room, roomID }) => {
 
   
   // Create or get the room information
-  let roomInfo = rooms.get(room);
+  let roomInfo = rooms.get(roomID);
 
   if (!roomInfo) {
-    const sanitizedRoomName = room ? room.replace(/\s/g, '_') : '';
+    const sanitizedRoomName = roomID ? roomID.replace(/\s/g, '_') : '';
     const roomDB = createDatabaseConnection(sanitizedRoomName);
     const Message = roomDB.model('Message', messageSchema);
 
@@ -894,7 +883,7 @@ const handleJoinRoomID = async ({ username, room }) => {
       });
 
     // Load and emit database messages
-    rooms.set(room, roomInfo)
+    rooms.set(roomID, roomInfo)
 
     //Create the RoomInfo model
     }  const savedRoomInfo = new RoomInfo(roomInfo);
@@ -907,34 +896,34 @@ const handleJoinRoomID = async ({ username, room }) => {
       });
   }
 
-  socket.join(room);
+  socket.join(roomID);
 
   // Function to add a user to roomUsers Map
-  const addUserToRoom = ({ username, room, socket }) => {
+  const addUserToRoom = ({ username, roomID, socket }) => {
     // Check if the room exists in the Map, if not, create it
-    if (!roomUsers.has(room)) {
-      roomUsers.set(room, new Map()); // Use a Map to keep user data separate
+    if (!roomUsers.has(roomID)) {
+      roomUsers.set(roomID, new Map()); // Use a Map to keep user data separate
     }
 
     // Get the user list for the room and add the user
-    const usersInRoom = roomUsers.get(room);
+    const usersInRoom = roomUsers.get(roomID);
     usersInRoom.set(socket.id, username); // Use socket.id as the key
   };
 
   // Call the addUserToRoom function to add the user to roomUsers
-  addUserToRoom({ username, room, socket });
+  addUserToRoom({ username, roomID, socket });
 
   // Load and emit database messages for the user who joined
-  await loadDatabaseMessages(socket, room, username);
+  await loadDatabasePrivateMessages(socket, roomID, username);
 
   // Push the user object into the messages array
   const user = { id: socket.id, username, room };
   roomInfo.messages.push(user);
 
-  const messageSchemaData = await loadDatabaseMessages(socket, room, username); // Retrieve messageSchemaData
+  const messageSchemaData = await loadDatabasePrivateMessages(socket, roomID, username); // Retrieve messageSchemaData
 
 
-  User.findOne({ name: username, 'JoinedRooms.roomName': roomInfo.roomName })
+  User.findOne({ name: username, 'JoinedRooms.room': roomID })
   .then((user) => {
     if (!user) {
       // User is not in the room's JoinedRooms array, so add it
@@ -943,7 +932,7 @@ const handleJoinRoomID = async ({ username, room }) => {
         {
           $addToSet: {
             JoinedRooms: {
-              room: roomInfo._id,
+              room: roomID,
               roomName: roomInfo.roomName,
               messages: messageSchemaData,
             },
@@ -955,7 +944,7 @@ const handleJoinRoomID = async ({ username, room }) => {
           console.log('Room and message added to JoinedRooms array');
         })
         .catch((err) => {
-          console.error('Error adding room and message to JoinedRooms array:', err);
+          console.error('Error adding room and message to JoinedRooms array (probably already in there): ', err);
         });
     }else {
       // User exists, check if messages match
@@ -990,33 +979,14 @@ const handleJoinRoomID = async ({ username, room }) => {
     console.error('Error finding user:', err);
   });
 
- const Messaging = roomInfo.Message;
-    const newMessage = new roomInfo.Message({ room, msg:`${username} has joined the room `, sender: 'Captain Collaboard', time: moment().format("lll") });
-
-    newMessage.save().then(() => {
-      Messaging.find().then((result) => {
-        io.emit("messages", result);
-      });
-    });
-
   // Emit room users list
-  const roomUsersList = Array.from(roomUsers.get(room).values()); // Get usernames from the Map
-  io.to(room).emit('roomUsers', {
+  const roomUsersList = Array.from(roomUsers.get(roomID).values()); // Get usernames from the Map
+  io.to(roomID).emit('privateUsers', {
     room,
     users: roomUsersList
   });
 
-  
-
   const sentMessages = new Set();
-
-  const sendNotification = (room, sender, message) => {
-    socket.to(room).emit('notifications', {
-      sender,
-      message,
-    });
-  };
-
 
   // Function to handle chat messages
   const handleChatMessage = ({ msg, sender }) => {
@@ -1024,14 +994,14 @@ const handleJoinRoomID = async ({ username, room }) => {
       sentMessages.add(socket.id);
     }
 
-    User.findOne({ name: sender, 'JoinedRooms.roomName': room })
+    User.findOne({ name: sender, 'JoinedRooms.room': roomID })
     .then((user) => {
       if (user && user.thumbnail) {
         const img = user.thumbnail;
 
         const newMessage = new roomInfo.Message({
           img: img,
-          room,
+          room: room,
           msg,
           sender,
           time: moment().format("lll"),
@@ -1039,16 +1009,13 @@ const handleJoinRoomID = async ({ username, room }) => {
         newMessage.save().then(() => {
           // Find and emit updated messages
           roomInfo.Message.find().then((result) => {
-            io.emit("messages", result);
+            io.emit("privatemessages", result);
           });
         });
       }
-    
-
-      sendNotification(room, sender, `${sender}: ${msg}`);
   
 
-      User.findOne({ name: sender, 'JoinedRooms.roomName': room })
+      User.findOne({ name: sender, 'JoinedRooms.room': roomID })
       .then((user) => {
         if (!user) {
           // User is not in the room's JoinedRooms array, so add it
@@ -1057,7 +1024,7 @@ const handleJoinRoomID = async ({ username, room }) => {
             {
               $addToSet: {
                 JoinedRooms: {
-                  room: roomInfo._id, // Convert to ObjectId
+                  room: roomID, // Convert to ObjectId
                   roomName: room,
                   messages: {
                     sender: sender,
@@ -1119,49 +1086,24 @@ const handleJoinRoomID = async ({ username, room }) => {
   
 };
 
-  socket.on('userLeave', (data) => {
-    const { room, socketId } = data;
+  socket.on('userPrivateLeave', (data) => {
+    const { room, socketId, roomID} = data;
     // Remove the user from the roomUsers Map
-    if (roomUsers.has(room)) {
-      const usersInRoom = roomUsers.get(room);
+    if (roomUsers.has(roomID)) {
+      const usersInRoom = roomUsers.get(roomID);
       if (usersInRoom.has(socketId)) {
         usersInRoom.delete(socketId);
       }
     }
-  
-    const leaveMessage = `${username} has left the room`;
-  
-    // Emit the leave message to the room
-    io.to(room).emit('chatMessage', { room, msg: leaveMessage, sender: 'Captain Collaboard' });
-  
-    // Save the leave message to the database (assuming the 'Message' model exists)
-    const Message = roomInfo.Message;
-    const newMessage = new Message({
-      room,
-      msg: leaveMessage,
-      sender: 'Captain Collaboard',
-      time: moment().format('lll')
-    });
-  
-    newMessage.save().then(() => {
-      // Find and emit updated messages
-      Message.find().then((result) => {
-        io.emit('messages', result);
-        // Assuming 'loadDatabaseMessages' handles loading messages for a specific room
-        loadDatabaseMessages(io, room);
-      });
-  
-      // Emit the updated roomUsers set to the room
-      const roomUsersList = Array.from(roomUsers.get(room).values()); // Get usernames from the Map
-      io.to(room).emit('roomUsers', {
+     const roomUsersList = Array.from(roomUsers.get(room).values()); // Get usernames from the Map
+      io.to(room).emit('privateUsers', {
         room,
         users: roomUsersList,
       });
-    });
   });
   
   // Event listener for chat messages
-  socket.on('chatMessage', handleChatMessage);
+  socket.on('chatMessages', handleChatMessage);
 }
   // Event listener for joining a room
   socket.on('joinRoom', handleJoinRoom);
