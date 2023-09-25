@@ -3,8 +3,8 @@
 <div class="inner-dot"></div>
 <div class="Chat Bot">
   <button  class="btn" id="bot-formbutton">🤖</button>
-  <form action="/predict" id="bot-entering" method="POST">
-    <div class="form-control" >
+  <form  id="bot-entering">
+    <div class="former-control" >
       <label for ="group"> Recommended Groups </label>
        <input
         type = "text"
@@ -13,9 +13,7 @@
         placeholder="Enter a url"
         required
         />
-        <div class="flex">
-          <button class="error-close-button" onclick="closeError()">X</button>
-        </div>
+    
         <div class="flex">
           <button type= "submit" class="btn">+</button>
         </div>
@@ -43,7 +41,7 @@ let isPersonalFormVisible = false;
       // If the personal form is hidden, show it
       botForm.style.display = "block";
 
-      document.getElementById('bot-entering').addEventListener('submit', async function (e) {
+document.getElementById('bot-entering').addEventListener('submit', async function (e) {
   e.preventDefault(); // Prevent the default form submission
   
   // Get the form data

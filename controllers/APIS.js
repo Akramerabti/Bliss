@@ -10,6 +10,7 @@ app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({extended: true}));
 const session = require('express-session');
 const mongoose = require('mongoose');
+const axios = require('axios');
 
 
 //Here, function for errors when logging in
@@ -419,9 +420,9 @@ module.exports.addonejoinedroom = async (req, res) => {
 
 module.exports.Machine = async (req, res) => {
   const { formData } = req.body;
- 
+  console.log(formData, "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss");
   // Make a POST request using Axios
-  axios.post('https://127.0.0.1:8000/predict', formData)
+  axios.post('/https://127.0.0.1:8000/predict', formData)
     .then(response => {
       // Handle the prediction response here
       console.log(response.data.prediction);

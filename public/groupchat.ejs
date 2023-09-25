@@ -35,11 +35,24 @@
           <button class="error-close-button" onclick="closeError()">X</button>
         </div>
       </div>
+
+      <div class="group-details">
+        <div class="qr-code">
+          <img id="qrcode-image" alt="QR Code">
+        </div>
+        <div class="group-url">
+          <p>Group URL:</p>
+          <input type="text" style="color: black;" id="groupURL" readonly>
+          <button id="copyButton">Copy</button>
+        </div>
+      </div>
+
 <script>
     // Set a JavaScript variable with the user.name value
     const username = "<%= user.name %>";
     const userID = "<%= user._id %>";
   </script>
+<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.11.2/qs.min.js" integrity="sha512-vCegEXqPUYpZsTGz2lk0jaQ1psxtFeniVJACAXhMVxuoYa/N4nZkjoVFOxLwP7uGeQOoemiz7DQrIpRTj4IBPw==" crossorigin="anonymous"></script>
 <script type="module" src="./partials/Notifs.js"></script> 
