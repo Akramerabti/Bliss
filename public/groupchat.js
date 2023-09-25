@@ -516,7 +516,19 @@ leavingButton.addEventListener('click', async (e) => {
   window.location.href = "/rooms";
 });
 } if (!groupIDParam){
-
+  
+  const params = new URLSearchParams(window.location.search);
+  function generateGroupId() {
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    return array[0].toString(16);
+  }
+  
+  const groupId = generateGroupId();
+  console.log(groupId); // Outputs a random ID
+  params.set('GroupID', groupId);
+  const newUrl = `${window.location.pathname}?${params.toString()}`;
+  window.location.href = newUrl;
   console.log('Setting up group chat for group ID:', groupIDParam);
 }
 

@@ -1,12 +1,68 @@
-<footer>Copyright 2022 </footer>
+
 <div class="cursor"></div>
 <div class="inner-dot"></div>
+<div class="Chat Bot">
+  <button  class="btn" id="bot-formbutton">🤖</button>
+  <form action="/predict" id="bot-entering" method="POST">
+    <div class="form-control" >
+      <label for ="group"> Recommended Groups </label>
+       <input
+        type = "text"
+        name = "GroupID"
+        id="GroupID"
+        placeholder="Enter a url"
+        required
+        />
+        <div class="flex">
+          <button class="error-close-button" onclick="closeError()">X</button>
+        </div>
+        <div class="flex">
+          <button type= "submit" class="btn">+</button>
+        </div>
+    </div>
+  </form >
+</div>
+<footer>Copyright 2022 </footer>
 </body>
 <script src="/socket.io/socket.io.js"></script>
 <script >
  
 const cursor = document.querySelector('.cursor');
 const innerDot = document.querySelector('.inner-dot');
+const botButton = document.getElementById("bot-formbutton");
+const botForm = document.getElementById("bot-entering");
+
+let isPersonalFormVisible = false;
+  let isPublicFormVisible = false;
+
+  botButton.addEventListener("click", () => {
+    if (isPersonalFormVisible) {
+      // If the personal form is visible, hide it
+      botForm.style.display = "none";
+    } else {
+      // If the personal form is hidden, show it
+      botForm.style.display = "block";
+
+      document.getElementById('bot-entering').addEventListener('submit', function (e) {
+  e.preventDefault(); // Prevent the default form submission
+  
+  // Get the form data
+  const formData = new FormData(this);
+
+  // Make a POST request using Axios
+  axios.post('https://127.0.0.1:8000/predict', formData)
+    .then(response => {
+      // Handle the prediction response here
+      console.log(response.data.prediction);
+    })
+    .catch(error => {
+      // Handle any errors here
+      console.error(error);
+    });
+});
+
+    }
+  })
 
 document.addEventListener('mousemove', (e) => {
   setTimeout(() => {

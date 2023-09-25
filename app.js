@@ -20,7 +20,6 @@ const passportSetup = require("./controllers/passport-config");
 const passport = require("passport");
 const expressSession = require('express-session');
 const cors = require('cors');
-const axios = require('axios');
 
 
 app.use(cors({
@@ -93,10 +92,10 @@ app.get("/rooms", requireAuth,checkUser, (req, res) => {
   res.render(path.join(__dirname, 'public', 'rooms'), { user });
 });
 
-app.get("/personalchat", requireAuth,checkUser, (req, res) => {
+app.get("/groupchat", requireAuth,checkUser, (req, res) => {
   const user = res.locals.user;
 
-  res.render(path.join(__dirname, 'public', 'personalchat'), { user });
+  res.render(path.join(__dirname, 'public', 'groupchat'), { user });
 });
 
 app.get("/personal", requireAuth, checkUser, (req, res) => {

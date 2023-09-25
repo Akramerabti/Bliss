@@ -14,6 +14,8 @@ const passport = require("passport");
 const passportController = require('../controllers/passport-config')
 const jwt = require("jsonwebtoken")
 const User = require("../models/User")
+const axios = require('axios');
+
 
 routing.get('/signup', authController.signup_get) 
 

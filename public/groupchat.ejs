@@ -1,34 +1,49 @@
 <%- include('partials/header'); -%>
-    <div class="join-container">
-      <header class="join-header">
-        <h1> Collababoard!</h1>
-      </header>
-      <main class="join-main">
-        <form action="/groupchat">
-          <div class="form-control">
-            <label for ="personal"> Public collaboardation:</label>
-             <input
-              type = "text"
-              name = "name"
-              id="room"
-              placeholder="Enter User's name"
-              required
-              />
-              <div class="flex">
-                <button type="submit" class="btn">Chat to specific user</button>
-              </div>
+<body class="chat">
+<div class="chat-container">
+    <header class = "chat-header">
+        <h1><i class="fas fa-comments"></i> Collaboardation </h1>
+        <button href= "/rooms" class="btn" id="group-leaving-button">Leave Room</button>
+    </header>
+        <main class="chat-main">
+          <div class="chat-sidebar">
+            <h2 id="room-name"></h2>
+            <h3><i class="fas fa-user"></i> Online</h3>
+            <ul id="users">
+            </ul>
           </div>
-        </form>
-      </main>
-    </div>
-   <script>
+          <div class="chat-group-messages" class="chat-messages">
+          </div>
+        </main>
+        
+        <div class="chat-group-form-container">
+          <form id="chat-group-form">
+            <input
+              id="msg"
+              type="text"
+              placeholder="Type a Message"
+              required
+              autocomplete="off"
+            />
+            <button class="btn-plane"><i class="fas fa-paper-plane"></i> </button>
+          </form>
+        </div>
+      </div>
+      <div class="error" id="error-container">
+        <div class="error-content">
+          <span class="error-message">An error occurred: Something went wrong.</span>
+          <button class="error-close-button" onclick="closeError()">X</button>
+        </div>
+      </div>
+<script>
     // Set a JavaScript variable with the user.name value
     const username = "<%= user.name %>";
     const userID = "<%= user._id %>";
   </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.11.2/qs.min.js" integrity="sha512-vCegEXqPUYpZsTGz2lk0jaQ1psxtFeniVJACAXhMVxuoYa/N4nZkjoVFOxLwP7uGeQOoemiz7DQrIpRTj4IBPw==" crossorigin="anonymous"></script>
+<script type="module" src="./partials/Notifs.js"></script> 
 <script src="groupchat.js"></script> 
-
-  <script type="module" src="./partials/Notifs.js"></script>
-  <%- include('partials/footer'); -%>
+<footer>Copyright 2022 </footer>
+</body>
+<%- include('partials/footer'); -%>
