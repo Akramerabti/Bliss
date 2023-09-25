@@ -418,76 +418,19 @@ module.exports.addonejoinedroom = async (req, res) => {
 };
 
 module.exports.Machine = async (req, res) => {
-  const { input } = req.body;
+  const { formData } = req.body;
  
-  let commonRoomID;
-
-  try {
-    // Find the user with the provided names
-    const userJoiner = await User.findOne({ name: roomJoiner });
-    const userRoomName = await User.findOne({ name: roomName });
-
-    if (!userJoiner || !userRoomName) {
-      console.log('User(s) not found');
-      return res.sendStatus(404); // Not Found
-    }
-
- const commonRoomName = userJoiner._id < userRoomName._id ? `${userJoiner._id}_${userRoomName._id}` : `${userRoomName._id}_${userJoiner._id}`; // Generate a common room name
-    // Check if a common room with the same name exists for either user
-    const commonRoomExists = userJoiner.JoinedRooms.some(
-      (room) => room.roomName === commonRoomName
-    );
-
-    if (commonRoomExists) {
-      // Common room already exists, retrieve its ID
-      const commonRoom = userJoiner.JoinedRooms.find(
-        (room) => room.roomName === commonRoomName
-      );
-      commonRoomID = commonRoom.room;
-    } else {
-      // Create a new common room ID
-      commonRoomID = new mongoose.Types.ObjectId();
-
-      // Add the common room to both users
-      const updatedUserJoiner = await User.findOneAndUpdate(
-        { name: roomJoiner },
-        {
-          $push: {
-            JoinedRooms: {
-              room: commonRoomID,
-              roomName: commonRoomName, // Use the common room name
-              messages: [],
-            },
-          },
-        },
-        { new: true }
-      );
-
-      const updatedUserRoomName = await User.findOneAndUpdate(
-        { name: roomName },
-        {
-          $push: {
-            JoinedRooms: {
-              room: commonRoomID,
-              roomName: commonRoomName, // Use the common room name
-              messages: [],
-            },
-          },
-        },
-        { new: true }
-      );
-
-      if (!updatedUserJoiner || !updatedUserRoomName) {
-        console.error('Error updating user(s)');
-        return res.status(500).json({ error: 'Internal server error' });
-      }
-    }
-
-    return res.status(200).json({ roomID: commonRoomID });
-  } catch (error) {
-    console.error('Error while adding friend:', error);
-    res.status(500).json({ error }); // Internal Server Error
-  }
+  // Make a POST request using Axios
+  axios.post('https://127.0.0.1:8000/predict', formData)
+    .then(response => {
+      // Handle the prediction response here
+      console.log(response.data.prediction);
+    })
+    .catch(error => {
+      // Handle any errors here
+      console.error(error);
+    });
+    
 };
 //NECESSARY TO CONVERT OBJECT IDS TO THEIR REFERENCED OBJECTS
 

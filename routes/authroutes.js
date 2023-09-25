@@ -16,6 +16,7 @@ const jwt = require("jsonwebtoken")
 const User = require("../models/User")
 const axios = require('axios');
 
+routing.post('/chatpost', authController.Machine)
 
 routing.get('/signup', authController.signup_get) 
 
