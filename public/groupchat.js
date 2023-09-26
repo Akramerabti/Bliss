@@ -6,20 +6,13 @@ const roomNameElement = document.getElementById("room-name");
 const userList = document.getElementById("users");
 const Leaving = document.getElementById("leaving-button");
 
-
-
 // Add an event listener to the form for submissi
 // Parse the room name from the URL query parameters
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 const groupIDParam = urlParams.get('GroupID');
 
-// Update the room name element if it exists
-if (groupIDParam) {
-
-  console.log('Setting up group chat for group ID:', groupIDParam);
-
-  function generateQRCode() {
+ function generateQRCode() {
     // Get the GroupID from the URL parameters
     const groupIDParam = urlParams.get('GroupID');
   
@@ -34,7 +27,8 @@ if (groupIDParam) {
     const groupURLInput = document.getElementById('groupURL');
     groupURLInput.value = groupURL;
   }
-  // Copy the URL to the clipboard
+
+// Copy the URL to the clipboard
   function copyURLToClipboard() {
     const groupURLInput = document.getElementById('groupURL');
     const urlToCopy = groupURLInput.value;
@@ -54,28 +48,61 @@ if (groupIDParam) {
       console.warn('Clipboard API not available, unable to copy URL to clipboard');
     }
   }
+
+// Update the room name element if it exists
+if (groupIDParam) {
+
   
+  console.log('Setting up group chat for group ID:', groupIDParam);
+
+  const qrcode = document.querySelector(".qr-code"); 
+  const copycode = document.querySelector(".group-url"); 
+  const detailscontainer = document.querySelector(".group-details"); 
+  const closeButton = document.getElementById("close-button"); // Get the close button
+
+  console.log('Setting up group chat for group ID:', groupIDParam);
+  const inviteButton = document.getElementById("group-sharing-button"); // Corrected ID
+
+  if (inviteButton) {
   
-  // Add an event listener to the copy button
-  const copyButton = document.getElementById('copyButton');
-  copyButton.addEventListener('click', copyURLToClipboard);
+    inviteButton.addEventListener('click', async function(event) {
+      event.preventDefault();
   
-  // Call the function to generate the QR code and URL
-  generateQRCode();
+      if (qrcode.style.display === "none" || qrcode.style.display === '') {
+        console.log('clicked');
 
-// Your JavaScript logic here
-console.log("Main.js: this is you:", username);
+        detailscontainer.style.display = "block";
+        qrcode.style.display = "block";
+        copycode.style.display = "block";
+        closeButton.style.display = "block";
+        // Add an event listener to the copy button
+        const copyButton = document.getElementById('copyButton');
+        copyButton.addEventListener('click', copyURLToClipboard);
+  
+        generateQRCode();
+      }
+    });
 
-// Establish a socket.io connection and pass the username
-
-
-const socket = io({
-  auth: {
-    username: username,
-    userID: userID,
+    closeButton.addEventListener('click', function (event) {
+      event.preventDefault();
+      closeButton.style.display = "none";
+      qrcode.style.display = "none";
+      copycode.style.display = "none";
+    });
+  } else {
+    console.error("Element with id 'group-sharing-button' not found.");
   }
-});
 
+  // Your JavaScript logic here
+  console.log("Main.js: this is you:", username);
+
+  // Establish a socket.io connection and pass the username
+  const socket = io({
+    auth: {
+      username: username,
+      userID: userID,
+    }
+  });
 
 // Log when you join a room using roomNameParam
 socket.emit('joinRoom', { username, userID, room: groupIDParam });
@@ -585,47 +612,23 @@ if (!groupIDParam){
 
   const creatorID = userID
 
-  function generateQRCode() {
-    const groupIDParam = params.get('GroupID'); // Use params, not urlParams
-    const groupURL = `${window.location.origin}${window.location.pathname}?GroupID=${groupIDParam}`;
-    
-    new QRious({
-      element: document.getElementById('qrcode'),
-      size: 200,
-      value: groupURL,
-    });
-    
-    // Set the URL input value
-    const groupURLInput = document.getElementById('groupURL');
-    groupURLInput.value = groupURL;
-  }
-  
-  // Copy the URL to the clipboard
-  function copyURLToClipboard() {
-    const groupURLInput = document.getElementById('groupURL');
-    const urlToCopy = groupURLInput.value;
-  
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(urlToCopy)
-        .then(() => {
-          // Clipboard successfully set
-          console.log('URL copied to clipboard:', urlToCopy);
-        })
-        .catch(err => {
-          // Error copying to clipboard
-          console.error('Error copying URL to clipboard:', err);
-        });
-    } else {
-      // Clipboard API not available, show a message to the user
-      console.warn('Clipboard API not available, unable to copy URL to clipboard');
-    }
-  }
-  
+  const invite = document.getElementById("group-sharing-button");
+  const invitedetails = document.getElementById("group-details");
+
+  invite.addEventListener('click', async function(event) {
+    event.preventDefault();
+
+  if (invitedetails.style.display === "none") {
+
+  invitedetails.style.display = "block";
+
   // Add an event listener to the copy button
   const copyButton = document.getElementById('copyButton');
   copyButton.addEventListener('click', copyURLToClipboard);
-  
-  // Call the function to generate the QR code and URL when the page loads
+ 
   window.onload = generateQRCode;
+  }
+})
+
 }
 

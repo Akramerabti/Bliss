@@ -266,31 +266,40 @@ a {
 /* Chat Page */
 
 .chat-container {
-	max-width: 1100px;
-	background: #a0a0a0;
-	margin: 30px auto;
-	overflow: hidden;
+	max-width:max-content;
+  max-height: max-content;
+	background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
+  margin-bottom: -100px;
+  display: inline;
+  position: relative;
+  top: -100px;
 
 }
 
 .chat-header {
-	background: var(--dark-color-a);
+	background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
 	color: #fff;
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;
-	padding: 15px;
 	display: flex;
-	align-items: center;
 	justify-content: space-between;
+
 }
 
 .chat-main {
 	display: grid;
-	grid-template-columns: 1fr 3fr;
+	grid-template-columns: 1fr 7fr;
+  background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
 }
 
 .chat-messages {
-	padding: 30px;
+	padding: auto;
 	max-height: 500px;
 	overflow-y: scroll;
     background-image: url('../img/chat-bg.jpg');
@@ -300,19 +309,22 @@ a {
 
 .chat-messages .message {
 	padding: 10px;
-	margin-bottom: 15px;
-	background-color: rgb(145, 145, 145);
+	
+	background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
 	border-radius: 5px;
 }
 
 .messageimg {
   float: left;
   max-width: 100%; /* Ensure images do not exceed the container width */
-  max-height: 50px; /* Limit the image height to prevent excessive expansion */
-  margin-top: 1px; /* Add space between messages and images */
+  max-height: 70px; /* Limit the image height to prevent excessive expansion */
+  margin-top: -7px; /* Add space between messages and images */
   border-radius: 50%;
-  margin-left: 1px;
+  margin-left: -5px;
   align-items: flex-start;
+  padding: 10px;
 }
 
 .chat-messages .message .meta {
@@ -320,17 +332,19 @@ a {
 	font-weight: bold;
 	color: white;
 	opacity: 0.7;
+
 	margin-bottom: 7px;
     display: flex;
 }
 
 .chat-messages .message .meta span {
 	color: #ffffff;
-    margin-left: auto;
+  margin-left: auto;
 }
 
 .chat-name-messages {
-	padding: 30px;
+  padding: auto;
+  width:100%;
 	max-height: 500px;
 	overflow-y: scroll;
     background-image: url('../img/chat-bg.jpg');
@@ -340,43 +354,45 @@ a {
 
 .chat-name-messages .message {
 	padding: 10px;
-	margin-bottom: 15px;
-	background-color: rgb(145, 145, 145);
+	margin-bottom: auto;
+	background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
 	border-radius: 5px;
 }
 
-.chat-name-messages .messageimg {
-	
-	margin-bottom: 15px;
-	background-color: rgb(145, 145, 145);
-	border-radius: 5px;
-}
 .chat-name-messages .message .meta {
 	font-size: 15px;
 	font-weight: bold;
 	color: white;
 	opacity: 0.7;
+  
 	margin-bottom: 7px;
     display: flex;
 }
 
 .chat-name-messages .message .meta span {
-	color: #ffffff;
-    margin-left: auto;
+  color: #ffffff;
+  margin-left: auto;
+  padding: 5px;
 }
+
 
 .chat-form-container {
 	padding: 5px 10px;
 	background-color: var(--dark-color-b);
-  margin-block: 1px;
+  margin-block: 10px;
+  height: max-content;
+
 }
 
 .chat-form-container form {
-	display: flex;
+	display: inline-block;
   padding: 5px 10px;
   padding-block: 2px;
   margin-left: 280px;
   width: 70%; /* Set width to 100% */
+  height: max-content;
 }
 
 .chat-form-container input[type='text'] {
@@ -387,21 +403,27 @@ a {
     height: 20px;
     flex: 1;
     outline: none;
-
+    height: max-content;
 }
 
 .chat-name-form-container {
 	padding: 5px 10px;
 	background-color: var(--dark-color-b);
   margin-block: 1px;
+  width: 100%;
+  height: max-content;
+  margin-bottom: auto;
 }
 
 .chat-name-form-container form {
-	display: flex;
+	display: grid;
+  grid-template-columns: auto;
   padding: 5px 10px;
-  padding-block: 2px;
+  padding-block: -200px;
   margin-left: 280px;
+  margin-bottom: 200px ;
   width: 70%; /* Set width to 100% */
+  height: max-content;
 }
 
 .chat-name-form-container input[type='text'] {
@@ -412,6 +434,7 @@ a {
     height: 20px;
     flex: 1;
     outline: none;
+    height: max-content;
 
 }
 
@@ -500,7 +523,7 @@ i.fas.fa-paper-plane{
     display: grid;
     place-content: center;
 }
-@media (max-width: 700px) {
+@media (max-width: 768px) {
 	.chat-main {
 		display: block;
 	}
@@ -814,16 +837,13 @@ i.fas.fa-paper-plane{
 }
 
 .roomuserimg {
+ 
   float: left;
   max-width: 100%; /* Ensure images do not exceed the container width */
-  max-height: 60px; /* Limit the image height to prevent excessive expansion */
-  margin-bottom: 200px;
-  margin-top: -13px;
+  max-height: 70px; /* Limit the image height to prevent excessive expansion */
   border-radius: 50%;
-  margin-left: -20px;
   align-items: flex-start;
   padding: 5px;
-  position: inherit;
 }
 
 .roomuserimg:hover {
@@ -833,6 +853,7 @@ i.fas.fa-paper-plane{
     display: block;
     position: relative;
     z-index: 1;
+    
   }
 }
 
@@ -840,22 +861,31 @@ i.fas.fa-paper-plane{
   opacity: 1;
   max-width: 1000px;
   max-height: 1000px;
-  position: absolute; /* Position it relative to the chat-sidebar */
+  position: relative; /* Position it relative to the chat-sidebar */
   z-index: 1; /* Ensure it appears above other elements in the sidebar */
-  transform: translateX(-100%); /* Position it to the left of the roomuserimg */
-  display: block;
+  
+  display: flex;
+  align-items: flex-start;
 }
 
+.roomuserimg, .chat-sidebar {
+  padding: 10px 0;
+    border-top: .7px solid;
+    border-bottom: .7px solid;
+}
 
 /* Style for the user info container (hidden by default) */
 .user-info-container {
   display: none;
-  position: fixed;
+  position: relative;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
+  background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  border-radius: 20px;
+  animation: gradientAnimation 20s ease infinite;
   color: #fff; /* Text color for the container */
   z-index: 9999; /* Ensure it's above other elements */
   text-align: center; /* Center text content vertically and horizontally */
@@ -872,15 +902,21 @@ i.fas.fa-paper-plane{
 }
 
 .chat-sidebar {
-	background: var(--dark-color-b);
-	color: #fff;
-	padding: 10px 20px 60px;
+	background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
+	color: #000000;
+	padding: 10px 20px;
 	overflow-y: scroll;
+  width: fit-content;
+  position: relative;
 }
 
 .chat-sidebar h2 {
 	font-size: 20px;
-	background: rgba(0, 0, 0, 0.1);
+	background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
 	padding: 10px;
 	margin-bottom: 20px;
 }
@@ -897,6 +933,9 @@ i.fas.fa-paper-plane{
 
 .chat-sidebar::-webkit-scrollbar {
     width: 1em;
+    background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
 }
 
  
@@ -906,7 +945,9 @@ i.fas.fa-paper-plane{
 }
  
 .chat-sidebar::-webkit-scrollbar-thumb {
-  background-color: #3498db; /* Set your desired color */
+  background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
   border-radius: 5px; /* Add a rounded shape to the thumb */
   border: 2px solid #fff; /* Add a border around the thumb */
 }
@@ -1201,8 +1242,8 @@ form:active {
 }
 
 :root {
-  --scrollbar-start-color: #6b6b6b; /* Start color of the gradient */
-  --scrollbar-end-color: #474747; /* End color of the gradient */
+  --scrollbar-start-color: #21132726; /* Start color of the gradient */
+  --scrollbar-end-color: #47474744; /* End color of the gradient */
 }
 
 /* Keyframes animation for the gradient effect */
@@ -1296,4 +1337,16 @@ form:active {
   bottom: -80px;
   width: 50%;
   left: 60px;
+}
+
+.group-details{
+  display: none;
+  position: absolute;
+  bottom: 30px;
+  background-color: #000;
+}
+
+.group-info-btn{
+  position: absolute;
+  bottom: 30px;
 }
