@@ -1279,3 +1279,21 @@ form:active {
   right: 10px;
   color: #333;
 }
+
+.Chat-Bot{
+  position:absolute;
+  height: 0px;
+  display: inline-block;
+  bottom: 100px;
+  width: 100%;
+  left: 900px;
+}
+
+#bot-entering{
+  position:absolute;
+  height: fit-content;
+  display: none;
+  bottom: -80px;
+  width: 50%;
+  left: 60px;
+}

@@ -97,36 +97,40 @@ socket.on('userOnlineStatus', async ({ status, notificationCount }) => {
 
 
   console.log('Received notification count FROM ONLINE:', notificationCount);
-  document.querySelector('.notif-icon-img').addEventListener('click', async function(event) {
+  const notificationsContent = document.getElementById('notifications-container');
+  const notifIconImg = document.querySelector('.notif-icon-img');
+  
+  notifIconImg.addEventListener('click', async function(event) {
     event.preventDefault();
+
+    const span = notificationsContent.querySelector('span');
+  if (span && span.textContent.trim() !== '') {
   
-    let latestNotificationCount; // Declare it here
-  
-    try {
+    if (notificationsContent.style.display === 'none' || notificationsContent.style.display === '') {
       // Fetch the latest notification count
-      const residue = await fetch(`/clientnotifications?_id=${userID}`);
-      const data = await residue.json();
+      try {
+        const residue = await fetch(`/clientnotifications?_id=${userID}`);
+        const data = await residue.json();
   
-      // Check if the response contains the latest count
-      if (Array.isArray(data) && data.length > 0) {
-        latestNotificationCount = data.length; // Assign the value here
-  
-        // Call updateNotifcount with the latest count
-        updateNotifcount(latestNotificationCount);
-      } else {
-        console.log('No notifications available');
+        if (Array.isArray(data) && data.length > 0) {
+          const latestNotificationCount = data.length;
+          updateNotifcount(latestNotificationCount);
+        } else {
+          console.log('No notifications available');
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
       }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
+  
+      // Show notifications container
+      notificationsContent.style.display = 'block';
+      notificationsContent.classList.add('active');
+    } else {
+      // Hide notifications container
+      notificationsContent.style.display = 'none';
+      notificationsContent.classList.remove('active');
     }
-  
-    // Move this code outside of the try block
-    const notificationsContent = document.getElementById('notifications-container');
-  
-    if (latestNotificationCount > 0) {
-      if (!notificationsContent.classList.contains('active')) {
-        notificationsContent.classList.add('active');
-      }
+  }
   
       try {
         const res = await fetch(`/clientnotifications?_id=${userID}`);
@@ -390,11 +394,8 @@ socket.on('userOnlineStatus', async ({ status, notificationCount }) => {
     } catch (err) {
       console.log(err);
     }
-  } else {
-   if (notificationsContent) {
-    notificationsContent.classList.remove('active');
-  }}
-    })  
+  } 
+    )  
   });
 
 

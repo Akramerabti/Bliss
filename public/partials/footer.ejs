@@ -1,10 +1,10 @@
 
 <div class="cursor"></div>
 <div class="inner-dot"></div>
-<div class="Chat Bot">
+<div class="Chat-Bot">
   <button  class="btn" id="bot-formbutton">🤖</button>
   <form  id="bot-entering">
-    <div class="former-control" >
+    <div class="bot-control" >
       <label for ="group"> Recommended Groups </label>
        <input
         type = "text"
@@ -31,15 +31,17 @@ const botButton = document.getElementById("bot-formbutton");
 const botForm = document.getElementById("bot-entering");
 
 let isPersonalFormVisible = false;
-  let isPublicFormVisible = false;
 
-  botButton.addEventListener("click", () => {
-    if (isPersonalFormVisible) {
-      // If the personal form is visible, hide it
-      botForm.style.display = "none";
-    } else {
-      // If the personal form is hidden, show it
-      botForm.style.display = "block";
+botButton.addEventListener("click", () => {
+  if (isPersonalFormVisible) {
+    // If the personal form is visible, hide it
+    botForm.style.display = "none";
+    isPersonalFormVisible = false; // Set it to false to indicate it's hidden
+  } else {
+    // If the personal form is hidden, show it
+    botForm.style.display = "block";
+    isPersonalFormVisible = true; // Set it to true to indicate it's visible
+
 
 document.getElementById('bot-entering').addEventListener('submit', async function (e) {
   e.preventDefault(); // Prevent the default form submission
