@@ -13,6 +13,8 @@ app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({extended: true}));
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20');
+const multer = require('multer');
+
 
 passport.serializeUser((user, done) => {
   done(null, user);

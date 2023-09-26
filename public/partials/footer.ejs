@@ -86,5 +86,23 @@ document.addEventListener('click', () => {
     cursor.classList.remove('click');
   }, 200);
 });
+
+function uploadUserProfiles() {
+    const fileInput = document.getElementById('profile-upload-input');
+    const formData = new FormData();
+    formData.append('profiles', fileInput.files[0]);
+
+    fetch('/upload-profiles', {
+        method: 'POST',
+        body: formData,
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        console.log(data.message); // Display success message
+    })
+    .catch((error) => {
+        console.error('Error uploading profiles:', error);
+    });
+}
 </script>
 </html>

@@ -7,7 +7,7 @@
   <title>Document</title>
   <link rel="stylesheet" href="/styles.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
   
 </head>
 <body>
@@ -40,7 +40,7 @@
               <img src="<%= locals.user && locals.user.thumbnail ? (locals.user.thumbnail + '?refresh=' + Date.now()) : '/pictures/default-profile-pic.jpg' %>" alt="Profile Picture" class="profile-picture-img" referrerPolicy="no-referrer">
               </div>
             <div class="dropdown-content">
-              <a href="#">Profile</a>
+              <a href="/profile">Profile</a>
               <a href="#">Dashboard</a>
               <a href="#">Saves</a>
             </div>

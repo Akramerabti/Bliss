@@ -22,6 +22,8 @@ const expressSession = require('express-session');
 const cors = require('cors');
 
 
+
+
 app.use(cors({
   origin: 'http://localhost:3000',
 }));
@@ -104,6 +106,11 @@ app.get("/personal", requireAuth, checkUser, (req, res) => {
   res.render(path.join(__dirname, 'public', 'personal'), { user });
 });
 
+app.get("/profile", requireAuth, checkUser, (req, res) => {
+  const user = res.locals.user;
+
+  res.render('profile', { user });
+});
 
 
 function createDatabaseConnection(room) {

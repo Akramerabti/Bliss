@@ -1,0 +1,271 @@
+<%- include('../public/partials/header'); -%>
+<style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #3498db;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #profile-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            padding: 20px;
+        }
+
+        #profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-top: 5px;
+            color: #555;
+        }
+
+        p {
+            font-size: 16px;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: #3498db;
+            color: #fff;
+            padding: 5px 10px;
+            margin-right: 5px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        #friends-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        #friends-list li {
+            margin: 5px 0;
+        }
+
+        .friend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .friend-name {
+            font-size: 16px;
+        }
+
+        .details {
+            margin-top: 20px;
+        }
+
+        .details h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .details p {
+            font-size: 16px;
+        }
+
+        .edit-button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .edit-mode {
+            border: 1px solid #3498db;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        #file-input-container {
+            position: relative;
+        }
+
+        #file-input {
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        #custom-file-button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>User Profile</h1>
+    </header>
+    <div id="profile-container">
+        <img id="profile-image" src="<%= locals.user && locals.user.thumbnail ? (locals.user.thumbnail + '?refresh=' + Date.now()) : '/pictures/default-profile-pic.jpg' %>" alt="Profile Picture" class="profile-picture-img" referrerPolicy="no-referrer">
+        <input type="file" id="profile-image-input" style="display: none;"> <!-- Hide the file input by default -->
+        <label for="profile-image-input" id="custom-profile-image-button" class="edit-button">Choose Your Profile Image</label> <!-- Use a label element for the custom button -->
+        <button class="edit-button" id="crop-button">Crop</button>
+        
+        <h1 id="name"><%= user.name %></h1>
+        <button class="edit-button" onclick="toggleEditMode('name')">Edit</button>
+        <h2 id="email"><%= user.email %></h2>
+        <button class="edit-button" onclick="toggleEditMode('email')">Edit</button>
+        <div class="tags">
+            <span class="tag">Designer</span>
+            <span class="tag">Developer</span>
+            <span class="tag">Photographer</span>
+        </div>
+        <button class="edit-button" onclick="toggleEditMode('tags')">Edit</button>
+        <ul id="friends-list">
+            <li>
+                <img class="friend-avatar" src="friend1.jpg" alt="Friend 1">
+                <span class="friend-name"><%= user.Friends[0] %></span>
+            </li>
+            <!-- ... (Repeat for other friends) ... -->
+        </ul>
+        <div id="details">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam eget velit eget mauris ultricies facilisis.</p>
+        </div>
+        <button class="edit-button" onclick="toggleEditMode('details')">Edit</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <script>
+        function toggleEditMode(section) {
+            const sectionElement = document.getElementById(section);
+            const editButton = document.querySelector(`button.edit-button[onclick="toggleEditMode('${section}')"]`);
+            const profileImage = document.getElementById('profile-image');
+            const imageInput = document.getElementById('profile-image-input');
+    
+            let cropper;
+    
+            // Function to handle image changes
+            function handleImageChange(selectedFile) {
+                const imageReader = new FileReader();
+    
+                imageReader.onload = (e) => {
+                    profileImage.src = e.target.result;
+    
+                    // Initialize the Cropper.js instance
+                    cropper = new Cropper(profileImage, {
+                        aspectRatio: 1, // Set the aspect ratio (e.g., 1 for a square)
+                        viewMode: 2,   // Set the cropping view mode
+                    });
+                };
+    
+                imageReader.readAsDataURL(selectedFile);
+            }
+    
+            // Listen for the "Upload" button click
+            const uploadButton = document.getElementById('upload-button');
+            uploadButton.addEventListener('click', () => {
+                // Check if a file has been selected
+                if (imageInput.files.length > 0) {
+                    // Get the newly uploaded file
+                    const newImageFile = imageInput.files[0];
+    
+                    // Handle the new image
+                    handleImageChange(newImageFile);
+    
+                    // Optionally, send the new image to the server for storage and update the user's profile
+                    // ...
+    
+                    // Clear the file input to allow re-uploading the same image
+                    imageInput.value = '';
+                }
+            });
+    
+            if (sectionElement.contentEditable === 'true') {
+                // Exiting edit mode
+                sectionElement.contentEditable = 'false';
+                editButton.textContent = 'Edit';
+                sectionElement.classList.remove('edit-mode');
+    
+                // Check if it's an image section (profile-image)
+                if (section === 'profile-image') {
+                    // Handle image cropping and save the changes
+                    if (cropper) {
+                        const croppedImage = cropper.getCroppedCanvas().toDataURL(); // Get the cropped image
+                        postImageChanges(croppedImage); // Send the new image to the server
+                        cropper.destroy(); // Destroy the Cropper instance
+                    }
+                } else {
+                    // Save the changes to the server here (call postProfileChanges) for text sections
+                    postProfileChanges(section, sectionElement.textContent);
+                }
+            } else {
+                // Entering edit mode
+                sectionElement.contentEditable = 'true';
+                editButton.textContent = 'Save';
+                sectionElement.classList.add('edit-mode');
+    
+                // If it's an image section, initialize the Cropper.js instance
+                if (section === 'profile-image') {
+                    // Initialize the Cropper.js instance for the current image
+                    cropper = new Cropper(profileImage, {
+                        aspectRatio: 1, // Set the aspect ratio (e.g., 1 for a square)
+                        viewMode: 2,   // Set the cropping view mode
+                    });
+                }
+            }
+        }
+    
+        // Function to handle image changes (croppedImage is the data URL of the cropped image)
+        function postImageChanges(croppedImage) {
+            // Send the cropped image data to the server for storage and update the user's profile image
+            // You can use AJAX or another method to send the image data to the server
+            // Example: You might use fetch() to send a POST request to the server with the image data
+            // ...
+    
+            // Once the server updates the image, you can also update the profile image in the DOM
+            const profileImage = document.getElementById('profile-image');
+            profileImage.src = croppedImage;
+        }
+    
+        // Function to save changes for text sections (e.g., name, email, details)
+        function postProfileChanges(section, content) {
+            // Send the updated text content to the server for storage and update the user's profile data
+            // You can use AJAX or another method to send the text data to the server
+            // Example: You might use fetch() to send a POST request to the server with the text data
+            // ...
+    
+            // Once the server updates the text content, you can also update the section content in the DOM
+            const sectionElement = document.getElementById(section);
+            sectionElement.textContent = content;
+        }
+    </script>
+<%- include('../public/partials/footer'); -%>
