@@ -13,12 +13,15 @@ app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({extended: true}));
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20');
+const fs = require('fs');
+const path = require('path');
 const multer = require('multer');
-
 
 passport.serializeUser((user, done) => {
   done(null, user);
 });
+
+
 
 passport.deserializeUser((user, done) => {
   done(null, user);
@@ -62,6 +65,7 @@ passport.use(
 );
 
 
+
 module.exports.password_get = async (req, res) => {
   const userDataCookie = req.cookies.userData;
   const user = JSON.parse(userDataCookie);
@@ -78,33 +82,35 @@ const createToken = (id) => {
 
 
 module.exports.password_post = async (req, res) => {
-
   const user = req.user;
-
-
   const { password } = req.body;
-  
-  try { 
+
+  try {
+    // Construct the URL for the thumbnail image
+    const thumbnailUrl = user.thumbnail
+      ? `/profile-images/${user.googleId}_thumbnail.jpg` // Adjust the path as needed
+      : '/pictures/default-profile-pic.jpg'; // Provide a default if thumbnail is not available
+
     const newUser = await User.create({
-    email: user.email,
-    googleId: user.googleId,
-    name: user.name,
-    thumbnail: user.thumbnail || '',
-    Verified: user.verified || false,
-    password: password, // Store the password securely (e.g., hash it)
-  });
+      email: user.email,
+      googleId: user.googleId,
+      name: user.name,
+      thumbnail: thumbnailUrl, // Save the thumbnail URL
+      Verified: user.verified || false,
+      password: password, // Store the password securely (e.g., hash it)
+    });
 
+    const token = createToken(newUser._id);
 
-  const token = createToken(newUser._id);
+    await newUser.save();
 
-  await newUser.save()
+    res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
 
-  res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-  res.status(200).json({ user: newUser._id, user: newUser });
-  } catch{(err) => {
+    // Include the thumbnail URL in the response JSON
+    res.status(200).json({ user: newUser._id, user: newUser, thumbnailUrl });
+  } catch (err) {
     // Handle registration error
     console.error('Error registering user:', err);
     res.status(500).send('Registration failed');
-  };
-}
-}
+  }
+};

@@ -182,7 +182,7 @@ if (chatForm) {
     sender = username;
     senderID = userID;
     // Emit the new message to the server using roomNameParam
-    socket.emit('chatMessage', { room: NameParam, msg, sender, senderID });
+    socket.emit('chatMessage', { room: roomNameParam, msg, sender, senderID });
     // Clear input
     e.target.elements.msg.value = '';
     e.target.elements.msg.focus();
