@@ -34,7 +34,6 @@ const storageEngine = multer.diskStorage({
 
 const upload = multer({ storage: storageEngine});
 
-
 routing.post('/chatpost', authController.Machine)
 
 routing.get('/signup', authController.signup_get) 
@@ -66,7 +65,6 @@ routing.delete('/removefriendnotification' , authController.removefriendnotifica
 routing.post('/set-password', upload.single("user.thumbnail"), passportController.password_post);
 
 routing.get('/set-password', passportController.password_get);
-
 
 
 routing.get(
@@ -131,5 +129,27 @@ routing.get(
     }
   }
 );
+
+
+routing.post('/upload-profile-picture', upload.single('profilePicture'), async (req, res) => {
+  try {
+      // Get the uploaded file details (Multer appends "file" to the request object)
+      const uploadedFile = req.file;
+
+      if (!uploadedFile) {
+          return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      // Update the user's profile with the new image filename
+      req.user.thumbnail = uploadedFile.filename;
+      await req.user.save();
+
+      res.status(200).json({ message: 'Profile picture uploaded successfully' });
+  } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      res.status(500).json({ error: 'Profile picture upload failed' });
+  }
+});
+
 
 module.exports = routing;
