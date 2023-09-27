@@ -520,7 +520,6 @@ io.on('connection', socket => {
 
   // Function to load and emit database messages to a user
   const loadDatabaseMessages = async (socket, room, username) => {
-
     const roomInfo = rooms.get(room);
 
 
@@ -529,7 +528,7 @@ io.on('connection', socket => {
       const Message = roomInfo.Message; 
       console.log("MESSAGE", Message);
       // Fetch messages from the specific room's database
-      const messages = await Message.find({ room });
+      let messages = await Message.find({ room , removed: false }).exec();
 
       const messageSchemaData = messages.filter((message) => message.sender === username)
       .map((message) => ({
@@ -539,74 +538,112 @@ io.on('connection', socket => {
         time: message.time,
         msg: message.msg,
       }));
-
-      socket.emit('messages', messages);
-
-      return messageSchemaData;
-
-}
-
-}
+  
+      socket.emit('messages', messageSchemaData); // Send the updated list of messages
+  
+      return messageSchemaData; // Return the updated messageSchemaData
+    }
+  };
+  
+  const removeMessageFromRoomInfo = async ( room, messagetime, messagesender) => {
+    const roomInfo = rooms.get(room);
+  
+    if (!roomInfo) {
+      console.log('Room not found:', room);
+      return;
+    }
+  
+    try {
+      const Message = roomInfo.Message;
+  
+      // Update the message in the database and mark it as removed
+      await Message.updateOne({ time: messagetime, room, sender: messagesender }, { removed: true });
+  
+      // Fetch all messages after the update
+      const updatedMessages = await Message.find({ room });
+  
+      // Emit the updated messages to all clients
+      io.emit('messages', updatedMessages);
+  
+      console.log('Message removed');
+    } catch (error) {
+      console.error('Error removing message:', error);
+      // Handle the error as needed
+    }
+  };
+  
 
   // Function to handle user joining a room
   const handleJoinRoom = async ({ username, userID, room }) => {
-    // Create or get the room information
-    let roomInfo = rooms.get(room);
-  
-    if (!roomInfo) {
-      const sanitizedRoomName = room ? room.replace(/\s/g, '_') : '';
-      const roomDB = createDatabaseConnection(sanitizedRoomName);
-      const Message = roomDB.model('Message', messageSchema);
-  
-      const existingRoomInfo = Array.from(rooms.values()).find(
-        (info) => info.messageDB && info.messageDB.name === roomDB.name
-      );
-  
-      if (existingRoomInfo) {
-        roomInfo = existingRoomInfo;
-        console.log("EXISTING ROOM INFO", existingRoomInfo);
-      } else {
-        roomInfo = Object.freeze({
-          _id: new mongoose.Types.ObjectId(),
-          creatorID: userID,
-          Message: Message,
-          messages: [Message],
-          roomName: room,
-        });
+  // Create or get the room information
+  let roomInfo = rooms.get(room);
+
+  if (!roomInfo) {
+    const sanitizedRoomName = room ? room.replace(/\s/g, '_') : '';
+    const roomDB = createDatabaseConnection(sanitizedRoomName);
+    const Message = roomDB.model('Message', messageSchema);
+
+    const existingRoomInfo = Array.from(rooms.values()).find(
+      (info) => info.messageDB && info.messageDB.name === roomDB.name
+    );
+
+    if (existingRoomInfo) {
+      roomInfo = existingRoomInfo;
+      console.log("EXISTING ROOM INFO", existingRoomInfo);
+    } else {
+      roomInfo = Object.freeze({
+        _id: new mongoose.Types.ObjectId(),
+        creatorID: userID,
+        Message: Message,
+        messages: [Message],
+        roomName: room,
+      });
 
       // Load and emit database messages
-      rooms.set(room, roomInfo)
+      rooms.set(room, roomInfo);
 
-      //Create the RoomInfo model
-      }  const savedRoomInfo = new RoomInfo(roomInfo);
-      savedRoomInfo.save()
-        .then((result) => {
-          console.log('RoomInfo document saved:', result);
-        })
-        .catch((error) => {
-          console.error('Error saving RoomInfo document:', error);
-        });
+      // Create the RoomInfo model
     }
-  
-    socket.join(room);
+    const savedRoomInfo = new RoomInfo(roomInfo);
+    savedRoomInfo.save()
+      .then((result) => {
+        console.log('RoomInfo document saved:', result);
+      })
+      .catch((error) => {
+        console.error('Error saving RoomInfo document:', error);
+      });
+  }
 
-    // Function to add a user to roomUsers Map
-    const addUserToRoom = ({ username, room, socket }) => {
-      // Check if the room exists in the Map, if not, create it
-      if (!roomUsers.has(room)) {
-        roomUsers.set(room, new Map()); // Use a Map to keep user data separate
-      }
+  socket.join(room);
 
-      // Get the user list for the room and add the user
-      const usersInRoom = roomUsers.get(room);
-      usersInRoom.set(socket.id, username); // Use socket.id as the key
-    };
+  // Function to add a user to roomUsers Map
+  const addUserToRoom = ({ username, room, socket }) => {
+    // Check if the room exists in the Map, if not, create it
+    if (!roomUsers.has(room)) {
+      roomUsers.set(room, new Map()); // Use a Map to keep user data separate
+    }
 
-    // Call the addUserToRoom function to add the user to roomUsers
-    addUserToRoom({ username, room, socket });
+    // Get the user list for the room and add the user
+    const usersInRoom = roomUsers.get(room);
+    usersInRoom.set(socket.id, username); // Use socket.id as the key
+  };
 
-    // Load and emit database messages for the user who joined
-    await loadDatabaseMessages(socket, room, username);
+  // Call the addUserToRoom function to add the user to roomUsers
+  addUserToRoom({ username, room, socket });
+
+  socket.on('removeMessage', async ({ room, messagetime, messagesender }) => {
+    try {
+      // Call the removeMessageFromRoomInfo function to remove the message
+      await removeMessageFromRoomInfo(room, messagetime, messagesender);
+    } catch (error) {
+      // Handle errors if necessary
+      console.error('Error removing message:', error);
+      socket.emit('removeMessageError', { error: 'Error removing message' });
+    }
+  });
+
+
+ await loadDatabaseMessages(socket, room, username);
 
     // Push the user object into the messages array
     const user = { id: socket.id, userID, room };
@@ -800,7 +837,7 @@ io.on('connection', socket => {
       const leaveMessage = `${username} has left the room`;
     
       // Emit the leave message to the room
-      io.to(room).emit('chatMessage', { room, msg: leaveMessage, sender: 'Captain Collaboard' });
+      io.to(room).emit('messages', { room, msg: leaveMessage, sender: 'Captain Collaboard' });
     
       // Save the leave message to the database (assuming the 'Message' model exists)
       const Message = roomInfo.Message;
@@ -815,8 +852,7 @@ io.on('connection', socket => {
         // Find and emit updated messages
         Message.find().then((result) => {
           io.emit('messages', result);
-          // Assuming 'loadDatabaseMessages' handles loading messages for a specific room
-          loadDatabaseMessages(io, room);
+          
         });
     
         // Emit the updated roomUsers set to the room
@@ -827,6 +863,8 @@ io.on('connection', socket => {
         });
       });
     });
+
+      // Socket event handler for removing a message
     
     // Event listener for chat messages
     socket.on('chatMessage', handleChatMessage);
@@ -845,16 +883,17 @@ const loadDatabasePrivateMessages = async (socket, roomID, userID) => {
     console.log("MESSAGE", Message);
 
     // Use the correct query to fetch messages for the specified room and sender
-    const messages = await Message.find({room: roomID});
+    let messages = await Message.find({ room: roomID , removed: false }).exec();
+  
 
     // Map the messages to the desired format
-    const messageSchemaData = messages.filter((message) => message.room === roomID)
-    .map((message) => ({
+    const messageSchemaData = messages.map((message) => ({
       img: message.img,
       sender: message.sender,
       room: message.room,
       time: message.time,
       msg: message.msg,
+      removed: message.removed, // Log the removed status for debugging
     }));
 
     console.log("MESSAGES", messageSchemaData);
@@ -866,6 +905,41 @@ const loadDatabasePrivateMessages = async (socket, roomID, userID) => {
   }
 }
 
+const removeNameMessageFromRoomInfo = async ( room, messagetime, messagesender) => {
+  const roomInfo = rooms.get(room);
+
+  if (!roomInfo) {
+    console.log('Room not found:', room);
+    return;
+  }
+
+  try {
+    const Message = roomInfo.Message;
+
+    // Update the message in the database and mark it as removed
+    await Message.updateOne({ time: messagetime, room, sender: messagesender }, { removed: true });
+
+    // Fetch all messages after the update
+    const updatedMessages = await Message.find({ room });
+
+    const messageSchemaData = updatedMessages.map((message) => ({
+      img: message.img,
+      sender: message.sender,
+      room: message.room,
+      time: message.time,
+      msg: message.msg,
+      removed: message.removed, // Log the removed status for debugging
+    }));
+
+    // Emit the updated messages to all clients
+    io.emit('messages', messageSchemaData);
+
+    console.log('Message removed');
+  } catch (error) {
+    console.error('Error removing message:', error);
+    // Handle the error as needed
+  }
+};
 
 const handleJoinRoomID = async ({ username, userID, room, roomID }) => {
 
@@ -924,6 +998,18 @@ const handleJoinRoomID = async ({ username, userID, room, roomID }) => {
 
   // Call the addUserToRoom function to add the user to roomUsers
   addUserToRoom({ username, roomID, socket });
+
+  socket.on('removenameMessage', async ({ room, messagetime, messagesender }) => {
+    try {
+      // Call the removeMessageFromRoomInfo function to remove the message
+      await removeNameMessageFromRoomInfo(room, messagetime, messagesender);
+    } catch (error) {
+      // Handle errors if necessary
+      console.error('Error removing message:', error);
+      socket.emit('removeMessageError', { error: 'Error removing message' });
+    }
+  });
+
 
   // Load and emit database messages for the user who joined
   await loadDatabasePrivateMessages(socket, roomID, userID);
@@ -1069,6 +1155,33 @@ const handleJoinRoomID = async ({ username, userID, room, roomID }) => {
         room,
         users: roomUsersList,
       });
+  });
+
+  socket.on('removenameMessage', async ({ room, messagetime }) => {
+    try {
+      console.log('Removing message from the user:', messagetime);
+      // Use Mongoose to find the user and remove the message from the JoinedRooms array
+      const removedMessage = await User.findOneAndUpdate(
+        { 'JoinedRooms.roomName': room },
+        { $pull: { 'JoinedRooms.$.messages': { time:messagetime } } },
+        { new: true }
+      );
+  
+      if (removedMessage) {
+        console.log('Message removed successfully from the user:', removedMessage);
+  
+        // Emit a success event to the client to confirm the removal
+        socket.emit('removeMessageSuccess', { messageID: removedMessage._id });
+      } else {
+        console.log('Message not found for removal');
+        // Emit an error event to the client if the message was not found
+        socket.emit('removeMessageError', { error: 'Message not found for removal' });
+      }
+    } catch (err) {
+      console.error('Error removing message from the user:', err);
+      // You can emit an error event to the client if needed
+      socket.emit('removeMessageError', { error: 'Error removing message' });
+    }
   });
   
   // Event listener for chat messages

@@ -154,12 +154,15 @@ socket.on('roomUsers', async ({ room, users }) => {
 
 socket.on('messages', (data) => {
 
+  console.log(data);
   // Clear existing messages from the chatMessages element
   chatMessages.innerHTML = '';
 
   data.forEach((message) => {
+    if (message.removed == false) {
     outputMessage(message);
-  });
+}
+});
   
   
   // Scroll down (if you still want to do it here)
@@ -183,6 +186,7 @@ if (chatForm) {
     senderID = userID;
     // Emit the new message to the server using roomNameParam
     socket.emit('chatMessage', { room: roomNameParam, msg, sender, senderID });
+    console.log('chatMessages', {  msg, sender, senderID });
     // Clear input
     e.target.elements.msg.value = '';
     e.target.elements.msg.focus();
@@ -234,6 +238,11 @@ async function addoneiffriend(alreadyfriendsID, tobefriendsID, alreadyfriends, t
 const currentUsername = username;
 
 function outputMessage(message) {
+ 
+  console.log(message.removed);
+  if (message.removed == true) {
+    return; 
+  }
 
   const div = document.createElement('div');
   div.classList.add('message');
@@ -250,6 +259,23 @@ function outputMessage(message) {
   const hoverContainer = document.createElement('div');
   hoverContainer.classList.add('hover-container');
   hoverContainer.textContent = 'Loading...'; // Initial loading text
+
+  if (message.sender === currentUsername) {
+    
+    const removeMessageButton = document.createElement('div');
+    removeMessageButton.classList.add('remove-message-button');
+    removeMessageButton.style.cursor = 'pointer';
+    removeMessageButton.textContent = 'Remove Message';
+
+    imgContainer.appendChild(removeMessageButton);
+    // Add a click event listener to the "Remove Message" button
+    removeMessageButton.addEventListener('click', () => {
+      // Remove the entire message div when the button is clicked
+      div.remove();
+      // You can also send a request to your server to delete the message from the backend here
+      socket.emit('removeMessage', { room: roomNameParam, messagetime: message.time, messagesender:message.sender });
+    });
+  }
 
   imgContainer.appendChild(img);
   imgContainer.appendChild(hoverContainer);

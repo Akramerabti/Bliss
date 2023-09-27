@@ -325,7 +325,9 @@ socket.on('privatemessages', (data) => {
   chatNameMessages.innerHTML = '';
 
   data.forEach((message) => {
-    outputMessage(message);
+    if (message.removed == false) {
+      outputMessage(message);
+  }
   });
   
   
@@ -350,6 +352,7 @@ if (chatNameForm) {
     senderID = userID;
     // Emit the new message to the server using roomNameParam
     socket.emit('chatMessages', { room: NameParam, msg, sender, senderID });
+   
     // Clear input
     e.target.elements.msg.value = '';
     e.target.elements.msg.focus();
@@ -403,7 +406,6 @@ const currentUsername = username;
 
 function outputMessage(message) {
 
-
   const div = document.createElement('div');
   div.classList.add('message');
 
@@ -420,11 +422,29 @@ function outputMessage(message) {
   hoverContainer.classList.add('hover-container');
   hoverContainer.textContent = 'Loading...'; // Initial loading text
 
+  console.log(message.sender, currentUsername);
+
+  if (message.sender === currentUsername) {
+    
+    const removeMessageButton = document.createElement('div');
+    removeMessageButton.classList.add('remove-message-button');
+    removeMessageButton.style.cursor = 'pointer';
+    removeMessageButton.textContent = 'Remove Message';
+
+    imgContainer.appendChild(removeMessageButton);
+    // Add a click event listener to the "Remove Message" button
+    removeMessageButton.addEventListener('click', () => {
+      // Remove the entire message div when the button is clicked
+      div.remove();
+      // You can also send a request to your server to delete the message from the backend here
+      socket.emit('removenameMessage', { room: NameParam, messagetime: message.time, messagesender:message.sender });
+    });
+  }
+
   imgContainer.appendChild(img);
   imgContainer.appendChild(hoverContainer);
 
   const friendButtonStates = new Map();
-
   function updateFriendButtonStates(userID, state) {
     friendButtonStates.set(userID, state);
     localStorage.setItem('friendButtonStates', JSON.stringify(Array.from(friendButtonStates.entries())));

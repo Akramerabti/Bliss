@@ -842,14 +842,59 @@ i.fas.fa-paper-plane{
 }
 
 .hover-container {
-  display: none;
-  /* Additional styling for the container */
+  display: none; /* Initially hide the hover container */
+  position: absolute;
+  top: 5px; /* Adjust as needed to position it over the message-img-container */
+  left: 55px; /* Adjust as needed to position it over the message-img-container */
+  width: fit-content; /* Occupy the desired width of the message-img-container */
+  background-color: rgba(56, 56, 56, 0.986); /* Semi-transparent background color */
+  color: rgb(255, 255, 255); /* Text color */
+  border-radius: 10px;
+  border-color: rgba(116, 84, 84, 0.986); /* Semi-transparent background color */
+  text-align: center; /* Center text content */
+  padding: 20px; /* Padding for content inside the hover container */
+  box-sizing: border-box;
+  z-index: 1000; /* Set the z-index to ensure it appears above other content */
+  overflow: auto;
+  transform: scale(1); /* Initial scale */
 }
 
-/* Show the hover container on hover */
+.hover-container:hover {
+  display: block; /* Initially hide the hover container */
+  position: absolute;
+  top: 5px; /* Adjust as needed to position it over the message-img-container */
+  left: 55px; /* Adjust as needed to position it over the message-img-container */
+  width: fit-content; /* Occupy the desired width of the message-img-container */
+  background-color: rgba(56, 56, 56, 0.986); /* Semi-transparent background color */
+  color: rgb(255, 255, 255); /* Text color */
+  border-radius: 10px;
+  border-color: rgba(116, 84, 84, 0.986); /* Semi-transparent background color */
+  text-align: center; /* Center text content */
+  padding: 20px; /* Padding for content inside the hover container */
+  box-sizing: border-box;
+  z-index: 1000; /* Set the z-index to ensure it appears above other content */
+  overflow: auto;
+  transform: scale(1); /* Initial scale */
+}
+
+
+/* Show the hover container on hover of the message-img-container */
 .message-img-container:hover .hover-container {
   display: block;
-  /* Additional styling for the container when hovered */
+
+}
+
+/* Adjust the position of the message-img-container to create space for the hover container */
+.message-img-container {
+  position: relative;
+  /* Add additional styles as needed */
+}
+
+.chat-name-messages .message .remove-message-button{
+  color: #ffffff;
+  margin-left: auto;
+  padding: 5px;
+  overflow: hidden;
 }
 
 .user-image-container {
@@ -1375,7 +1420,25 @@ form:active {
 #profile {
   position: relative;
   bottom: 30px;
-  right: 30px;
-  max-height: calc(100vh - 100px); /* Set the maximum height based on viewport height */
-  overflow-y: auto; /* Enable vertical scrolling when content overflows */
+  max-width: 100%;
 }
+
+#profile img {
+  width: 100%;
+  height: auto;
+  border-radius: 50%;
+}
+
+
+.cropper-view-box {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* Style the circular cropping area's image */
+.cropper-view-box img {
+  width: 100%; /* Ensure the image fills the circular area */
+  height: auto;
+}
+
+

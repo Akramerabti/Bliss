@@ -25,7 +25,11 @@ const messageSchema= new mongoose.Schema({ // Creates a login Schema for our dat
         type: String,
         default: function () {
             return moment().format("h:mm a");
-          },}
+          },},
+    removed: {
+            type: Boolean,
+            default: false, // Initially, the message is not removed
+          },
 });
 
 module.exports = messageSchema;

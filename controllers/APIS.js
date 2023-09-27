@@ -136,14 +136,16 @@ module.exports.signup_post = async (req, res) => {
           <p>${generatedcode}</p>
         `,
       });
-
+        console.log("Email sent successfully",generatedcode);
       return generatedcode;
+      
     } catch (error) {
       console.log(error);
       // Handle email sending error here
       // You can choose to respond with an error message or perform other error-handling actions
     }
   };
+
 
   try {
 

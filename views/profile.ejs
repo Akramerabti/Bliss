@@ -135,6 +135,40 @@
     <header>
         <h1>User Profile</h1>
     </header>
+
+    <div id="crop-container" style="display: none;">
+            <div class="cropping-interface">
+                <div class="circular-cropper">
+                    <img id="cropping-image" src="" alt="Cropping Image" class="profile-picture-img" referrerPolicy="no-referrer">
+                  </div>
+                <div class="zoom-controls">
+                    <button class="zoom-button" id="zoom-in">Zoom In</button>
+                    <button class="zoom-button" id="zoom-out">Zoom Out</button>
+                  </div>
+                  
+                  <!-- Crop area handles -->
+                  <div class="crop-handles"></div>
+                  
+                  <!-- Aspect ratio options -->
+                  <div class="aspect-ratio-options">
+                    <label><input type="radio" name="aspect-ratio" value="1:1"> Square</label>
+                    <label><input type="radio" name="aspect-ratio" value="4:3"> 4:3</label>
+                    <label><input type="radio" name="aspect-ratio" value="16:9"> 16:9</label>
+                  </div>
+                  
+                  <!-- Rotate image -->
+                  <button class="rotate-button" id="rotate-left">Rotate Left</button>
+                  <button class="rotate-button" id="rotate-right">Rotate Right</button>
+                  
+                  <!-- Reset, Preview, and Save buttons -->
+                  <button class="edit-button" id="reset-button">Reset</button>
+                  <button class="edit-button" id="preview-button">Preview</button>
+
+                <button class="edit-button" id="crop-button">Crop and Save</button>
+            </div>
+            </div>
+        </div>
+
     <form enctype="multipart/form-data" id="profile">
         <div id="profile-container">
             <img id="profile-image" src="<%= locals.user && locals.user.thumbnail ? (locals.user.thumbnail + '?refresh=' + Date.now()) : '/pictures/default-profile-pic.jpg' %>" alt="Profile Picture" class="profile-picture-img" referrerPolicy="no-referrer">
@@ -143,12 +177,7 @@
             <label for="profile-image-input" id="custom-profile-image-button" class="edit-button">Choose Your Profile Image</label>
         
             <!-- Add the cropping container here -->
-            <div id="crop-container" style="display: none;">
-                <img id="cropping-image" src="" alt="Cropping Image" class="profile-picture-img" referrerPolicy="no-referrer">
-                <!-- Add cropping interface elements here -->
-                <button class="edit-button" id="crop-button">Crop and Save</button>
-            </div>
-        </div>
+            
         
         <h1 id="name"><%= user.name %></h1>
         <button class="edit-button" onclick="toggleEditMode('name')">Edit</button>

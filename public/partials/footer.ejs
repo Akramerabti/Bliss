@@ -65,7 +65,7 @@ document.getElementById('bot-entering').addEventListener('submit', async functio
 document.addEventListener('mousemove', (e) => {
   setTimeout(() => {
     cursor.style.transition = 'transform 0.5s ease-out';
-    const x = e.clientX + window.scrollX; // Adjust for horizontal scroll
+    const x = e.clientX;
     const y = e.clientY + window.scrollY; // Adjust for vertical scroll
     cursor.style.left = `${x}px`;
     cursor.style.top = `${y}px`;
@@ -73,7 +73,7 @@ document.addEventListener('mousemove', (e) => {
 
   setTimeout(() => {
     innerDot.style.transition = 'transform 0.2s ease-out';
-    const x = e.clientX + window.scrollX; // Adjust for horizontal scroll
+    const x = e.clientX;
     const y = e.clientY + window.scrollY; // Adjust for vertical scroll
     innerDot.style.left = `${x}px`;
     innerDot.style.top = `${y}px`;
