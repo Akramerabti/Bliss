@@ -17,7 +17,7 @@ const User = require("../models/User")
 const axios = require('axios');
 const multer = require('multer');
 const fs = require('fs');
-
+const sharp = require('sharp');
 
 
 const storageEngine = multer.diskStorage({
@@ -90,14 +90,22 @@ routing.get(
             const response = await axios.get(req.user.thumbnail, { responseType: 'arraybuffer' });
 
             if (response.status === 200) {
+
+              
+      
               // Convert the downloaded image data into a buffer
               const imageBuffer = Buffer.from(response.data, 'binary');
+
+              const optimizedImageBuffer = await sharp(imageBuffer)
+              .toFormat('jpeg')
+              .jpeg({ quality: 80 })
+              .toBuffer();
 
               // Generate a unique filename for the image
               const thumbnailFilename = `${req.user.googleId}_thumbnail.jpg`;
 
               // Save the image buffer as a file using fs
-              fs.writeFileSync(`public/profile-images/${thumbnailFilename}`, imageBuffer);
+              fs.writeFileSync(`public/profile-images/${thumbnailFilename}`, optimizedImageBuffer);
 
               // Add the thumbnail filename to the user object
               user.thumbnail = thumbnailFilename;

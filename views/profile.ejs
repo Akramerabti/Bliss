@@ -135,11 +135,11 @@
     <header>
         <h1>User Profile</h1>
     </header>
-    <form enctype="multipart/form-data">
+    <form enctype="multipart/form-data" id="profile">
         <div id="profile-container">
             <img id="profile-image" src="<%= locals.user && locals.user.thumbnail ? (locals.user.thumbnail + '?refresh=' + Date.now()) : '/pictures/default-profile-pic.jpg' %>" alt="Profile Picture" class="profile-picture-img" referrerPolicy="no-referrer">
             <button type="button" class="edit-button" onclick="openCropModal()">Edit Profile Picture</button>
-            <input type="file" id="profile-image-input" style="display: none;">
+            <input type="file" id="profile-image-input" style="display: none;" onchange="handleImageSelection(event)">
             <label for="profile-image-input" id="custom-profile-image-button" class="edit-button">Choose Your Profile Image</label>
         
             <!-- Add the cropping container here -->
@@ -174,19 +174,32 @@
 </form>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script>
+document.getElementById('profile-image-input').addEventListener('change', handleImageSelection);
+
+function handleImageSelection(event) {
+  const selectedFile = event.target.files[0]; // Get the first selected file
+
+  openCropModal(selectedFile);
+}
     
-    function openCropModal(selectedFile) {
+function openCropModal() {
   const cropContainer = document.getElementById('crop-container');
   cropContainer.style.display = 'block';
 
   const croppingImage = document.getElementById('cropping-image');
-  croppingImage.src = URL.createObjectURL(selectedFile);
+
+  // Construct the URL of the processed image based on the logic you used
+  const thumbnailFilename = "<%= user.thumbnail %>";
+
+  // Set the src attribute of the <img> element to the processed image URL
+  croppingImage.src = thumbnailFilename;
 
   // Initialize the Cropper.js instance for cropping
   const cropper = new Cropper(croppingImage, {
     aspectRatio: 1, // Set the aspect ratio (e.g., 1 for a square)
     viewMode: 2,   // Set the cropping view mode
   });
+
 
   // Handle the "Crop and Save" button click
   const cropButton = document.getElementById('crop-button');

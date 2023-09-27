@@ -6,6 +6,7 @@ body, h1, h2, h3, h4, ul, li, a, p, input, label, button, div, footer {
   padding: 0;
   font-family: 'Quicksand', sans-serif;
   color: #444;
+  
 }
 
 /* Global Styles */
@@ -17,6 +18,26 @@ body {
   background-size: 200% 200%;
   animation: gradientAnimation 20s ease infinite;
   overflow: hidden;
+  max-height: calc(100vh - 100px); /* Set the maximum height based on viewport height */
+  overflow-y: auto; /* Enable vertical scrolling when content overflows */
+}
+
+body::-webkit-scrollbar {
+  width: 12px; /* Set the width of the scrollbar */
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: #462c5a46; /* Change the color of the thumb */
+  border-radius: 6px; /* Round the corners of the thumb */
+}
+
+body::-webkit-scrollbar-track {
+  background-color: #4400ff; /* Change the color of the track */
+}
+
+/* For Firefox */
+body {
+  scrollbar-color: #4400ff #4400ff; /* Change both thumb and track colors */
 }
 
 canvas {
@@ -1349,4 +1370,12 @@ form:active {
 .group-info-btn{
   position: absolute;
   bottom: 30px;
+}
+
+#profile {
+  position: relative;
+  bottom: 30px;
+  right: 30px;
+  max-height: calc(100vh - 100px); /* Set the maximum height based on viewport height */
+  overflow-y: auto; /* Enable vertical scrolling when content overflows */
 }
