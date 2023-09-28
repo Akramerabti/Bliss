@@ -229,8 +229,9 @@ socket.on('messages', (data) => {
   chatMessages.innerHTML = '';
 
   data.forEach((message) => {
-    outputMessage(message);
-  });
+    if (message.removed == false) {
+      outputMessage(message);
+  }});
   
   
   // Scroll down (if you still want to do it here)
@@ -291,17 +292,46 @@ async function addoneiffriend(alreadyfriendsID, tobefriendsID, alreadyfriends, t
       console.log('Friend added successfully');
       return true;
     } else if (response.status === 409) {
-      console.log('Already friends');
-      return false;
-    } else {
-      console.error('Error:', response.statusText);
-      return false;
+      console.log('Either you are his friend or both are');
+      return true;
+    } else if (response.status === 404) {
+      console.log('You got him as a friend, but he doesnt have you');
+      return true;
     }
   } catch (error) {
     console.error('Error fetching user information:', error);
     return false;
   }
 }
+
+async function addoneiffriendinfo(alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends) {
+  try {
+    const response = await fetch(`/addoneiffriendinfo?alreadyfriendsID=${alreadyfriendsID}&tobefriendsID=${tobefriendsID}&alreadyfriends=${alreadyfriends}&tobefriends=${tobefriends}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends }),
+    });
+
+    if (response.status === 200) {
+      console.log('Friend added successfully');
+      return true;
+    } else if (response.status === 409) {
+      console.log('Either you are his friend or both are');
+      return true;
+    } else if (response.status === 404) {
+      console.log('You got him as a friend, but he doesnt have you');
+      return true;
+    }else if (response.status === 415) {
+    console.log('You are not his friend but he has you as a friend or no one is friends');
+    return false;
+  }} catch (error) {
+    console.error('Error fetching user information:', error);
+    return false;
+  }
+}
+
 const currentUsername = username;
 
 function outputMessage(message) {
@@ -322,6 +352,23 @@ function outputMessage(message) {
   hoverContainer.classList.add('hover-container');
   hoverContainer.textContent = 'Loading...'; // Initial loading text
 
+  if (message.sender === currentUsername) {
+    
+    const removeMessageButton = document.createElement('div');
+    removeMessageButton.classList.add('remove-message-button');
+    removeMessageButton.style.cursor = 'pointer';
+    removeMessageButton.textContent = 'Remove Message';
+
+    imgContainer.appendChild(removeMessageButton);
+    // Add a click event listener to the "Remove Message" button
+    removeMessageButton.addEventListener('click', () => {
+      // Remove the entire message div when the button is clicked
+      div.remove();
+      // You can also send a request to your server to delete the message from the backend here
+      socket.emit('removeGroupMessage', { room: groupIDParam, messagetime: message.time, messagesender:message.sender });
+    });
+  }
+
   imgContainer.appendChild(img);
   imgContainer.appendChild(hoverContainer);
 
@@ -338,6 +385,7 @@ function outputMessage(message) {
     // Fetch user information (async)
     const userInfo = await fetchUserInfoByName(message.sender);
     const currentuserInfo = await fetchUserInfoByName(currentUsername);
+    const addleftfriends = await addoneiffriendinfo(userInfo._id, userID, message.sender, currentUsername);
     
 
 
@@ -380,8 +428,8 @@ function outputMessage(message) {
            
             
             if (currentuserInfo) {
-              const areFriends = userInfo.Friends.includes(currentuserInfo.name) && currentuserInfo.Friends.includes(userInfo.name); //fixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-            if (areFriends) { // Check if Friends is an arra
+              console.log(userInfo.Friends)
+              if (addleftfriends) {// Check if Friends is an arra
                     addFriendButton.textContent = '👤';
                     addFriendButton.disabled = true;
                     friendButtonStates.set(userInfo._id, false);
