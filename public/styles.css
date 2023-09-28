@@ -1454,7 +1454,7 @@ form:active {
 }
 
 #crop-container {
-  /* Set the position to absolute for precise positioning */
+  display: inline-block;
   position: fixed; /* Cover the entire viewport */
   top: 0;
   left: 0;
@@ -1464,9 +1464,15 @@ form:active {
   background-color: #000000;
   border: 10px solid #ccc;
   overflow: hidden;
-  z-index: 9999;
-
+  z-index: 9999;;
+  bottom: -100px;
   /* Add additional styles as needed */
+}
+
+#cropping-image{
+  width: 300px;
+  height: 300px;
+  background-color: #000000;
 }
 
 #cropping {
@@ -1478,7 +1484,7 @@ form:active {
 
   /* Set the width and height properties to define the container's size */
   width: fit-content;
-  height: max-content;
+  height: 100%;
 
 
   /* Add any other styling you want, such as background color or border */
@@ -1496,3 +1502,15 @@ form:active {
   overflow: hidden;
 }
 
+.zoom-button,
+.crop-handles,
+.aspect-ratio-options,
+.rotate-button,
+#reset-button,
+#preview-button,
+#crop-button {
+  font-size: 14px; /* Adjust font size as needed */
+  margin: 5px; /* Reduced margin for components */
+  padding: 5px 10px; /* Adjust padding for components */
+  /* Add any other size adjustments as needed */
+}

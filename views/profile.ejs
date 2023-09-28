@@ -139,9 +139,7 @@
 
     <div id="crop-container" style="display: none;">
             <div id="cropping" class="cropping-interface">
-                <div class="circular-cropper">
-                    <img id="cropping-image" src="" alt="Cropping Image" class="profile-picture-img" referrerPolicy="no-referrer">
-                  </div>
+               
                 <div class="zoom-controls">
                     <button class="zoom-button" id="zoom-in">Zoom In</button>
                     <button class="zoom-button" id="zoom-out">Zoom Out</button>
@@ -149,6 +147,10 @@
                   
                   <!-- Crop area handles -->
                   <div class="crop-handles"></div>
+
+                   <div class="circular-cropper">
+                    <img id="cropping-image" src="" alt="Cropping Image" class="profile-picture-img" referrerPolicy="no-referrer">
+                  </div>
                   
                   <!-- Aspect ratio options -->
                   <div class="aspect-ratio-options">
@@ -173,7 +175,7 @@
         <div id="profile-container">
             <img id="profile-image" src="<%= locals.user && locals.user.thumbnail ? (locals.user.thumbnail + '?refresh=' + Date.now()) : '/pictures/default-profile-pic.jpg' %>" alt="Profile Picture" class="profile-picture-img" referrerPolicy="no-referrer">
             <button type="button" class="edit-button" onclick="openCropModal()">Edit Profile Picture</button>
-            <input type="file" id="profile-image-input" style="display: none;" onchange="handleImageSelection(event)">
+            <input type="file" id="profile-image-input" style="display: none;" onchange="handleProfileImageSelection(event)">
             <label for="profile-image-input" id="custom-profile-image-button" class="edit-button">Choose Your Profile Image</label>
         
             <!-- Add the cropping container here -->
@@ -204,7 +206,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script>
         const userID = "<%= user._id %>";
-document.getElementById('profile-image-input').addEventListener('change', handleImageSelection);
+
+document.getElementById('profile-image-input').addEventListener('change', handleProfileImageSelection(event));
 
 function postImageChanges(croppedImage) {
   const formData = new FormData();
@@ -244,14 +247,6 @@ function dataURLtoBlob(dataURL) {
     return new Blob([uInt8Array], { type: contentType });
 }
 
-
-
-function handleImageSelection(event) {
-  const selectedFile = event.target.files[0]; // Get the first selected file
-
-  openCropModal(selectedFile);
-}
-    
 function openCropModal() {
   const cropContainer = document.getElementById('crop-container');
   cropContainer.style.display = 'block';
@@ -284,22 +279,54 @@ function openCropModal() {
     closeCropModal();
   });
 }
+
+function handleProfileImageSelection(event) {
+
+  const imageInput = document.getElementById('profile-image-input');
+
+  imageInput.addEventListener('change', () => {
+    const selectedFile = imageInput.files[0];
+    if (selectedFile) {
+
+    const cropContainer = document.getElementById('crop-container');
+    cropContainer.style.display = 'block';
+
+
+    const croppingImage = document.getElementById('cropping-image');
+
+    const thumbnailUrl = URL.createObjectURL(selectedFile);
+
+
+    // Set the src attribute of the <img> element to the processed image URL
+    croppingImage.src = thumbnailUrl;
+
+    // Initialize the Cropper.js instance for cropping
+    const cropper = new Cropper(croppingImage, {
+    aspectRatio: 1, // Set the aspect ratio (e.g., 1 for a square)
+    viewMode: 2,   // Set the cropping view mode
+  });
+
+    function closeCropModal() {
+    const cropContainer = document.getElementById('crop-container');
+    cropContainer.style.display = 'none';
+    const croppedImage = cropper.getCroppedCanvas().toDataURL();
+    postImageChanges(croppedImage)
+    }
+
+  // Handle the "Crop and Save" button click
+    const cropButton = document.getElementById('crop-button');
+    cropButton.addEventListener('click', () => {
+    closeCropModal();
+    });
+    }
+    });
+}
+
         function toggleEditMode(section) {
     const sectionElement = document.getElementById(section);
     const editButton = document.querySelector(`button.edit-button[onclick="toggleEditMode('${section}')"]`);
     const profileImage = document.getElementById('profile-image');
     const imageInput = document.getElementById('profile-image-input');
-
-    function handleProfileImageSelection() {
-  const imageInput = document.getElementById('profile-image-input');
-  imageInput.addEventListener('change', () => {
-    const selectedFile = imageInput.files[0];
-    if (selectedFile) {
-      // Show the cropping interface with the selected image
-      openCropModal(selectedFile);
-    }
-  });
-}
 
 // Function to close the cropping interface
 
@@ -351,4 +378,5 @@ function postProfileChanges(section, content) {
     sectionElement.textContent = content;
 }
     </script>
+    
 <%- include('../public/partials/footer'); -%>
