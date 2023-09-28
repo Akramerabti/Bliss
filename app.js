@@ -631,16 +631,7 @@ io.on('connection', socket => {
   // Call the addUserToRoom function to add the user to roomUsers
   addUserToRoom({ username, room, socket });
 
-  socket.on('removeMessage', async ({ room, messagetime, messagesender }) => {
-    try {
-      // Call the removeMessageFromRoomInfo function to remove the message
-      await removeMessageFromRoomInfo(room, messagetime, messagesender);
-    } catch (error) {
-      // Handle errors if necessary
-      console.error('Error removing message:', error);
-      socket.emit('removeMessageError', { error: 'Error removing message' });
-    }
-  });
+ 
 
 
  await loadDatabaseMessages(socket, room, username);
@@ -865,7 +856,15 @@ io.on('connection', socket => {
     });
 
       // Socket event handler for removing a message
-    
+     socket.on('removeMessage', async ({ room, messagetime, messagesender }) => {
+    try {
+      // Call the removeMessageFromRoomInfo function to remove the message
+      await removeMessageFromRoomInfo(room, messagetime, messagesender);
+    } catch (error) {
+      // Handle errors if necessary
+      console.error('Error removing message:', error);
+    }
+  });
     // Event listener for chat messages
     socket.on('chatMessage', handleChatMessage);
 }

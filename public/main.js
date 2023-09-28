@@ -226,9 +226,9 @@ async function addoneiffriend(alreadyfriendsID, tobefriendsID, alreadyfriends, t
     } else if (response.status === 409) {
       console.log('Already friends');
       return false;
-    } else {
-      console.error('Error:', response.statusText);
-      return false;
+    } else if (response.status === 404) {
+      console.log('You are his friend, but not him');
+      return true;
     }
   } catch (error) {
     console.error('Error fetching user information:', error);
@@ -293,7 +293,7 @@ function outputMessage(message) {
     // Fetch user information (async)
     const userInfo = await fetchUserInfoByName(message.sender);
     const currentuserInfo = await fetchUserInfoByName(currentUsername);
-    
+    const addleftfriend = await addoneiffriend(userInfo._id, userID, message.sender, currentUsername);
 
 
     if (userInfo) {
@@ -335,8 +335,8 @@ function outputMessage(message) {
            
             
             if (currentuserInfo) {
-              const areFriends = userInfo.Friends.includes(currentuserInfo.name) && currentuserInfo.Friends.includes(userInfo.name); //fixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-            if (areFriends) { // Check if Friends is an arra
+             // Check if Friends is an array
+             if (addleftfriend) {
                     addFriendButton.textContent = '👤';
                     addFriendButton.disabled = true;
                     friendButtonStates.set(userInfo._id, false);

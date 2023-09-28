@@ -294,6 +294,47 @@ module.exports.removefriendnotification = async (req, res) => {
 }
 
 
+module.exports.addoneiffriendinfo = async (req, res) => {
+  const { alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends } = req.query;
+
+  console.log(alreadyfriendsID, tobefriendsID, "external user to check:", alreadyfriends, "user to check and change icon:", tobefriends);
+  try {
+    if (!alreadyfriendsID || !tobefriendsID) {
+      console.log('Invalid user IDs');
+      return res.sendStatus(400); // Bad Request
+    }
+  
+    if (alreadyfriendsID != tobefriendsID) {
+    // Check if they are already friends
+    const alreadyFriendsUser = await User.findOne({
+      _id: alreadyfriendsID,
+      'Friends.friend': tobefriends,
+    });
+  
+    // Check if tobefriends has alreadyfriends in their friends array
+    const tobefriendsUser = await User.findOne({
+      _id: tobefriendsID,
+      'Friends.friend': alreadyfriends,
+    });
+  
+    if (alreadyFriendsUser && tobefriendsUser) {
+      console.log('Both are already friends with each other');
+      return res.sendStatus(200); // Bad Request
+    } else if (alreadyFriendsUser && !tobefriendsUser) {
+      console.log('You are not his friend but he has you as a friend');
+      return res.sendStatus(415); // Bad Request
+    } else if (tobefriendsUser && !alreadyFriendsUser) {
+      console.log('you are his friend but he is not your friend');
+      return res.sendStatus(409);
+    } else {
+      console.log('no one is friends with each other');
+      return res.sendStatus(415);
+    }}} catch (error) {
+    console.error('Error while adding friend:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 module.exports.addoneiffriend = async (req, res) => {
   const { alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends } = req.query;
 
@@ -346,6 +387,7 @@ module.exports.addoneiffriend = async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 
 module.exports.addonejoinedroom = async (req, res) => {
   const { roomJoiner, roomName } = req.query;

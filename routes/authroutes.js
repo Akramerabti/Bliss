@@ -58,6 +58,8 @@ routing.get('/clientnotifications' , authController.clientnotification_get)
 
 routing.post('/addoneiffriend' , authController.addoneiffriend)
 
+routing.post('/addoneiffriendinfo' , authController.addoneiffriendinfo)
+
 routing.get('/addonejoinedroom' , authController.addonejoinedroom)
 
 routing.delete('/removefriendnotification' , authController.removefriendnotification)

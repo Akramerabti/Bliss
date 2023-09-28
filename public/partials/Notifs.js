@@ -58,6 +58,7 @@ function updateNotifcount(notificationCount) {
     if (notificationCount > 0) {
       notifdot.innerHTML = notificationCount; // Update the content with notification count
       notifdot.style.display = 'block'; // Show the dot
+      
       return notificationCount;
     } else {
       notifdot.innerHTML = ''; // Clear the content when there are no notifications
@@ -102,19 +103,26 @@ socket.on('userOnlineStatus', async ({ status, notificationCount }) => {
   
   notifIconImg.addEventListener('click', async function(event) {
     event.preventDefault();
-
-    const span = notificationsContent.querySelector('span');
-  if (span && span.textContent.trim() !== '') {
-  
+   
+  const span = notificationsContent.querySelector('span');
+  if (notificationCount > 0) {
+   
     if (notificationsContent.style.display === 'none' || notificationsContent.style.display === '') {
       // Fetch the latest notification count
       try {
         const residue = await fetch(`/clientnotifications?_id=${userID}`);
         const data = await residue.json();
+
+        console.log('DATA FROM FETCH:', data);
   
         if (Array.isArray(data) && data.length > 0) {
           const latestNotificationCount = data.length;
           updateNotifcount(latestNotificationCount);
+
+          if (latestNotificationCount === 0) {
+            notificationsContent.style.display = 'none';
+            notificationsContent.classList.remove('active');
+          }
         } else {
           console.log('No notifications available');
         }
