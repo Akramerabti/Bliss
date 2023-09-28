@@ -18,6 +18,7 @@ const axios = require('axios');
 const multer = require('multer');
 const fs = require('fs');
 const sharp = require('sharp');
+const { requireAuth, checkUser } = require("../middleware/authMiddleware");
 
 
 const storageEngine = multer.diskStorage({
@@ -53,6 +54,8 @@ routing.post('/verification', authController.verifs_post)
 routing.get('/google',passport.authenticate('google', { scope: ['profile', 'email'] })); 
 
 routing.get('/findUserByName' , authController.findUserByName_get)
+
+routing.get('/profile/:username' ,requireAuth, checkUser, authController.findUserByParameterName_get)
 
 routing.get('/clientnotifications' , authController.clientnotification_get)
 

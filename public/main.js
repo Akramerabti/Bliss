@@ -485,14 +485,32 @@ function outputMessage(message) {
   }}
 
   img.addEventListener('click', async () => {
-
-      img.style.cursor = 'pointer';
-      window.location.href = `/profile/${message.sender}`;
-
-  })
-
-
-});
+    const messagesender = message.sender;
+    try {
+      const response = await fetch(`/profile/${messagesender}`);
+  
+      if (response.ok) {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const userData = await response.json();
+          console.log(userData);
+          // Handle the JSON data (e.g., display the user's profile)
+        } else {
+          // Handle HTML response (e.g., redirect to the rendered profile page)
+          window.location.href = `/profile/${messagesender}`;
+        }
+      } else if (response.status === 404) {
+        console.log('User not found');
+        // Handle the case where the user was not found
+      } else {
+        console.error('Server error:', response.status);
+        // Handle other server errors
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  });
+})
 
 
   // Add event listener for mouseleave to clear the hoverContainer

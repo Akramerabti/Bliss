@@ -245,6 +245,42 @@ module.exports.findUserByName_get = async (req, res) => {
   }
 };
 
+module.exports.findUserByParameterName_get = async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const user = await User.findOne({ name: username });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const friendNames = user.Friends.map(friend => friend.friend);
+
+    const userData = {
+      _id: user._id,
+      name: user.name,
+      Friends: friendNames,
+      email: user.email,
+      thumbnail: user.thumbnail,
+      notifications: user.notifications,
+      JoinedRooms: user.JoinedRooms,
+    };
+
+    const acceptHeader = req.get('Accept');
+
+    if (acceptHeader === 'application/json') {
+      return res.json({ specificuser: userData });
+    } else {
+      return res.render('uneditableprofile', { specificuser: userData });
+    }
+  } catch (error) {
+    console.error('Error finding user by name:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+
 module.exports.clientnotification_get = async (req, res) => {
   const { _id } = req.query;
 
