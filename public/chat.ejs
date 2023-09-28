@@ -1,5 +1,101 @@
 <%- include('partials/header'); -%>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <style>
+    /* Loading screen styles */
+    body {
+      margin: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .loading-screen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: black; /* Set the background color to black */
+      z-index: 5000; /* Set a high z-index to ensure it's on top */
+    }
+
+    svg {
+      align-items: center;
+      width: 100px;
+      height: 500px;
+    }
+
+    .path-top,
+    .path-bottom {
+      fill: none;
+      stroke: #ffec00;
+      stroke-width: 5;
+      stroke-dasharray: 320; /* Length of the path */
+      stroke-dashoffset: 300; /* Offset to hide the path initially */
+      animation: dash 3s ease-in-out forwards;
+    }
+
+    .path-top {
+      animation-delay: 0.5s; /* Delay the top part animation by 0.5s */
+    }
+
+    @keyframes dash {
+      to {
+        stroke-dashoffset: 0; /* Animate to reveal the path */
+      }
+    }
+
+    /* Keyframe animation for fade-out and zooming transition */
+    @keyframes fadeZoomOut {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.5);
+      }
+    }
+
+    /* Add an animation to hide components after 5 seconds */
+    .hide-components {
+      animation: hide 0.5s ease-in-out 5s forwards;
+    }
+
+    @keyframes hide {
+      to {
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
 <body class="chat">
+  <div class="loading-screen hide-components">
+    <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+      <path class="path-bottom" fill="none" stroke="currentColor" stroke-width="5"
+        d="M50,50 L50,150 L100,150 Q130,150 130,120 L130,80 Q135,50 100,50 L50,50" />
+    </svg>
+
+    <svg id="amongus" xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 150 200 200"
+      style="position: relative; top: 35; left: -100; animation-delay: 5s;">
+      <path class="path-bottom" fill="none" stroke="currentColor" stroke-width="5"
+        d="M50,50 L50,150 L100,150 Q130,150 130,120 L130,80 Q135,50 100,50 L50,50" />
+    </svg>
+  </div>
+
+  <script>
+    // Remove the loading screen and its contents after animation
+    setTimeout(() => {
+      const loadingScreen = document.querySelector('.loading-screen');
+      if (loadingScreen) {
+        loadingScreen.remove();
+      }
+    }, 5500); // 5.5 seconds (animation duration + delay)
+  </script>
+
 <div class="chat-container">
     <header class = "chat-header">
         <h1><i class="fas fa-comments"></i> Collaboardation </h1>

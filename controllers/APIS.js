@@ -149,7 +149,7 @@ module.exports.signup_post = async (req, res) => {
 
   try {
 
-    const data = { email:email, name:name, password:password, verificationCode:generatedcode, Verified:Verified };
+    const data = { email:email, name:name, password:password, verificationCode:generatedcode, Verified:Verified, thumbnail:"/pictures/default-profile-pic.jpg" };
     
     await Verification_sendEmail(email);
 
