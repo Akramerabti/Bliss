@@ -109,6 +109,7 @@
 
         #file-input-container {
             position: relative;
+        
         }
 
         #file-input {
@@ -137,7 +138,7 @@
     </header>
 
     <div id="crop-container" style="display: none;">
-            <div class="cropping-interface">
+            <div id="cropping" class="cropping-interface">
                 <div class="circular-cropper">
                     <img id="cropping-image" src="" alt="Cropping Image" class="profile-picture-img" referrerPolicy="no-referrer">
                   </div>
@@ -167,7 +168,6 @@
                 <button class="edit-button" id="crop-button">Crop and Save</button>
             </div>
             </div>
-        </div>
 
     <form enctype="multipart/form-data" id="profile">
         <div id="profile-container">
@@ -203,7 +203,48 @@
 </form>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script>
+        const userID = "<%= user._id %>";
 document.getElementById('profile-image-input').addEventListener('change', handleImageSelection);
+
+function postImageChanges(croppedImage) {
+  const formData = new FormData();
+  const fileBlob = dataURLtoBlob(croppedImage);
+
+  // Append the file to the form data with the name 'profilePicture'
+  formData.append('profilePicture', fileBlob, `${userID}_thumbnail.jpg`);
+
+  formData.append('userID', userID);
+
+  // Send the form data to the server
+  fetch('/upload-profile-picture', {
+    method: 'POST',
+    body: formData
+  })
+    .then(response => response.json())
+    .then(data => {
+      // Handle the server's response (e.g., success message)
+      console.log(data);
+      window.location.reload();
+    })
+    .catch(error => {
+      console.error('Error uploading profile picture:', error);
+    });
+}
+
+function dataURLtoBlob(dataURL) {
+    const parts = dataURL.split(';base64,');
+    const contentType = parts[0].split(':')[1];
+    const raw = window.atob(parts[1]);
+    const uInt8Array = new Uint8Array(raw.length);
+
+    for (let i = 0; i < raw.length; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i);
+    }
+
+    return new Blob([uInt8Array], { type: contentType });
+}
+
+
 
 function handleImageSelection(event) {
   const selectedFile = event.target.files[0]; // Get the first selected file
@@ -214,6 +255,7 @@ function handleImageSelection(event) {
 function openCropModal() {
   const cropContainer = document.getElementById('crop-container');
   cropContainer.style.display = 'block';
+
 
   const croppingImage = document.getElementById('cropping-image');
 
@@ -229,14 +271,16 @@ function openCropModal() {
     viewMode: 2,   // Set the cropping view mode
   });
 
+  function closeCropModal() {
+  const cropContainer = document.getElementById('crop-container');
+  cropContainer.style.display = 'none';
+  const croppedImage = cropper.getCroppedCanvas().toDataURL();
+  postImageChanges(croppedImage)
+}
 
   // Handle the "Crop and Save" button click
   const cropButton = document.getElementById('crop-button');
   cropButton.addEventListener('click', () => {
-    // Get the cropped image data and save it
-    const croppedImage = cropper.getCroppedCanvas().toDataURL();
-    // Call a function to save the cropped image (e.g., postImageChanges(croppedImage))
-    // Close the cropping interface
     closeCropModal();
   });
 }
@@ -258,10 +302,6 @@ function openCropModal() {
 }
 
 // Function to close the cropping interface
-function closeCropModal() {
-  const cropContainer = document.getElementById('crop-container');
-  cropContainer.style.display = 'none';
-}
 
     if (sectionElement.contentEditable === 'true') {
         // Exiting edit mode
@@ -298,42 +338,7 @@ function closeCropModal() {
         }
     }
 }
-
-function postImageChanges(croppedImage) {
-    const formData = new FormData();
-    const fileBlob = dataURLtoBlob(croppedImage);
-
-    // Append the file to the form data with the name 'profilePicture'
-    formData.append('profilePicture', fileBlob, 'profile.jpg');
-
-    // Send the form data to the server
-    fetch('/upload-profile-picture', {
-        method: 'POST',
-        body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data); // Handle the server's response (e.g., success message)
-    })
-    .catch(error => {
-        console.error('Error uploading profile picture:', error);
-    });
-}
-
 // Helper function to convert a data URL to a Blob
-function dataURLtoBlob(dataURL) {
-    const parts = dataURL.split(';base64,');
-    const contentType = parts[0].split(':')[1];
-    const raw = window.atob(parts[1]);
-    const uInt8Array = new Uint8Array(raw.length);
-
-    for (let i = 0; i < raw.length; ++i) {
-        uInt8Array[i] = raw.charCodeAt(i);
-    }
-
-    return new Blob([uInt8Array], { type: contentType });
-}
-
 // Function to save changes for text sections (e.g., name, email, details)
 function postProfileChanges(section, content) {
     // Send the updated text content to the server for storage and update the user's profile data

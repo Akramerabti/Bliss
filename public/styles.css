@@ -1430,6 +1430,11 @@ form:active {
   border-radius: 50%;
 }
 
+.crop-container{
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
 
 .cropper-view-box {
   border-radius: 50%;
@@ -1442,4 +1447,52 @@ form:active {
   height: auto;
 }
 
+.hover-container-room{
+  z-index: 9999;
+  border-radius: 5px;
+  border-color: #000;
+}
+
+#crop-container {
+  /* Set the position to absolute for precise positioning */
+  position: fixed; /* Cover the entire viewport */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Add any other styling you want, such as background color or border */
+  background-color: #000000;
+  border: 10px solid #ccc;
+  overflow: hidden;
+  z-index: 9999;
+
+  /* Add additional styles as needed */
+}
+
+#cropping {
+  /* Set the position to absolute for precise positioning */
+  position: relative;
+  
+  margin-left: auto;
+  margin-right: auto;
+
+  /* Set the width and height properties to define the container's size */
+  width: fit-content;
+  height: max-content;
+
+
+  /* Add any other styling you want, such as background color or border */
+  background-color: #000000;
+  border: 1px solid #ccc;
+  overflow: hidden;
+  /* Add additional styles as needed */
+}
+
+#circular-cropper{
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+}
 

@@ -251,10 +251,6 @@ module.exports.findUserByParameterName_get = async (req, res) => {
   try {
     const user = await User.findOne({ name: username });
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
     const friendNames = user.Friends.map(friend => friend.friend);
 
     const userData = {
@@ -275,8 +271,8 @@ module.exports.findUserByParameterName_get = async (req, res) => {
       return res.render('uneditableprofile', { specificuser: userData });
     }
   } catch (error) {
-    console.error('Error finding user by name:', error);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('Error finding user by name');
+    return res.sendStatus(500);
   }
 };
 
@@ -513,6 +509,61 @@ module.exports.Machine = async (req, res) => {
     });
     
 };
+
+module.exports.removeuserfriend = async (req, res) => {
+   const { userID, friendName } = req.params;
+
+    console.log(userID, friendName);
+  try {
+   
+    // Perform the friend removal logic here (e.g., remove 'friendName' from the user's Friends array)
+    const user = await User.findById(userID);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Remove the friend from the user's Friends array
+    user.Friends = user.Friends.filter(friend => friend.friend !== friendName);
+
+    // Save the updated user
+    await user.save();
+
+    res.status(200).json({ message: 'Friend removed' });
+  } catch (error) {
+    console.error('Error removing friend:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+module.exports.upload_profile_picture_post = async (req, res) => {
+  try {
+      // Get the uploaded file details (Multer appends "file" to the request object)
+      const uploadedFile = req.file;
+
+      if (!uploadedFile) {
+          return res.status(400).json({ error: 'No file uploaded' });
+      }
+      
+      const userID = req.body.userID;
+
+      const userupdate = await User.findOneAndUpdate(
+        { _id: userID},
+        {
+          thumbnail: `/profile-images/${uploadedFile.filename}` ,
+        },
+        { new: true } // To get the updated user object
+      );
+
+      await userupdate.save();
+
+      res.status(200).json({ message: 'Profile picture uploaded successfully' });
+  } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      res.status(500).json({ error: 'Profile picture upload failed' });
+  }
+
+}
 //NECESSARY TO CONVERT OBJECT IDS TO THEIR REFERENCED OBJECTS
 
 //User.findById(User._id)

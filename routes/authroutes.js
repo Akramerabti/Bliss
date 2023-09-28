@@ -26,14 +26,21 @@ const storageEngine = multer.diskStorage({
     cb(null, 'public/profile-images'); // Specify the destination folder relative to your project directory
   },
   filename: function (req, file, cb) {
+    if (req.user) {
+      
     // Generate a unique filename (e.g., user_id_timestamp.jpg)
-    const uniqueFilename = `${req.user._id}_${Date.now()}_${file.originalname}`;
+    const uniqueFilename = `${req.user._id}_${Date.now()}_${file.originalname}` ;
     cb(null, uniqueFilename);
-  },
-});
-
+  } else {
+    // Use an alternate unique filename without the user's ID
+    const uniqueFilename = `${Date.now()}_${file.originalname}`;
+    cb(null, uniqueFilename);
+  }
+}});
 
 const upload = multer({ storage: storageEngine});
+
+routing.use(checkUser);
 
 routing.post('/chatpost', authController.Machine)
 
@@ -57,6 +64,8 @@ routing.get('/findUserByName' , authController.findUserByName_get)
 
 routing.get('/profile/:username' ,requireAuth, checkUser, authController.findUserByParameterName_get)
 
+routing.delete('/:userID/removefriend/:friendName' , authController.removeuserfriend)
+
 routing.get('/clientnotifications' , authController.clientnotification_get)
 
 routing.post('/addoneiffriend' , authController.addoneiffriend)
@@ -70,6 +79,8 @@ routing.delete('/removefriendnotification' , authController.removefriendnotifica
 routing.post('/set-password', upload.single("user.thumbnail"), passportController.password_post);
 
 routing.get('/set-password', passportController.password_get);
+
+routing.post('/upload-profile-picture', requireAuth, checkUser, upload.single('profilePicture'), authController.upload_profile_picture_post);
 
 
 routing.get(
