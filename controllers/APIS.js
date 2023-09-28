@@ -11,7 +11,9 @@ app.use(bodyparser.urlencoded({extended: true}));
 const session = require('express-session');
 const mongoose = require('mongoose');
 const axios = require('axios');
+const fs = require('fs');
 
+const path = require('path');
 
 //Here, function for errors when logging in
 const handleErrors = (err) => {
@@ -547,7 +549,18 @@ module.exports.upload_profile_picture_post = async (req, res) => {
       
       const userID = req.body.userID;
 
-      const userupdate = await User.findOneAndUpdate(
+      const user = await User.findById(userID);
+
+      if (user) {
+        const filePath = path.join(process.cwd(), './public', user.thumbnail);
+        
+        fs.unlink(filePath, async (err) => {
+          if (err) {
+            console.error('Error deleting file:', err);
+          } else {
+            console.log('File deleted successfully');
+
+            const userupdate = await User.findOneAndUpdate(
         { _id: userID},
         {
           thumbnail: `/profile-images/${uploadedFile.filename}` ,
@@ -558,7 +571,11 @@ module.exports.upload_profile_picture_post = async (req, res) => {
       await userupdate.save();
 
       res.status(200).json({ message: 'Profile picture uploaded successfully' });
-  } catch (error) {
+          }
+        });
+
+      
+  }} catch (error) {
       console.error('Error uploading profile picture:', error);
       res.status(500).json({ error: 'Profile picture upload failed' });
   }

@@ -16,7 +16,6 @@ const GoogleStrategy = require('passport-google-oauth20');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
-
 passport.serializeUser((user, done) => {
   done(null, user);
 });
