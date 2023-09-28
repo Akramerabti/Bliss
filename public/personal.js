@@ -434,6 +434,11 @@ const currentUsername = username;
 
 function outputMessage(message) {
 
+  console.log(message.removed);
+  if (message.removed == true) {
+    return; 
+  }
+  
   const div = document.createElement('div');
   div.classList.add('message');
 

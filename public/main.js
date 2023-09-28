@@ -235,6 +235,35 @@ async function addoneiffriend(alreadyfriendsID, tobefriendsID, alreadyfriends, t
     return false;
   }
 }
+
+async function addoneiffriendinfo(alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends) {
+  try {
+    const response = await fetch(`/addoneiffriendinfo?alreadyfriendsID=${alreadyfriendsID}&tobefriendsID=${tobefriendsID}&alreadyfriends=${alreadyfriends}&tobefriends=${tobefriends}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends }),
+    });
+
+    if (response.status === 200) {
+      console.log('Friend added successfully');
+      return true;
+    } else if (response.status === 409) {
+      console.log('Either you are his friend or both are');
+      return true;
+    } else if (response.status === 404) {
+      console.log('You got him as a friend, but he doesnt have you');
+      return true;
+    }else if (response.status === 415) {
+    console.log('You are not his friend but he has you as a friend or no one is friends');
+    return false;
+  }} catch (error) {
+    console.error('Error fetching user information:', error);
+    return false;
+  }
+}
+
 const currentUsername = username;
 
 function outputMessage(message) {
@@ -293,7 +322,7 @@ function outputMessage(message) {
     // Fetch user information (async)
     const userInfo = await fetchUserInfoByName(message.sender);
     const currentuserInfo = await fetchUserInfoByName(currentUsername);
-    const addleftfriend = await addoneiffriend(userInfo._id, userID, message.sender, currentUsername);
+    const addleftfriends = await addoneiffriendinfo(userInfo._id, userID, message.sender, currentUsername);
 
 
     if (userInfo) {
@@ -336,7 +365,7 @@ function outputMessage(message) {
             
             if (currentuserInfo) {
              // Check if Friends is an array
-             if (addleftfriend) {
+             if (addleftfriends) {
                     addFriendButton.textContent = '👤';
                     addFriendButton.disabled = true;
                     friendButtonStates.set(userInfo._id, false);
