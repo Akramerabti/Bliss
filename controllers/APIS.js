@@ -99,7 +99,7 @@ const transporter = nodemailer.createTransport({
     port: 587,
     auth:{
       user:"auth.systemvd@gmail.com",
-      pass:"zPsJX2qQj97R68OV"
+      pass: process.env.emailpassword
     }
   })
 
@@ -113,7 +113,10 @@ const createToken = (id) => {
 }
 
 module.exports.signup_get = (req, res) => {//gets from folder with a slash "/signup" request and response => (arrow function)
-    res.render('signup'); // WILL LOOK IN THE SIGNUP FILE NAME renders response for signup.hbs file
+    res.render('signup', {
+      GoogleClientID: process.env.GoogleClientID,
+      // Other variables you want to pass to the template...
+    }); // WILL LOOK IN THE SIGNUP FILE NAME renders response for signup.hbs file
 }
 
 
@@ -371,8 +374,6 @@ module.exports.addoneiffriendinfo = async (req, res) => {
 
 module.exports.addoneiffriend = async (req, res) => {
   const { alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends } = req.query;
-
-  console.log( "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss", alreadyfriendsID, tobefriendsID, alreadyfriends, tobefriends);
 
   try {
     if (!alreadyfriendsID || !tobefriendsID) {

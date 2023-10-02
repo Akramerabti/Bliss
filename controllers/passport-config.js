@@ -20,6 +20,7 @@ passport.serializeUser((user, done) => {
   done(null, user);
 });
 
+require('dotenv').config();
 
 
 passport.deserializeUser((user, done) => {
@@ -30,8 +31,8 @@ passport.use(
   new GoogleStrategy(
     {
       // options for google strategy
-      clientID: "29841924121-3j6mdglnkqgcsppn5igqi27913r01hbd.apps.googleusercontent.com",
-      clientSecret: "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",
+      clientID: process.env.GoogleClientID,
+      clientSecret: process.env.GoogleClientSecret,
       callbackURL: '/google/redirect',
     },
     (accessToken, refreshToken, profile, email, done) => {

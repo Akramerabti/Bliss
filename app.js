@@ -20,7 +20,7 @@ const passportSetup = require("./controllers/passport-config");
 const passport = require("passport");
 const expressSession = require('express-session');
 const cors = require('cors');
-
+require('dotenv').config();
 
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -53,9 +53,7 @@ app.use(express.static(path.join(__dirname, '/public')));
 app.use(express.json());
 app.set('view engine', "ejs"); // Setting the "view engine" name default by express.js as "hbs"
 
-
-const dbURI = 'mongodb+srv://Akramvd:lF9UjtVXF0iWsxetr2MK@cluster0.7wctpqm.mongodb.net/appdatabase';
-mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect( process.env.dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     server.listen(PORT, () => {
       console.log(`Main server and Socket.io on port ${PORT}`);

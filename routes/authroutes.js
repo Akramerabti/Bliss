@@ -19,7 +19,7 @@ const multer = require('multer');
 const fs = require('fs');
 const sharp = require('sharp');
 const { requireAuth, checkUser } = require("../middleware/authMiddleware");
-
+require('dotenv').config();
 
 const storageEngine = multer.diskStorage({
   destination: function (req, file, cb) {
