@@ -96,8 +96,12 @@
     }, 5500); // 5.5 seconds (animation duration + delay)
   </script>
 
+
+
 <div class="chat-container">
-    <header class = "chat-header">
+    <header class = "chat-header"><div id="countdown">
+test
+</div>
         <h1><i class="fas fa-comments"></i> Collaboardation </h1>
         <button href= "/rooms" class="btn" id="leaving-button">Leave Room</button>
     </header>
@@ -136,6 +140,12 @@
             />
             <button class="btn-plane" type="submit"><i class="fas fa-paper-plane"></i> </button>
           </form>
+        </div>
+      </div>
+      <div class="error" id="error-container">
+        <div class="error-content">
+          <span class="error-message">An error occurred: Something went wrong.</span>
+          <button class="error-close-button" onclick="closeError()">X</button>
         </div>
       </div>
       <script>

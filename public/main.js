@@ -5,8 +5,7 @@ const chatMessages = document.querySelector(".chat-messages");
 const roomNameElement = document.getElementById("room-name");
 const userList = document.getElementById("users");
 const Leaving = document.getElementById("leaving-button");
-
-
+const countdownElement = document.getElementById('countdown');
 
 // Add an event listener to the form for submissi
 // Parse the room name from the URL query parameters
@@ -590,5 +589,41 @@ leavingButton.addEventListener('click', async (e) => {
 
   window.location.href = "/rooms";
 });
-}
 
+
+
+socket.on('roomTimer', ({ timeUntilClosure }) => {
+  // Define a function to update the timer
+  console.log("asdasdasdasdasd", timeUntilClosure);
+  const updateTimer = () => {
+    const seconds = Math.floor((timeUntilClosure / 1000) % 60);
+    const minutes = Math.floor((timeUntilClosure / (1000 * 60)) % 60);
+    const hours = Math.floor((timeUntilClosure / (1000 * 60 * 60)) % 24);
+
+    // Display the timer in a format like HH:MM:SS
+    const timerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    countdownElement.textContent = timerText;
+
+    // Decrement the timeUntilClosure value
+    timeUntilClosure -= 1000; // Update every second (1000 milliseconds)
+
+    if (timeUntilClosure >= 0) {
+      // Continue updating the timer until it reaches zero
+      setTimeout(updateTimer, 1000);
+    } else {
+      // The timer has reached zero, and it's time to check if the room is empty
+      const errorContainer = document.getElementById('error-container');
+      errorContainer.style.display = "block";
+      errorContainer.innerText = 'Room Closed';
+  
+       setTimeout(() => {
+        window.location.href = "/rooms";
+      }, 5000); // Redir
+      
+    }
+  };
+
+  // Start the countdown timer
+  updateTimer();
+});
+}

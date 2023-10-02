@@ -163,6 +163,7 @@ io.use((socket, next) => {
 });
 
 const rooms = new Map();
+const roomCreationTimes = new Map();
 const roomUsers = new Map();
 const userSocketMap = new Map();
 const offlineNotifications = new Map();
@@ -572,65 +573,122 @@ io.on('connection', socket => {
   };
   
 
-  // Function to handle user joining a room
   const handleJoinRoom = async ({ username, userID, room }) => {
-  // Create or get the room information
-  let roomInfo = rooms.get(room);
+    // Create or get the room information
+    let roomInfo = rooms.get(room);
+  
+    if (!roomInfo) {
+      const sanitizedRoomName = room ? room.replace(/\s/g, '_') : '';
+      const roomDB = createDatabaseConnection(sanitizedRoomName);
+      const Message = roomDB.model('Message', messageSchema);
+      const existingRoomInfo = Array.from(rooms.values()).find(
+        (info) => info.messageDB && info.messageDB.name === roomDB.name
+      );
+  
+      if (existingRoomInfo) {
+        roomInfo = existingRoomInfo;
+        console.log("EXISTING ROOM INFO", existingRoomInfo);
+      } else {
+        const roomCreationTime = Date.now();
+        const roomClosureTime = roomCreationTime + 72* 60 * 60 * 1000; // Calculate roomClosureTime
+  
+        roomInfo = Object.freeze({
+          _id: new mongoose.Types.ObjectId(),
+          creatorID: userID,
+          Message: Message,
+          messages: [Message],
+          roomName: room,
+          roomCreationTime: roomCreationTime,
+        });
+  
+        // Load and emit database messages
+        rooms.set(room, roomInfo);
+  
+        // Create the RoomInfo model
+        const savedRoomInfo = new RoomInfo(roomInfo);
+        savedRoomInfo.save()
+          .then((result) => {
+            console.log('RoomInfo document saved:', result);
+          })
+          .catch((error) => {
+            console.error('Error saving RoomInfo document:', error);
+          });
+  
+  
+        const startRoomTimer = () => {
+          const updateClosureTime = () => {
+            const currentTime = Date.now();
+            const timeUntilClosure = roomClosureTime - currentTime;
+  
+            // Emit the updated roomTimer event
+            io.to(room).emit('roomTimer', { timeUntilClosure });
+  
+            if (timeUntilClosure <= 0) {
+              closeAndRemoveRoom(room);
+            }
+          };
+  
+          // Emit roomTimer immediately upon joining
+          updateClosureTime();
+  
+          // Set up a periodic update every second (adjust the interval as needed)
+          const updateInterval = setInterval(updateClosureTime, 1000);
+  
+          const closeAndRemoveRoom = async (room) => {
+            console.log('Closing room:', room);
+  
+            // Remove the room info from the 'rooms' map
+            rooms.delete(room);
+  
+  
+            // Remove the room from the 'roomUsers' Map
+            roomUsers.delete(room);
+  
+            // Remove the room from the 'roomCreationTimes' Map
+            roomCreationTimes.delete(room);
 
-  if (!roomInfo) {
-    const sanitizedRoomName = room ? room.replace(/\s/g, '_') : '';
-    const roomDB = createDatabaseConnection(sanitizedRoomName);
-    const Message = roomDB.model('Message', messageSchema);
+            try {
+              // Delete messages associated with the room from MongoDB
+              await Message.deleteMany({ room });
+          
+              console.log('Messages for room removed from MongoDB');
+            } catch (error) {
+              console.error('Error removing messages for room:', error);
+              // Handle the error as needed
+            }
 
-    const existingRoomInfo = Array.from(rooms.values()).find(
-      (info) => info.messageDB && info.messageDB.name === roomDB.name
-    );
-
-    if (existingRoomInfo) {
-      roomInfo = existingRoomInfo;
-      console.log("EXISTING ROOM INFO", existingRoomInfo);
-    } else {
-      roomInfo = Object.freeze({
-        _id: new mongoose.Types.ObjectId(),
-        creatorID: userID,
-        Message: Message,
-        messages: [Message],
-        roomName: room,
-      });
-
-      // Load and emit database messages
-      rooms.set(room, roomInfo);
-
-      // Create the RoomInfo model
+          };
+  
+          // Start the timer for room closure
+          setTimeout(() => {
+            clearInterval(updateInterval);
+            closeAndRemoveRoom(room);
+          }, roomClosureTime - Date.now());
+        };
+  
+        // Start the room timer
+        startRoomTimer();
+  
+        // Save room creation time
+        roomCreationTimes.set(room, roomCreationTime);
+      }
     }
-    const savedRoomInfo = new RoomInfo(roomInfo);
-    savedRoomInfo.save()
-      .then((result) => {
-        console.log('RoomInfo document saved:', result);
-      })
-      .catch((error) => {
-        console.error('Error saving RoomInfo document:', error);
-      });
-  }
+  
+    socket.join(room);
+  
+    // Function to add a user to roomUsers Map
+    const addUserToRoom = ({ username, room, socket }) => {
+      // Check if the room exists in the Map, if not, create it
+      if (!roomUsers.has(room)) {
+        roomUsers.set(room, new Map());
+      }
+  
+      const usersInRoom = roomUsers.get(room);
+      usersInRoom.set(socket.id, username);
+    };
+  
+    addUserToRoom({ username, room, socket });
 
-  socket.join(room);
-
-  // Function to add a user to roomUsers Map
-  const addUserToRoom = ({ username, room, socket }) => {
-    // Check if the room exists in the Map, if not, create it
-    if (!roomUsers.has(room)) {
-      roomUsers.set(room, new Map()); // Use a Map to keep user data separate
-    }
-
-    // Get the user list for the room and add the user
-    const usersInRoom = roomUsers.get(room);
-    usersInRoom.set(socket.id, username); // Use socket.id as the key
-  };
-
-  // Call the addUserToRoom function to add the user to roomUsers
-  addUserToRoom({ username, room, socket });
-
- 
 
 
  await loadDatabaseMessages(socket, room, username);

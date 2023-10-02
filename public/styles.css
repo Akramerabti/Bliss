@@ -1514,3 +1514,15 @@ form:active {
   padding: 5px 10px; /* Adjust padding for components */
   /* Add any other size adjustments as needed */
 }
+
+.countdown{
+  position: relative;
+  bottom: 30px;
+  right: 30px;
+  background-color: #000;
+  border-radius: 5px;
+  border-color: #000;
+  color: #fff;
+  padding: 5px;
+  font-size: 20px;
+}
