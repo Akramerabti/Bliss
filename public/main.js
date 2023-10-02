@@ -593,34 +593,39 @@ leavingButton.addEventListener('click', async (e) => {
 
 
 socket.on('roomTimer', ({ timeUntilClosure }) => {
+console.log(timeUntilClosure);
+const updateTimer = () => {
+  const timeInSeconds = Math.floor(timeUntilClosure / 1000);
+  const seconds = timeInSeconds % 60;
+  const minutes = Math.floor(timeInSeconds / 60) % 60;
+  const hours = Math.floor(timeInSeconds / 3600);
 
-  const updateTimer = () => {
-    const seconds = Math.floor((timeUntilClosure / 1000) % 60);
-    const minutes = Math.floor((timeUntilClosure / (1000 * 60)) % 60);
-    const hours = Math.floor((timeUntilClosure / (1000 * 60 * 60)) % 24);
+  // Calculate the number of days and remaining hours
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
 
-    // Display the timer in a format like HH:MM:SS
-    const timerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    countdownElement.textContent = timerText;
+  // Display the timer in a format like "72 hours"
+  const timerText = `${days} days ${remainingHours} h ${minutes} min ${seconds} s`;
+  countdownElement.textContent = timerText;
 
-    // Decrement the timeUntilClosure value
-    timeUntilClosure -= 1000; // Update every second (1000 milliseconds)
+  // Decrement the timeUntilClosure value
+  timeUntilClosure -= 1000; // Update every second (1000 milliseconds)
 
-    if (timeUntilClosure >= 0) {
+  if (timeUntilClosure >= 0) {
       // Continue updating the timer until it reaches zero
       setTimeout(updateTimer, 1000);
-    } else {
+  } else {
       // The timer has reached zero, and it's time to check if the room is empty
       const errorContainer = document.getElementById('error-container');
       errorContainer.style.display = "block";
       errorContainer.innerText = 'Room Closed';
-  
-       setTimeout(() => {
-        window.location.href = "/rooms";
-      }, 5000); // Redir
-      
-    }
-  };
+
+      setTimeout(() => {
+          window.location.href = "/rooms";
+      }, 5000); // Redirect to another page
+  }
+};
+
 
   // Start the countdown timer
   updateTimer();

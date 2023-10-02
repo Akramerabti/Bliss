@@ -665,7 +665,7 @@ io.on('connection', socket => {
         console.log("EXISTING ROOM INFO", existingRoomInfo);
       } else {
         const roomCreationTime = Date.now();
-        const roomClosureTime = roomCreationTime + 72* 60 * 60 * 1000; // Calculate roomClosureTime
+        const roomClosureTime = roomCreationTime + (72 * 60 * 60 * 1000); // Calculate roomClosureTime
   
         roomInfo = Object.freeze({
           _id: new mongoose.Types.ObjectId(),
