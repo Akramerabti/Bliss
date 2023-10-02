@@ -28,7 +28,7 @@ app.use(cors({
 
 app.use(
   expressSession({
-    secret: "I swear to god no one should no this and no one will ever do",
+    secret: process.env.Key,
     resave: false,
     saveUninitialized: false,
     cookie: {

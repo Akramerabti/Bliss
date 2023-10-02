@@ -76,7 +76,7 @@ module.exports.password_get = async (req, res) => {
 const maxAge = 5 * 24 * 60 *60
 //Jwt user login token using personal id value from MongoDB database
 const createToken = (id) => {
-    return jwt.sign({ id }, "I swear to god no one should no this and no one will ever do", { expiresIn: maxAge})
+    return jwt.sign({ id }, process.env.Key , { expiresIn: maxAge})
     //creates and returns a signed jwt token using the user id property, the string secret (which needs to be long and will be hashed), and finally the jwt properties (how long for it to expire IN SECONDS NOT LIKE COOKIES, httpOnly, secure, etc.)
 }
 
