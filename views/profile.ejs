@@ -324,84 +324,88 @@ function handleProfileImageSelection(event) {
 }
 
 
-function toggleEditMode(event, section) {
-            event.preventDefault();
-            const sectionElement = document.getElementById(section);
-            const editButton = document.querySelector(`button.edit-button[onclick="toggleEditMode(event, '${section}')"]`);
-            const profileImage = document.getElementById('profile-image');
-            const imageInput = document.getElementById('profile-image-input');
-            
-            // Function to close the cropping interface
-            
-            if (sectionElement.contentEditable === 'true') {
-                // Exiting edit mode
-                sectionElement.contentEditable = 'false';
-                editButton.textContent = 'Edit';
-                sectionElement.classList.remove('edit-mode');
-                
-                // Check if it's an image section (profile-image)
-                if (section === 'profile-image') {
-                    // Handle image cropping and save the changes
-                    if (cropper) {
-                        const croppedImage = cropper.getCroppedCanvas().toDataURL(); // Get the cropped image
-                        postImageChanges(croppedImage); // Send the new image to the server
-                        cropper.destroy(); // Destroy the Cropper instance
-                    }
-                } else {
-                    // Save the changes to the server here (call postProfileChanges) for text sections
-                    const content = sectionElement.textContent;
-                    postProfileChanges(section, content);
-                }
-            } else {
-                // Entering edit mode
-                sectionElement.contentEditable = 'true';
-                editButton.textContent = 'Save';
-                sectionElement.classList.add('edit-mode');
-                
-                // If it's an image section, initialize the Cropper.js instance
-                if (section === 'profile-image') {
-                    // Initialize the Cropper.js instance for the current image
-                    cropper = new Cropper(profileImage, {
-                        aspectRatio: 1, // Set the aspect ratio (e.g., 1 for a square)
-                        viewMode: 2,   // Set the cropping view mode
-                    });
-                }
+      // Define the toggleEditMode function here
+      function toggleEditMode(event, section) {
+        event.preventDefault();
+        const sectionElement = document.getElementById(section);
+        const editButton = document.querySelector(
+          `button.edit-button[onclick="toggleEditMode(event, '${section}')" ]`
+        );
+        const profileImage = document.getElementById('profile-image');
+        const imageInput = document.getElementById('profile-image-input');
+
+        // Function to close the cropping interface
+
+        if (sectionElement.contentEditable === 'true') {
+          // Exiting edit mode
+          sectionElement.contentEditable = 'false';
+          editButton.textContent = 'Edit';
+          sectionElement.classList.remove('edit-mode');
+
+          // Check if it's an image section (profile-image)
+          if (section === 'profile-image') {
+            // Handle image cropping and save the changes
+            if (cropper) {
+              const croppedImage = cropper.getCroppedCanvas().toDataURL(); // Get the cropped image
+              postImageChanges(croppedImage); // Send the new image to the server
+              cropper.destroy(); // Destroy the Cropper instance
             }
-    }   
+          } else {
+            // Save the changes to the server here (call postProfileChanges) for text sections
+            const content = sectionElement.textContent;
+            postProfileChanges(section, content);
+          }
+        } else {
+          // Entering edit mode
+          sectionElement.contentEditable = 'true';
+          editButton.textContent = 'Save';
+          sectionElement.classList.add('edit-mode');
 
-        // Helper function to convert a data URL to a Blob
-        // Function to save changes for text sections (e.g., name, email, details)
-        function postProfileChanges(section, content) {
-  // Create an object with the updated data
-  const updatedData = {
-    [section]: content, // Assuming the section corresponds to a field in your user profile
-  };
-
-  console.log(updatedData);
-  fetch(`/updateprofile/${userID}`, {
-    method: 'PUT', // Use PUT or PATCH as appropriate
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(updatedData),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+          // If it's an image section, initialize the Cropper.js instance
+          if (section === 'profile-image') {
+            // Initialize the Cropper.js instance for the current image
+            cropper = new Cropper(profileImage, {
+              aspectRatio: 1, // Set the aspect ratio (e.g., 1 for a square)
+              viewMode: 2, // Set the cropping view mode
+            });
+          }
+        }
       }
-      return response.json();
-    })
-    .then((updatedUser) => {
-      // Assuming the server responds with the updated user data
-      // You can update the DOM or take further actions here if needed
-      const sectionElement = document.getElementById(section);
-      sectionElement.textContent = updatedUser[section]; // Update the DOM with the new data
-    })
-    .catch((error) => {
-      console.error('Error updating user profile:', error);
-      // Handle errors gracefully, e.g., display an error message to the user
-    });
-}
-</script>
+
+      // Helper function to convert a data URL to a Blob
+      // Function to save changes for text sections (e.g., name, email, details)
+      function postProfileChanges(section, content) {
+        // Create an object with the updated data
+        const updatedData = {
+          [section]: content, // Assuming the section corresponds to a field in your user profile
+        };
+
+        console.log(updatedData);
+        // Replace this with your API endpoint for updating the user's profile
+        fetch(`/updateprofile/${userID}`, {
+          method: 'PUT', // Use PUT or PATCH as appropriate
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedData),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then((updatedUser) => {
+            // Assuming the server responds with the updated user data
+            // You can update the DOM or take further actions here if needed
+            const sectionElement = document.getElementById(section);
+            sectionElement.textContent = updatedUser[section]; // Update the DOM with the new data
+          })
+          .catch((error) => {
+            console.error('Error updating user profile:', error);
+            // Handle errors gracefully, e.g., display an error message to the user
+          });
+      }
+    </script>
     
 <%- include('../public/partials/footer'); -%>

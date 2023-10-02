@@ -586,7 +586,7 @@ module.exports.upload_profile_picture_post = async (req, res) => {
 module.exports.updateprofile_put = async (req, res) => {
   
   try {
-  const userID = req.params.userId;
+  const userID = req.params.userID;
   const updatedData = req.body;
   console.log(userID, updatedData, "updatedData");
 
