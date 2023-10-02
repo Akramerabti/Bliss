@@ -7,6 +7,39 @@
 
 <a href="/rooms">Collaboardate</a>
 
+<div id="pagination">
+  <% if (totalPages > 1) { %>
+    <% if (currentPage > 1) { %>
+      <a href="?page=<%= currentPage - 1 %>" class="prev">&#8249; Previous</a>
+    <% } %>
+
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <a href="?page=<%= i %>" class="<%= i === parseInt(currentPage) ? 'active' : '' %>"><%= i %></a>
+    <% } %>
+
+    <% if (currentPage < totalPages) { %>
+      <a href="?page=<%= parseInt(currentPage) + 1 %>" class="next">Next &#8250;</a>
+    <% } %>
+  <% } %>
+</div>
+
+<div id="stories-container">
+  <% stories.forEach((story) => { %>
+    <div class="story">
+      <a href="<%= story.url %>" target="_blank">
+        <h3><%= story.title %></h3>
+      </a>
+
+      <% if (story.urlToImage) { %>
+        <img src="<%= story.urlToImage %>" alt="Story Image" />
+      <% } %>
+
+      <p><%= story.description %></p>
+    </div>
+  <% }); %>
+</div>
+
+
 <script>
   const rawUsername = "<%= user && user.name ? user.name : null %>";
   const decodedUsername = rawUsername.replace(/<\/?[^>]+(>|$)/g, ''); // Remove HTML tags
@@ -20,4 +53,5 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script type="module" src="/partials/Notifs.js"></script>
+
 <%- include('../public/partials/footer'); -%>

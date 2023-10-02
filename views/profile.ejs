@@ -137,6 +137,7 @@
         <h1>User Profile</h1>
     </header>
 
+
     <div id="crop-container" style="display: none;">
             <div id="cropping" class="cropping-interface">
                
@@ -182,15 +183,15 @@
             
         
         <h1 id="name"><%= user.name %></h1>
-        <button class="edit-button" onclick="toggleEditMode('name')">Edit</button>
+        <button type="button" class="edit-button" onclick="toggleEditMode(event, 'name')">Edit</button>
         <h2 id="email"><%= user.email %></h2>
-        <button class="edit-button" onclick="toggleEditMode('email')">Edit</button>
+        <button type="button" class="edit-button" onclick="toggleEditMode(event, 'email')">Edit</button>
         <div class="tags">
             <span class="tag">Designer</span>
             <span class="tag">Developer</span>
             <span class="tag">Photographer</span>
         </div>
-        <button class="edit-button" onclick="toggleEditMode('tags')">Edit</button>
+        <button type="button" class="edit-button" onclick="toggleEditMode(event, 'tags')">Edit</button>
         <ul id="friends-list">
             <li>
                 <img class="friend-avatar" alt="Friend 1">
@@ -201,7 +202,7 @@
         <div id="details">
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam eget velit eget mauris ultricies facilisis.</p>
         </div>
-        <button class="edit-button" onclick="toggleEditMode('details')">Edit</button>
+        <button type="button" class="edit-button" onclick="toggleEditMode(event, 'details')">Edit</button>
 </form>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script>
@@ -322,61 +323,85 @@ function handleProfileImageSelection(event) {
     });
 }
 
-        function toggleEditMode(section) {
-    const sectionElement = document.getElementById(section);
-    const editButton = document.querySelector(`button.edit-button[onclick="toggleEditMode('${section}')"]`);
-    const profileImage = document.getElementById('profile-image');
-    const imageInput = document.getElementById('profile-image-input');
 
-// Function to close the cropping interface
-
-    if (sectionElement.contentEditable === 'true') {
-        // Exiting edit mode
-        sectionElement.contentEditable = 'false';
-        editButton.textContent = 'Edit';
-        sectionElement.classList.remove('edit-mode');
-
-        // Check if it's an image section (profile-image)
-        if (section === 'profile-image') {
-            // Handle image cropping and save the changes
-            if (cropper) {
-                const croppedImage = cropper.getCroppedCanvas().toDataURL(); // Get the cropped image
-                postImageChanges(croppedImage); // Send the new image to the server
-                cropper.destroy(); // Destroy the Cropper instance
+function toggleEditMode(event, section) {
+            event.preventDefault();
+            const sectionElement = document.getElementById(section);
+            const editButton = document.querySelector(`button.edit-button[onclick="toggleEditMode(event, '${section}')"]`);
+            const profileImage = document.getElementById('profile-image');
+            const imageInput = document.getElementById('profile-image-input');
+            
+            // Function to close the cropping interface
+            
+            if (sectionElement.contentEditable === 'true') {
+                // Exiting edit mode
+                sectionElement.contentEditable = 'false';
+                editButton.textContent = 'Edit';
+                sectionElement.classList.remove('edit-mode');
+                
+                // Check if it's an image section (profile-image)
+                if (section === 'profile-image') {
+                    // Handle image cropping and save the changes
+                    if (cropper) {
+                        const croppedImage = cropper.getCroppedCanvas().toDataURL(); // Get the cropped image
+                        postImageChanges(croppedImage); // Send the new image to the server
+                        cropper.destroy(); // Destroy the Cropper instance
+                    }
+                } else {
+                    // Save the changes to the server here (call postProfileChanges) for text sections
+                    const content = sectionElement.textContent;
+                    postProfileChanges(section, content);
+                }
+            } else {
+                // Entering edit mode
+                sectionElement.contentEditable = 'true';
+                editButton.textContent = 'Save';
+                sectionElement.classList.add('edit-mode');
+                
+                // If it's an image section, initialize the Cropper.js instance
+                if (section === 'profile-image') {
+                    // Initialize the Cropper.js instance for the current image
+                    cropper = new Cropper(profileImage, {
+                        aspectRatio: 1, // Set the aspect ratio (e.g., 1 for a square)
+                        viewMode: 2,   // Set the cropping view mode
+                    });
+                }
             }
-        } else {
-            // Save the changes to the server here (call postProfileChanges) for text sections
-            const content = sectionElement.textContent;
-            postProfileChanges(section, content);
-        }
-    } else {
-        // Entering edit mode
-        sectionElement.contentEditable = 'true';
-        editButton.textContent = 'Save';
-        sectionElement.classList.add('edit-mode');
+    }   
 
-        // If it's an image section, initialize the Cropper.js instance
-        if (section === 'profile-image') {
-            // Initialize the Cropper.js instance for the current image
-            cropper = new Cropper(profileImage, {
-                aspectRatio: 1, // Set the aspect ratio (e.g., 1 for a square)
-                viewMode: 2,   // Set the cropping view mode
-            });
-        }
-    }
-}
-// Helper function to convert a data URL to a Blob
-// Function to save changes for text sections (e.g., name, email, details)
-function postProfileChanges(section, content) {
-    // Send the updated text content to the server for storage and update the user's profile data
-    // You can use AJAX or another method to send the text data to the server
-    // Example: You might use fetch() to send a POST request to the server with the text data
-    // ...
+        // Helper function to convert a data URL to a Blob
+        // Function to save changes for text sections (e.g., name, email, details)
+        function postProfileChanges(section, content) {
+  // Create an object with the updated data
+  const updatedData = {
+    [section]: content, // Assuming the section corresponds to a field in your user profile
+  };
 
-    // Once the server updates the text content, you can also update the section content in the DOM
-    const sectionElement = document.getElementById(section);
-    sectionElement.textContent = content;
+  console.log(updatedData);
+  fetch(`/updateprofile/${userID}`, {
+    method: 'PUT', // Use PUT or PATCH as appropriate
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updatedData),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((updatedUser) => {
+      // Assuming the server responds with the updated user data
+      // You can update the DOM or take further actions here if needed
+      const sectionElement = document.getElementById(section);
+      sectionElement.textContent = updatedUser[section]; // Update the DOM with the new data
+    })
+    .catch((error) => {
+      console.error('Error updating user profile:', error);
+      // Handle errors gracefully, e.g., display an error message to the user
+    });
 }
-    </script>
+</script>
     
 <%- include('../public/partials/footer'); -%>

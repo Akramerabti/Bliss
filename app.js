@@ -20,7 +20,9 @@ const passportSetup = require("./controllers/passport-config");
 const passport = require("passport");
 const expressSession = require('express-session');
 const cors = require('cors');
+const axios = require('axios');
 require('dotenv').config();
+
 
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -72,10 +74,83 @@ app.use((req, res, next) => {
 
 app.use("*", checkUser) // when you write just localhost 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
 
-app.get('/', checkUser, (req, res) => {
-  // when you write just localhost 3000, sets up the main location in the templates folder to be ... the thing below (res.render), which is home
-  res.render('home'); // FETCHES HOME FILE IN PUBLIC FOLDER
-})
+app.get('/', checkUser, async (req, res) => {
+  try {
+    const page = req.query.page || 1; // Get the page number from the query parameters
+    const perPage = 10; // Number of stories per page
+    const maxPagesToShuffle = 10; // Number of pages to shuffle
+
+    // Fetch stories from News API (newsapi.org) only for the first 10 pages
+    let newsArticles = [];
+    if (page <= maxPagesToShuffle) {
+      const newsApiKey = process.env.NEWS; // Replace with your News API key
+      const newsApiResponse = await axios.get(`https://newsapi.org/v2/top-headlines?country=us&pageSize=${perPage}&page=${page}`, {
+        headers: {
+          'X-Api-Key': newsApiKey,
+        },
+      });
+      // Assuming you receive an array of news articles in the response
+      newsArticles = newsApiResponse.data.articles.map((article) => ({
+        title: article.title,
+        url: article.url,
+        urlToImage: article.urlToImage, // Optional: Image URL
+        description: article.description, // Optional: Description
+      }));
+    }
+
+    // Fetch stories from the Hacker News API
+    const hackerNewsResponse = await axios.get('https://hacker-news.firebaseio.com/v0/topstories.json');
+    const storyIds = hackerNewsResponse.data;
+
+    // Calculate the total number of pages for both sources
+    const totalNewsArticles = newsArticles.length;
+    const totalHackerNewsStories = storyIds.length;
+    const totalStories = totalNewsArticles + totalHackerNewsStories;
+    const totalPages = Math.min(Math.ceil(totalStories / perPage), 30); // Limit pagination to 30 pages
+
+    // Combine stories from both sources and shuffle the first 10 pages
+    let combinedStories = [];
+    if (page <= maxPagesToShuffle) {
+      combinedStories = shuffle(newsArticles.concat(storyIds.map((id) => ({ id })))).slice(0, maxPagesToShuffle * perPage);
+    } else {
+      // If page is over 10, only include Hacker News stories
+      combinedStories = storyIds.map((id) => ({ id }));
+    }
+
+    // Calculate the start and end indices for the current page
+    const startIdx = (page - 1) * perPage;
+    const endIdx = Math.min(startIdx + perPage, totalStories);
+
+    // Fetch details of individual stories for the current page
+    const stories = await Promise.all(
+      combinedStories.slice(startIdx, endIdx).map(async (storyOrData) => {
+        if (storyOrData.id) {
+          const storyResponse = await axios.get(`https://hacker-news.firebaseio.com/v0/item/${storyOrData.id}.json`);
+          return storyResponse.data;
+        } else {
+          // This is a news article
+          return storyOrData;
+        }
+      })
+    );
+
+    // Render your template 'home' with the fetched stories and pagination data
+    res.render('home', { stories, totalPages, currentPage: page });
+  } catch (error) {
+    // Handle errors
+    console.error('Error fetching data:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+function shuffle(array) {
+  const shuffledArray = [...array];
+  for (let i = shuffledArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+  }
+  return shuffledArray;
+}
 
 app.get("/chat", requireAuth,checkUser, (req, res) => {
   const user = res.locals.user;

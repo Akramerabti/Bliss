@@ -82,6 +82,7 @@ routing.get('/set-password', passportController.password_get);
 
 routing.post('/upload-profile-picture', requireAuth, checkUser, upload.single('profilePicture'), authController.upload_profile_picture_post);
 
+routing.put('/updateprofile/:userID', authController.updateprofile_put)
 
 routing.get(
   '/google/redirect',
@@ -174,6 +175,7 @@ routing.post('/upload-profile-picture', upload.single('profilePicture'), async (
       res.status(500).json({ error: 'Profile picture upload failed' });
   }
 });
+
 
 
 module.exports = routing;

@@ -1519,10 +1519,78 @@ form:active {
   position: relative;
   bottom: 30px;
   right: 30px;
-  background-color: #000;
+  background-color: #00000000;
   border-radius: 5px;
   border-color: #000;
-  color: #fff;
+  color: #ff0000;
   padding: 5px;
   font-size: 20px;
+}
+
+#stories-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.story {
+  width: 30%; /* Adjust as needed to control the width of individual stories */
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.story a {
+  text-decoration: none;
+  color: #333;
+}
+
+.story h3 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.image-container {
+  max-height: 200px; /* Limit the maximum height of the image */
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.story-image {
+  max-width: 100%;
+  height: auto;
+}
+
+.description {
+  font-size: 14px;
+  max-height: 100px; /* Limit the maximum height of the description */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+#pagination {
+  padding-bottom: 20px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.prev,
+.next,
+.active {
+  text-decoration: none;
+  background-color: #007bff;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin: 0 5px;
+}
+
+.prev:hover,
+.next:hover,
+.active:hover {
+  background-color: #0056b3;
 }

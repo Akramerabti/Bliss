@@ -582,6 +582,28 @@ module.exports.upload_profile_picture_post = async (req, res) => {
   }
 
 }
+
+module.exports.updateprofile_put = async (req, res) => {
+  
+  try {
+  const userID = req.params.userId;
+  const updatedData = req.body;
+  console.log(userID, updatedData, "updatedData");
+
+  // Validate and update the user's profile data
+  const updatedUser = await User.findByIdAndUpdate(userID, updatedData, { new: true });
+
+  if (!updatedUser) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  // Respond with the updated user data
+  res.json(updatedUser);
+} catch (error) {
+  console.error('Error updating user profile:', error);
+  res.status(500).json({ message: 'Internal Server Error' });
+}
+};
 //NECESSARY TO CONVERT OBJECT IDS TO THEIR REFERENCED OBJECTS
 
 //User.findById(User._id)
