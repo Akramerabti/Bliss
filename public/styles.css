@@ -5,8 +5,13 @@ body, h1, h2, h3, h4, ul, li, a, p, input, label, button, div, footer {
   margin: 0;
   padding: 0;
   font-family: 'Quicksand', sans-serif;
-  color: #444;
-  
+  color: #333;
+}
+
+h1, h2, h3, h4, p, a, li {
+  border-radius: 3px;
+  border-color: #000;
+  color: #ffda08b7;
 }
 
 /* Global Styles */
@@ -212,6 +217,7 @@ footer {
 .friends-groups-container h2 {
   font-size: 18px;
   margin-top: 10px;
+  color: #000;
 }
 
 .friends-list,
@@ -299,6 +305,22 @@ a {
 
 }
 
+.chat-container #leaving-button{
+  margin-right: 5px;
+}
+
+.chat-container #personal-leaving-button{
+  margin-right: 5px;
+}
+
+.chat-container #group-leaving-button{
+  margin-right: 5px;
+}
+
+.chat-container #countdown{
+  margin-right: 30px;
+}
+
 .chat-header {
 	background: linear-gradient(45deg, #000000, #4400ff, #000000);
   background-size: 200% 200%;
@@ -308,9 +330,15 @@ a {
 	border-top-right-radius: 5px;
 	display: flex;
 	justify-content: space-between;
+  padding: 10px 20px; /* Add padding as needed */
 
 }
 
+#container {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px; /* Add padding as needed */
+}
 .chat-main {
 	display: grid;
 	grid-template-columns: 1fr 7fr;
@@ -322,6 +350,7 @@ a {
 .chat-messages {
 	padding: auto;
 	max-height: 500px;
+  color: #ffffff;
 	overflow-y: scroll;
     background-image: url('../img/chat-bg.jpg');
     background-position: center;
@@ -330,7 +359,7 @@ a {
 
 .chat-messages .message {
 	padding: 10px;
-	
+	color: #ffffff;
 	background: linear-gradient(45deg, #000000, #4400ff, #000000);
   background-size: 200% 200%;
   animation: gradientAnimation 20s ease infinite;
@@ -373,6 +402,18 @@ a {
     background-size: contain;
 }
 
+.chat-group-messages {
+  padding: auto;
+  width:100%;
+	max-height: 500px;
+  color: white;
+	overflow-y: scroll;
+    background-image: url('../img/chat-bg.jpg');
+    background-position: center;
+    background-size: contain;
+
+}
+
 .chat-name-messages .message {
 	padding: 10px;
 	margin-bottom: auto;
@@ -380,6 +421,16 @@ a {
   background-size: 200% 200%;
   animation: gradientAnimation 20s ease infinite;
 	border-radius: 5px;
+}
+
+.chat-group-messages .message {
+	padding: 10px;
+	margin-bottom: auto;
+	background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
+	border-radius: 5px;
+  color: white;
 }
 
 .chat-name-messages .message .meta {
@@ -392,7 +443,23 @@ a {
     display: flex;
 }
 
+.chat-group-messages .message .meta {
+	font-size: 15px;
+	font-weight: bold;
+	color: white;
+	opacity: 0.7;
+  
+	margin-bottom: 7px;
+    display: flex;
+}
+
 .chat-name-messages .message .meta span {
+  color: #ffffff;
+  margin-left: auto;
+  padding: 5px;
+}
+
+.chat-group-messages .message .meta span {
   color: #ffffff;
   margin-left: auto;
   padding: 5px;
@@ -436,7 +503,26 @@ a {
   margin-bottom: auto;
 }
 
+.chat-group-form-container {
+	padding: 5px 10px;
+	background-color: var(--dark-color-b);
+  margin-block: 1px;
+  width: 100%;
+  height: max-content;
+  margin-bottom: auto;
+}
+
 .chat-name-form-container form {
+	display: grid;
+  grid-template-columns: auto;
+  padding: 5px 10px;
+  padding-block: -200px;
+  margin-left: 280px;
+  margin-bottom: 200px ;
+  width: 70%; /* Set width to 100% */
+  height: max-content;
+}
+.chat-group-form-container form {
 	display: grid;
   grid-template-columns: auto;
   padding: 5px 10px;
@@ -448,6 +534,18 @@ a {
 }
 
 .chat-name-form-container input[type='text'] {
+	border-radius: 15px;
+    border: none;
+    font-size: 16px;
+    padding: 10px;
+    height: 20px;
+    flex: 1;
+    outline: none;
+    height: max-content;
+
+}
+
+.chat-group-form-container input[type='text'] {
 	border-radius: 15px;
     border: none;
     font-size: 16px;
@@ -1515,24 +1613,28 @@ form:active {
   /* Add any other size adjustments as needed */
 }
 
-.countdown{
-  position: relative;
-  bottom: 30px;
-  right: 30px;
-  background-color: #00000000;
-  border-radius: 5px;
-  border-color: #000;
+#countdown{
+ margin-right: 20px;
+  
   color: #ff0000;
   padding: 5px;
-  font-size: 20px;
+  font-size: 30px;
+  order: 1
 }
+
+#leaving-button {
+  order: 2; /* Change the order to move it further to the right */
+}
+
 
 #stories-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 20px;
+
 }
+
 
 .story {
   width: 30%; /* Adjust as needed to control the width of individual stories */
@@ -1541,6 +1643,9 @@ form:active {
   border: 1px solid #ccc;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   text-align: center;
+  background: linear-gradient(45deg, #000000, #4400ff, #000000);
+  background-size: 200% 200%;
+  animation: gradientAnimation 20s ease infinite;
 }
 
 .story a {
@@ -1553,10 +1658,12 @@ form:active {
   margin: 0;
 }
 
-.image-container {
-  max-height: 200px; /* Limit the maximum height of the image */
+.image-story-container {
+  height: fit-content;
+  width: fit-content;
   overflow: hidden;
-  margin: 10px 0;
+  padding: 5px;
+
 }
 
 .story-image {
@@ -1593,4 +1700,20 @@ form:active {
 .next:hover,
 .active:hover {
   background-color: #0056b3;
+}
+
+.center-button {
+  justify-content: center;
+  align-items: center;
+  margin-left: 800px;
+  font-size: larger;
+  font-weight:bold;
+ 
+}
+
+.center-button a {
+  justify-content: center;
+  align-items: center;
+  font-size: larger;
+ 
 }

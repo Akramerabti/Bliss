@@ -593,8 +593,7 @@ leavingButton.addEventListener('click', async (e) => {
 
 
 socket.on('roomTimer', ({ timeUntilClosure }) => {
-  // Define a function to update the timer
-  console.log("asdasdasdasdasd", timeUntilClosure);
+
   const updateTimer = () => {
     const seconds = Math.floor((timeUntilClosure / 1000) % 60);
     const minutes = Math.floor((timeUntilClosure / (1000 * 60)) % 60);
