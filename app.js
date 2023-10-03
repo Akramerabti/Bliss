@@ -152,6 +152,7 @@ function shuffle(array) {
   return shuffledArray;
 }
 
+
 app.get("/chat", requireAuth,checkUser, (req, res) => {
   const user = res.locals.user;
   

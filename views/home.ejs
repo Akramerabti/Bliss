@@ -5,10 +5,11 @@
 <% } %>
 
 
-<div class="center-button">
-  <a href="/rooms" class="button">Start Chatting!</a>
-</div>
+<a href="/rooms" class="center-button">
+  <div class="button" id="bigone">Start Chatting!</div>
+</a>
 
+<input type="text" id="searchInput" placeholder="Search stories..." />
 <div id="pagination">
   <% if (totalPages > 1) { %>
     <% if (currentPage > 1) { %>
@@ -52,6 +53,33 @@
   const rawUserID = "<%= user && user._id ? user._id : null %>";
   const decodedUserID = rawUserID.replace(/<\/?[^>]+(>|$)/g, ''); // Remove HTML tags
   const userID = decodedUserID.replace(/[^\w\s]/g, ''); // Remove special characters
+
+  document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("searchInput");
+  const storiesContainer = document.getElementById("stories-container");
+  const allStories = Array.from(storiesContainer.querySelectorAll(".story"));
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+
+    // Filter stories based on the query
+    const filteredStories = allStories.filter((story) => {
+      const title = story.querySelector("h3").textContent.toLowerCase();
+      const description = story.querySelector("p").textContent.toLowerCase();
+      
+      return title.includes(query) || description.includes(query);
+    });
+
+    // Hide or show stories based on the filter results
+    allStories.forEach((story) => {
+      if (filteredStories.includes(story)) {
+        story.style.display = "block";
+      } else {
+        story.style.display = "none";
+      }
+    });
+  });
+});
 </script>
 
 <script src="/socket.io/socket.io.js"></script>

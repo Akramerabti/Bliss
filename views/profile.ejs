@@ -8,7 +8,7 @@
         }
 
         header {
-            background-color: #3498db;
+            background-color: #000000;
             color: #fff;
             text-align: center;
             padding: 20px;
@@ -17,7 +17,7 @@
         #profile-container {
             max-width: 600px;
             margin: 20px auto;
-            background-color: #fff;
+            background-color: #00000049;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
             border-radius: 5px;
             padding: 20px;
@@ -34,17 +34,18 @@
         h1 {
             font-size: 24px;
             margin: 0;
+            color: #ffffff;
         }
 
         h2 {
             font-size: 18px;
             margin-top: 5px;
-            color: #555;
+            color: #ffffff;
         }
 
         p {
             font-size: 16px;
-            color: #333;
+            color: #ffffff;
             margin: 10px 0;
         }
 
@@ -65,6 +66,7 @@
 
         #friends-list li {
             margin: 5px 0;
+            color: #ffffff;
         }
 
         .friend-avatar {
@@ -134,13 +136,15 @@
 </head>
 <body>
     <header>
-        <h1>User Profile</h1>
+        <h1 id="profile-header">User Profile</h1>
     </header>
 
 
     <div id="crop-container" style="display: none;">
             <div id="cropping" class="cropping-interface">
-               
+
+              <button class="x-button" id="x-button">X</button>
+
                 <div class="zoom-controls">
                     <button class="zoom-button" id="zoom-in">Zoom In</button>
                     <button class="zoom-button" id="zoom-out">Zoom Out</button>
@@ -207,6 +211,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script>
         const userID = "<%= user._id %>";
+
+        document.getElementById('x-button').addEventListener('click', function() {
+  // Go to the previous page in the browser's history
+  window.location.href = '/profile';
+});
 
 document.getElementById('profile-image-input').addEventListener('change', handleProfileImageSelection(event));
 
