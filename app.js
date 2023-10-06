@@ -187,7 +187,7 @@ app.get("/profile", requireAuth, checkUser, (req, res) => {
 
 
 function createDatabaseConnection(room) {
-  return mongoose.createConnection(`mongodb://localhost:27017/${room}`, {
+  return mongoose.createConnection(`mongodb://mymongo:27017/${room}`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });

@@ -12,15 +12,15 @@ spec:
       labels:
         app: mynode
     spec:
-      containers:
-        - name: mynode-container
-          image: mynode:latest
-          ports:
-            - containerPort: 3000
-          resources:
-            limits:
-              cpu: "500m"   
-              memory: "512Mi"  
-            requests:
-              cpu: "250m"  
-              memory: "256Mi"  
+     containers:
+     - name: mynode-container
+       image: akramvd/mynode:latest
+       ports:
+        - containerPort: 3000
+       resources:
+         limits:
+          cpu: "500m"
+          memory: "512Mi"
+         requests:
+          cpu: "250m"
+          memory: "256Mi"

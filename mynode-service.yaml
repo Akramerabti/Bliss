@@ -4,9 +4,9 @@ metadata:
   name: mynode-service
 spec:
   selector:
-    app: mynode
+    app: mynode  
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 3000  # Should match the container port
-  type: NodePort
+      targetPort: 3000
+  type: LoadBalancer
