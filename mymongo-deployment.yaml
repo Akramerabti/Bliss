@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mymongo-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mymongo
+  template:
+    metadata:
+      labels:
+        app: mymongo
+    spec:
+      containers:
+      - name: mymongo-container
+        image: mongo
+        resources:
+          limits:
+            cpu: "0.5"   # Maximum of 0.5 CPU cores
+            memory: "512Mi"  # Maximum of 512 megabytes of memory
+          requests:
+            cpu: "0.25"  # Minimum of 0.25 CPU cores
+            memory: "256Mi"  # Minimum of 256 megabytes of memory
