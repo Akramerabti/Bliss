@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mynode-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mynode
+  template:
+    metadata:
+      labels:
+        app: mynode
+    spec:
+      containers:
+        - name: mynode-container
+          image: mynode:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            limits:
+              cpu: "500m"   
+              memory: "512Mi"  
+            requests:
+              cpu: "250m"  
+              memory: "256Mi"  
